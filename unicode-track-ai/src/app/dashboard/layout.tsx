@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { AdminDataProvider, useAdminData } from "@/context/AdminDataContext";
 import { AdminSidebar } from "@/components/dashboard/AdminSidebar";
 import { AdminTopNavbar } from "@/components/dashboard/AdminTopNavbar";
@@ -42,8 +43,29 @@ function ToastBanner() {
 }
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const pendingStudent = sessionStorage.getItem("unicodetrack_pending_student_email");
+      if (pendingStudent) {
+        router.replace("/change-password");
+        return;
+      }
+
+      const rawUser = sessionStorage.getItem("unicodetrack_authenticated_user");
+      if (rawUser) {
+        const user = JSON.parse(rawUser);
+        if (user.role === "student" && user.mustChangePassword) {
+          router.replace("/change-password");
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen flex bg-[#F8FAFC] text-[#0B1220] font-sans antialiased">

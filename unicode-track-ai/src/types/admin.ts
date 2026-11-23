@@ -25,6 +25,7 @@ export interface Lecturer {
 
 export interface Student {
   id: string;
+  studentId?: string;
   fullName: string;
   email: string;
   departmentId: string;
@@ -33,6 +34,7 @@ export interface Student {
   defaultPassword?: string;
   profilePhotoUrl?: string | null;
   accountStatus: "active" | "inactive";
+  mustChangePassword?: boolean;
   createdAt: string;
 }
 

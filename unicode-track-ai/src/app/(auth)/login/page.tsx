@@ -11,14 +11,18 @@ import {
   Mail, 
   Eye, 
   EyeOff,
-  Info
+  AlertCircle,
+  GraduationCap,
+  Users,
+  ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAdminData, AdminDataProvider } from "@/context/AdminDataContext";
+import { authenticateStudent } from "@/lib/auth/student-auth";
 
 function LoginContent() {
   const router = useRouter();
-  const { findLecturerByEmail, lecturers } = useAdminData();
+  const { students, findLecturerByEmail } = useAdminData();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,29 +30,93 @@ function LoginContent() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
     const trimmedEmail = email.trim().toLowerCase();
 
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    // 1. Validation
+    if (!trimmedEmail) {
+      setErrorMessage("University email address is required.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setErrorMessage("Please enter a valid university email address.");
+      return;
+    }
+    if (!password) {
+      setErrorMessage("Password is required.");
+      return;
+    }
 
-      // Check if user is an existing lecturer
+    setIsSubmitting(true);
+
+    try {
+      // 2. Check Student Authentication (Supabase Auth with synchronized store fallback)
+      const isRegisteredStudent = students.some((s) => s.email.toLowerCase() === trimmedEmail);
+
+      if (isRegisteredStudent) {
+        const studentAuth = await authenticateStudent(trimmedEmail, password, students);
+
+        if (!studentAuth.success) {
+          setErrorMessage(studentAuth.error || "Authentication failed.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (studentAuth.student) {
+          // Set student session state
+          try {
+            sessionStorage.setItem(
+              "unicodetrack_authenticated_user",
+              JSON.stringify({
+                role: "student",
+                email: studentAuth.student.email,
+                fullName: studentAuth.student.fullName,
+                departmentId: studentAuth.student.departmentId,
+                mustChangePassword: studentAuth.mustChangePassword,
+              })
+            );
+            sessionStorage.setItem("unicodetrack_pending_user_role", "student");
+          } catch {
+            // Ignore session storage errors
+          }
+
+          // 3. First-Time Login Detection
+          if (studentAuth.mustChangePassword) {
+            try {
+              sessionStorage.setItem("unicodetrack_pending_student_email", trimmedEmail);
+            } catch {
+              // Ignore
+            }
+            router.push("/change-password");
+          } else {
+            try {
+              sessionStorage.removeItem("unicodetrack_pending_student_email");
+            } catch {
+              // Ignore
+            }
+            router.push("/dashboard");
+          }
+          return;
+        }
+      }
+
+      // 4. Check Lecturer Account Authentication
       const lecturer = findLecturerByEmail(trimmedEmail);
       if (lecturer) {
         if (lecturer.status === "Deactivated") {
           setErrorMessage("This lecturer account has been deactivated by the university administrator.");
+          setIsSubmitting(false);
           return;
         }
 
-        // If default password entered
-        if (password === "UniCode@2004") {
+        if (password === (lecturer.defaultPassword || "UniCode@2004")) {
           if (!lecturer.hasChangedDefaultPassword) {
-            // Must change default password first!
             try {
               sessionStorage.setItem("unicodetrack_pending_lecturer_email", trimmedEmail);
+              sessionStorage.setItem("unicodetrack_pending_user_role", "lecturer");
             } catch {
               // Ignore
             }
@@ -57,39 +125,65 @@ function LoginContent() {
           }
         }
 
-        // Lecturer has already changed password
+        try {
+          sessionStorage.setItem("unicodetrack_pending_user_role", "lecturer");
+        } catch {
+          // Ignore
+        }
         router.push("/dashboard");
         return;
       }
 
-      // Check if email has default password for any pending lecturer
-      if (password === "UniCode@2004") {
+      // 5. Administrator Demo Credentials
+      if (trimmedEmail === "admin@university.edu" && password === "adminPassword123") {
         try {
-          sessionStorage.setItem("unicodetrack_pending_lecturer_email", trimmedEmail);
+          sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
+          sessionStorage.removeItem("unicodetrack_pending_student_email");
+          sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
         } catch {
           // Ignore
         }
-        router.push("/change-password");
+        router.push("/dashboard");
         return;
       }
 
-      // Administrator or generic sign in
-      router.push("/dashboard");
-    }, 350);
+      // 6. Generic failure
+      setErrorMessage("Invalid university email or password. Please verify your credentials.");
+    } catch {
+      setErrorMessage("An unexpected error occurred during sign in. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Helper buttons for demo review
-  const handleSelectDemoAdmin = () => {
-    setEmail("admin@university.edu");
-    setPassword("adminPassword123");
+  // Demo Quick-Fill Selectors
+  const handleSelectStudentFirstLogin = () => {
+    // Student needing mandatory first password change
+    const pendingStudent = students.find((s) => s.mustChangePassword !== false && s.accountStatus === "active");
+    setEmail(pendingStudent ? pendingStudent.email : "alex.chen@university.edu");
+    setPassword(pendingStudent?.defaultPassword || "Student@2026");
     setErrorMessage("");
   };
 
-  const handleSelectDemoLecturerFirstLogin = () => {
-    // Pick the first lecturer who hasn't changed default password
-    const pendingLec = lecturers.find((l) => !l.hasChangedDefaultPassword) || lecturers[2];
-    setEmail(pendingLec ? pendingLec.email : "sarah.almansoor@university.edu");
-    setPassword("UniCode@2004");
+  const handleSelectStudentActive = () => {
+    // Student who has already completed first password change
+    const activeStudent = students.find((s) => s.mustChangePassword === false && s.accountStatus === "active");
+    setEmail(activeStudent ? activeStudent.email : "marcus.doe@university.edu");
+    setPassword(activeStudent?.defaultPassword || "SecurePass2026!");
+    setErrorMessage("");
+  };
+
+  const handleSelectStudentDeactivated = () => {
+    // Deactivated student
+    const deactStudent = students.find((s) => s.accountStatus === "inactive");
+    setEmail(deactStudent ? deactStudent.email : "aisha.tariq@university.edu");
+    setPassword(deactStudent?.defaultPassword || "Student@2026");
+    setErrorMessage("");
+  };
+
+  const handleSelectDemoAdmin = () => {
+    setEmail("admin@university.edu");
+    setPassword("adminPassword123");
     setErrorMessage("");
   };
 
@@ -116,69 +210,116 @@ function LoginContent() {
           Sign In to UniCodeTrack AI
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-[#64748B]">
-          Enter your institutional credentials to access your workspace
+          Enter your university email and credentials to access your workspace
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white py-8 px-6 shadow-sm border border-[#E2E8F0] rounded-2xl sm:px-10 space-y-5">
-          {/* Demo Quick-Fill Helpers */}
+          {/* Quick-Fill Demo Helpers */}
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/90 text-xs space-y-2">
             <div className="flex items-center justify-between text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
-              <span>Demo Quick-Fill:</span>
-              <span className="text-teal-700 font-medium">Click to test</span>
+              <span className="flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-teal-600" /> Demo Quick-Fill Roles
+              </span>
+              <span className="text-teal-700 font-medium text-[10px]">Click to populate</span>
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={handleSelectStudentFirstLogin}
+                className="p-2 text-left rounded-lg bg-white border border-teal-200 hover:border-teal-500 hover:bg-teal-50/40 text-[11px] font-medium transition-colors group"
+              >
+                <div className="flex items-center gap-1 text-teal-800 font-bold">
+                  <GraduationCap className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Student (1st Login)</span>
+                </div>
+                <span className="text-[10px] text-amber-700 font-medium block mt-0.5">
+                  &rarr; Triggers /change-password
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSelectStudentActive}
+                className="p-2 text-left rounded-lg bg-white border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/40 text-[11px] font-medium transition-colors group"
+              >
+                <div className="flex items-center gap-1 text-slate-800 font-bold">
+                  <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Student (Active)</span>
+                </div>
+                <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">
+                  &rarr; Direct to /dashboard
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSelectStudentDeactivated}
+                className="p-2 text-left rounded-lg bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50/30 text-[11px] font-medium transition-colors group"
+              >
+                <div className="flex items-center gap-1 text-slate-800 font-bold">
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Student (Deactivated)</span>
+                </div>
+                <span className="text-[10px] text-rose-600 font-medium block mt-0.5">
+                  &rarr; Blocked access
+                </span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleSelectDemoAdmin}
-                className="p-1.5 text-left rounded-lg bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-800 transition-colors"
+                className="p-2 text-left rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 text-[11px] font-medium transition-colors group"
               >
-                <span className="block font-bold text-slate-900">1. Administrator</span>
-                <span className="text-[10px] text-slate-500">&rarr; Direct to /dashboard</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleSelectDemoLecturerFirstLogin}
-                className="p-1.5 text-left rounded-lg bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-800 transition-colors"
-              >
-                <span className="block font-bold text-teal-900">2. Lecturer (1st Login)</span>
-                <span className="text-[10px] text-amber-700 font-medium">&rarr; Triggers /change-password</span>
+                <div className="flex items-center gap-1 text-slate-800 font-bold">
+                  <Users className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Admin Workspace</span>
+                </div>
+                <span className="text-[10px] text-slate-500 block mt-0.5">
+                  &rarr; University Admin
+                </span>
               </button>
             </div>
           </div>
 
+          {/* Error Message Alert */}
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2">
-              <Info className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2 animate-in fade-in-50">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <span className="leading-relaxed font-medium">{errorMessage}</span>
             </div>
           )}
 
+          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email input */}
+            {/* Email Field */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Institutional Email Address
+                University Email Address <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@university.edu or lecturer@university.edu"
-                  className="w-full px-3.5 py-2.5 pl-10 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-white"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errorMessage) setErrorMessage("");
+                  }}
+                  placeholder="Enter your university email"
+                  className="w-full px-3.5 py-2.5 pl-10 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-white placeholder:text-slate-400"
                   required
                 />
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
             </div>
 
-            {/* Password input with show/hide */}
+            {/* Password Field */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-slate-700">
-                  Password
+                  Password <span className="text-rose-500">*</span>
                 </label>
                 <Link
                   href="/reset-password"
@@ -191,9 +332,12 @@ function LoginContent() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-white"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errorMessage) setErrorMessage("");
+                  }}
+                  placeholder="Enter your password"
+                  className="w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-white placeholder:text-slate-400"
                   required
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -212,7 +356,7 @@ function LoginContent() {
               </div>
             </div>
 
-            {/* Sign In Button */}
+            {/* Sign In Submit Button */}
             <Button
               type="submit"
               variant="primary"
@@ -221,19 +365,16 @@ function LoginContent() {
               className="w-full justify-center mt-2"
               iconRight={<ArrowRight className="w-4 h-4" />}
             >
-              {isSubmitting ? "Signing In..." : "Sign In"}
+              {isSubmitting ? "Verifying Credentials..." : "Sign In"}
             </Button>
           </form>
 
-          {/* Link to Register */}
-          <div className="mt-6 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
-            Don&apos;t have a university workspace?{" "}
-            <Link
-              href="/register"
-              className="font-semibold text-teal-700 hover:text-teal-800 hover:underline"
-            >
-              Register your university
-            </Link>
+          {/* Footer note */}
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
+            Assigned a default password by your administrator?{" "}
+            <span className="text-teal-700 font-semibold block mt-0.5">
+              Sign in with it to complete your one-time password change.
+            </span>
           </div>
         </div>
 

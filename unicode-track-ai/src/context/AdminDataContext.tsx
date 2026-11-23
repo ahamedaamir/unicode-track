@@ -42,6 +42,8 @@ interface AdminDataContextType {
   ) => { success: boolean; error?: string };
   toggleStudentStatus: (id: string) => void;
   deleteStudent: (id: string) => void;
+  findStudentByEmail: (email: string) => Student | undefined;
+  changeStudentPassword: (email: string, newPass: string) => boolean;
 
   toast: { message: string; type: "success" | "error" | "info" } | null;
   showToast: (message: string, type?: "success" | "error" | "info") => void;
@@ -121,8 +123,10 @@ const initialStudents: Student[] = [
     departmentId: "dept-1",
     academicYear: 4,
     semester: 2,
+    defaultPassword: "Student@2026",
     profilePhotoUrl: null,
     accountStatus: "active",
+    mustChangePassword: true,
     createdAt: "2026-10-15",
   },
   {
@@ -132,8 +136,10 @@ const initialStudents: Student[] = [
     departmentId: "dept-1",
     academicYear: 4,
     semester: 1,
+    defaultPassword: "Student@2026",
     profilePhotoUrl: null,
     accountStatus: "active",
+    mustChangePassword: true,
     createdAt: "2026-10-16",
   },
   {
@@ -143,8 +149,10 @@ const initialStudents: Student[] = [
     departmentId: "dept-3",
     academicYear: 3,
     semester: 2,
+    defaultPassword: "SecurePass2026!",
     profilePhotoUrl: null,
     accountStatus: "active",
+    mustChangePassword: false,
     createdAt: "2026-10-18",
   },
   {
@@ -154,8 +162,10 @@ const initialStudents: Student[] = [
     departmentId: "dept-2",
     academicYear: 2,
     semester: 1,
+    defaultPassword: "Student@2026",
     profilePhotoUrl: null,
     accountStatus: "active",
+    mustChangePassword: true,
     createdAt: "2026-10-20",
   },
   {
@@ -165,8 +175,10 @@ const initialStudents: Student[] = [
     departmentId: "dept-1",
     academicYear: 3,
     semester: 1,
+    defaultPassword: "Student@2026",
     profilePhotoUrl: null,
     accountStatus: "active",
+    mustChangePassword: true,
     createdAt: "2026-10-22",
   },
   {
@@ -176,8 +188,10 @@ const initialStudents: Student[] = [
     departmentId: "dept-3",
     academicYear: 2,
     semester: 2,
+    defaultPassword: "Student@2026",
     profilePhotoUrl: null,
     accountStatus: "active",
+    mustChangePassword: true,
     createdAt: "2026-10-25",
   },
   {
@@ -187,8 +201,10 @@ const initialStudents: Student[] = [
     departmentId: "dept-4",
     academicYear: 1,
     semester: 2,
+    defaultPassword: "Student@2026",
     profilePhotoUrl: null,
     accountStatus: "active",
+    mustChangePassword: true,
     createdAt: "2026-10-28",
   },
   {
@@ -198,23 +214,28 @@ const initialStudents: Student[] = [
     departmentId: "dept-2",
     academicYear: 1,
     semester: 1,
+    defaultPassword: "Student@2026",
     profilePhotoUrl: null,
     accountStatus: "inactive",
+    mustChangePassword: true,
     createdAt: "2026-11-02",
   },
 ];
 
 interface RawStudentRecord {
   id?: string;
+  studentId?: string;
   fullName?: string;
   name?: string;
   email?: string;
   departmentId?: string;
   academicYear?: number;
   semester?: number;
+  defaultPassword?: string;
   profilePhotoUrl?: string | null;
   accountStatus?: "active" | "inactive";
   status?: string;
+  mustChangePassword?: boolean;
   createdAt?: string;
 }
 
@@ -230,13 +251,16 @@ const normalizeStudent = (raw: RawStudentRecord): Student => {
 
   return {
     id: raw.id || `std-${Math.random().toString(36).slice(2, 7)}`,
+    studentId: raw.studentId,
     fullName: raw.fullName || raw.name || "Student Member",
     email: raw.email || "student@university.edu",
     departmentId: raw.departmentId || "dept-1",
     academicYear: validYear,
     semester: validSem,
+    defaultPassword: raw.defaultPassword || "Student@2026",
     profilePhotoUrl: raw.profilePhotoUrl || null,
     accountStatus: (raw.accountStatus === "inactive" || raw.status === "Inactive") ? "inactive" : "active",
+    mustChangePassword: raw.mustChangePassword !== false,
     createdAt: raw.createdAt || "2026-10-20",
   };
 };
@@ -663,8 +687,10 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       departmentId: data.departmentId,
       academicYear: data.academicYear,
       semester: data.semester,
+      defaultPassword: data.defaultPassword,
       profilePhotoUrl: null,
       accountStatus: "active",
+      mustChangePassword: true,
       createdAt: new Date().toISOString().split("T")[0],
     };
 
@@ -757,6 +783,36 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     showToast(`Student ${std?.fullName || "record"} deleted`, "info");
   };
 
+  const findStudentByEmail = (email: string) => {
+    return students.find((s) => s.email.toLowerCase() === email.trim().toLowerCase());
+  };
+
+  const changeStudentPassword = (email: string, newPass: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const std = students.find((s) => s.email.toLowerCase() === trimmedEmail);
+    if (!std) return false;
+
+    const updatedStudents = students.map((s) =>
+      s.email.toLowerCase() === trimmedEmail
+        ? {
+            ...s,
+            mustChangePassword: false,
+            defaultPassword: newPass,
+            accountStatus: "active" as const,
+          }
+        : s
+    );
+    setStudents(updatedStudents);
+    const updatedActs = addActivity(
+      "completed first-time student password change",
+      trimmedEmail,
+      "student"
+    );
+    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    showToast("Password updated successfully! Welcome to your student dashboard.", "success");
+    return true;
+  };
+
   return (
     <AdminDataContext.Provider
       value={{
@@ -781,6 +837,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         editStudent,
         toggleStudentStatus,
         deleteStudent,
+        findStudentByEmail,
+        changeStudentPassword,
         toast,
         showToast,
         dismissToast,
