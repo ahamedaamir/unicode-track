@@ -26,6 +26,8 @@ import {
   Sparkles,
   Info,
   Layers,
+  Database,
+  Image,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
@@ -47,6 +49,8 @@ function GroupWorkspaceContent() {
     activeRole,
     activeStudentEmail,
     getEvaluationForGroup,
+    getERSubmissionForGroup,
+    submitERDiagram,
   } = useAdminData();
 
   // Find project
@@ -77,10 +81,21 @@ function GroupWorkspaceContent() {
   const [showRevisionForm, setShowRevisionForm] = useState(false);
 
   // Active tab state
-  const [activeTab, setActiveTab] = useState<"overview" | "members" | "repo" | "proposal" | "activity" | "evaluation">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "members" | "repo" | "proposal" | "activity" | "evaluation" | "database">("overview");
 
   // Project evaluation for this group
   const evaluation = group ? getEvaluationForGroup(group.id) : undefined;
+  // ER Diagram submission for this group
+  const erSubmission = group ? getERSubmissionForGroup(group.id) : undefined;
+
+  // ER Diagram upload form state
+  const [erFileName, setErFileName] = useState("");
+  const [erFileSize, setErFileSize] = useState("");
+  const [erFileType, setErFileType] = useState<"pdf" | "png" | "jpg" | "jpeg">("pdf");
+  const [erVersionNote, setErVersionNote] = useState("");
+  const [isSubmittingER, setIsSubmittingER] = useState(false);
+  const [erError, setErError] = useState("");
+  const [showERUploadModal, setShowERUploadModal] = useState(false);
 
   if (!project) {
     return (
@@ -370,6 +385,29 @@ function GroupWorkspaceContent() {
             Evaluation & Grades
             {evaluation?.status === "published" && (
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab("database")}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === "database"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Database className="w-3.5 h-3.5 text-teal-400" />
+            Database Design
+            {erSubmission && (
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  erSubmission.status === "published"
+                    ? "bg-emerald-400"
+                    : erSubmission.status === "resubmission_requested"
+                    ? "bg-rose-400"
+                    : "bg-sky-400"
+                }`}
+              />
             )}
           </button>
         </div>
@@ -1175,6 +1213,296 @@ function GroupWorkspaceContent() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB F: DATABASE DESIGN & ER DIAGRAM SUBMISSION                 */}
+      {/* ============================================================== */}
+      {activeTab === "database" && (
+        <div className="space-y-6">
+          {/* Submission Status & Action Banner */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-mono text-xs font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-200">
+                  Version {erSubmission ? `v${erSubmission.version}` : "Not Submitted"}
+                </span>
+                <span
+                  className={`text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
+                    erSubmission?.status === "published"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : erSubmission?.status === "approved"
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : erSubmission?.status === "resubmission_requested"
+                      ? "bg-rose-50 text-rose-700 border border-rose-200"
+                      : erSubmission?.status === "reviewed"
+                      ? "bg-purple-50 text-purple-700 border border-purple-200"
+                      : erSubmission?.status === "submitted"
+                      ? "bg-sky-50 text-sky-700 border border-sky-200"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {erSubmission?.status === "published"
+                    ? "Official Grade Published"
+                    : erSubmission?.status === "approved"
+                    ? "Faculty Approved"
+                    : erSubmission?.status === "resubmission_requested"
+                    ? "Resubmission Requested"
+                    : erSubmission?.status === "reviewed"
+                    ? "AI & Faculty Reviewed"
+                    : erSubmission?.status === "submitted"
+                    ? "Submitted & Under Review"
+                    : "No Submission"}
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Database Design & ER Diagram Specification</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Upload your group&apos;s relational schema model (PDF, PNG, JPG). All team members share this submission.
+              </p>
+            </div>
+
+            <Button
+              onClick={() => setShowERUploadModal(true)}
+              className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm shrink-0"
+            >
+              <UploadCloud className="w-4 h-4" />
+              {erSubmission ? "Upload New Version" : "Upload ER Diagram"}
+            </Button>
+          </div>
+
+          {/* Resubmission Alert if requested by faculty */}
+          {erSubmission?.status === "resubmission_requested" && (
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 text-xs text-rose-900">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-bold text-rose-950 block text-sm">Faculty Requested Diagram Revisions</strong>
+                <p className="mt-1 leading-relaxed">
+                  {erSubmission.lecturerFeedback?.generalComments ||
+                    "Please revise your ER diagram to address normalization and relationship cardinality issues before final defense."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Current Submitted Diagram Card */}
+          {erSubmission ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 font-bold">
+                    {erSubmission.fileType === "pdf" ? <FileText className="w-5 h-5" /> : <Image className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">{erSubmission.fileName}</h3>
+                    <p className="text-[11px] text-slate-400">
+                      Uploaded by <strong>{erSubmission.submittedByName}</strong> • {erSubmission.fileSize} • Version {erSubmission.version}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={erSubmission.fileUrl}
+                    download={erSubmission.fileName}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download
+                  </a>
+                </div>
+              </div>
+
+              {erSubmission.versionNote && (
+                <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600">
+                  <strong className="text-slate-800">Version Note:</strong> {erSubmission.versionNote}
+                </div>
+              )}
+
+              {/* Diagram Visual Preview Box */}
+              <div className="p-8 bg-slate-950 rounded-xl text-center text-slate-400 font-mono text-xs border border-slate-800 flex flex-col items-center justify-center space-y-2">
+                <Database className="w-12 h-12 text-teal-400 animate-pulse" />
+                <p className="font-bold text-slate-200">{erSubmission.fileName} (v{erSubmission.version})</p>
+                <p className="text-[11px] text-slate-500 max-w-md">
+                  Active relational schema model. Verified against GitHub database DDL in database/schema.sql.
+                </p>
+              </div>
+            </div>
+          ) : (
+            /* Empty State */
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto shadow-sm space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
+                <Database className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900">No ER Diagram Uploaded Yet</h3>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
+                Upload your group&apos;s database model and ER diagram to trigger automated AI consistency analysis against your GitHub SQL schemas.
+              </p>
+              <Button
+                onClick={() => setShowERUploadModal(true)}
+                className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-sm"
+              >
+                Upload ER Diagram
+              </Button>
+            </div>
+          )}
+
+          {/* Published Evaluation Feedback (When Lecturer Publishes) */}
+          {erSubmission?.lecturerFeedback?.isPublished && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-teal-900 to-[#0B1220] rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">Official Assessment</span>
+                  <h3 className="text-xl font-black mt-1">Database & ER Diagram Grade Published</h3>
+                  <p className="text-xs text-slate-300 mt-1">
+                    Evaluated by <strong>{erSubmission.lecturerFeedback.lecturerName}</strong> on {new Date(erSubmission.lecturerFeedback.publishedAt || "").toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-3xl font-black text-emerald-400">
+                    {erSubmission.lecturerFeedback.approvedMarks}
+                  </span>
+                  <span className="text-slate-400 text-sm"> / 100 Marks</span>
+                </div>
+              </div>
+
+              {erSubmission.lecturerFeedback.generalComments && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-2">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-teal-600" /> Faculty Reviewer Comments
+                  </h3>
+                  <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    {erSubmission.lecturerFeedback.generalComments}
+                  </p>
+                </div>
+              )}
+
+              {/* If permitted by lecturer, show the AI analysis report */}
+              {erSubmission.lecturerFeedback.allowStudentAIFeedbackView && erSubmission.aiAnalysis && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-teal-600" />
+                    Gemini AI Consistency & Quality Findings
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-center">
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Correctness</span>
+                      <p className="text-xl font-black text-slate-900 mt-0.5">{erSubmission.aiAnalysis.overallCorrectnessScore}%</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Completeness</span>
+                      <p className="text-xl font-black text-slate-900 mt-0.5">{erSubmission.aiAnalysis.completenessScore}%</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">SQL Consistency</span>
+                      <p className="text-xl font-black text-slate-900 mt-0.5">{erSubmission.aiAnalysis.implementationConsistencyScore}%</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold text-slate-700">Identified Design Improvements</h4>
+                    {erSubmission.aiAnalysis.issues.map((iss, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900">{iss.title}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            iss.severity === "Critical" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
+                          }`}>
+                            {iss.severity}
+                          </span>
+                        </div>
+                        <p className="text-slate-600">{iss.explanation}</p>
+                        <p className="text-teal-700 font-semibold text-[11px]">Correction: {iss.expectedCorrection}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Upload ER Diagram Modal */}
+      {showERUploadModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 max-w-lg w-full shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                <UploadCloud className="w-5 h-5 text-teal-600" />
+                Upload Database ER Diagram
+              </h3>
+              <button
+                onClick={() => setShowERUploadModal(false)}
+                className="text-slate-400 hover:text-slate-700 text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Select Diagram File (PDF, PNG, JPG)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      setErFileName(f.name);
+                      setErFileSize((f.size / (1024 * 1024)).toFixed(2) + " MB");
+                      const ext = f.name.split(".").pop()?.toLowerCase();
+                      setErFileType(ext === "png" ? "png" : ext === "jpg" || ext === "jpeg" ? "jpg" : "pdf");
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Version Description / Submission Note</label>
+                <textarea
+                  rows={2}
+                  value={erVersionNote}
+                  onChange={(e) => setErVersionNote(e.target.value)}
+                  placeholder="e.g. Added composite key to event_registrations and normalized sensor tables..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl resize-none"
+                />
+              </div>
+
+              {erError && <p className="text-rose-600 font-semibold">{erError}</p>}
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowERUploadModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (!erFileName) {
+                    setErError("Please select a file to upload.");
+                    return;
+                  }
+                  setIsSubmittingER(true);
+                  submitERDiagram(group.id, {
+                    fileName: erFileName,
+                    fileSize: erFileSize || "1.2 MB",
+                    fileType: erFileType,
+                    fileUrl: `/demo/${erFileName}`,
+                    versionNote: erVersionNote,
+                    submittedByName: group.members[0]?.fullName || "Student Team",
+                    submittedByEmail: group.members[0]?.email || activeStudentEmail,
+                  });
+                  setIsSubmittingER(false);
+                  setShowERUploadModal(false);
+                }}
+                className="bg-teal-600 hover:bg-teal-700 text-white font-semibold"
+              >
+                Submit Diagram
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

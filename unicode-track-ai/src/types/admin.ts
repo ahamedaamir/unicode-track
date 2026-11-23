@@ -1,3 +1,5 @@
+import { ProjectDatabaseDesignConfig } from "./er-diagram";
+
 export interface Department {
   id: string;
   name: string;
@@ -55,6 +57,7 @@ export interface Project {
   status: "Draft" | "Published" | "Archived";
   lecturerId?: string;
   lecturerName?: string;
+  databaseDesignConfig?: ProjectDatabaseDesignConfig;
   createdAt: string;
 }
 

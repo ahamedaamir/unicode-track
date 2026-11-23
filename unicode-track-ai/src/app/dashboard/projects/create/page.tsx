@@ -16,13 +16,16 @@ import {
   X, 
   ShieldCheck,
   FileCheck,
-  HelpCircle
+  HelpCircle,
+  Database,
+  Sliders,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Project } from "@/types/admin";
 import { ExtractedGroupData, GroupMember } from "@/types/project";
+import { DEFAULT_ER_DIAGRAM_RUBRIC, ProjectDatabaseDesignConfig } from "@/types/er-diagram";
 
 export default function CreateProjectPage() {
   const { 
@@ -79,6 +82,22 @@ export default function CreateProjectPage() {
   const [isAiApproved, setIsAiApproved] = useState(false);
   const [aiEditorTab, setAiEditorTab] = useState<"edit" | "preview">("edit");
   const [aiError, setAiError] = useState("");
+
+  // Step 3B: Database Design & ER Diagram Configuration
+  const [dbDesignEnabled, setDbDesignEnabled] = useState(true);
+  const [dbDesignRequired, setDbDesignRequired] = useState(true);
+  const [dbDeadline, setDbDeadline] = useState("");
+  const [dbExpectedDescription, setDbExpectedDescription] = useState(
+    "Relational database model capturing campus attendees, departments, symposium events, QR registrations, and sensor telemetry logs."
+  );
+  const [dbExpectedEntities, setDbExpectedEntities] = useState(
+    "departments, attendees, symposium_events, event_registrations, sensor_telemetry"
+  );
+  const [dbExpectedRelationships, setDbExpectedRelationships] = useState(
+    "departments (1) to (N) attendees; attendees (M) to (N) symposium_events via event_registrations; sensor_telemetry logs"
+  );
+  const [dbRefDiagramName, setDbRefDiagramName] = useState("");
+  const [dbRubricCriteria, setDbRubricCriteria] = useState([...DEFAULT_ER_DIAGRAM_RUBRIC]);
 
   // Step 4: Review, Preview & Submission
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -212,6 +231,16 @@ export default function CreateProjectPage() {
       status,
       lecturerId: currentLecturer?.id || "lec-1",
       lecturerName: currentLecturer?.name || "Dr. Evelyn Reed",
+      databaseDesignConfig: {
+        enabled: dbDesignEnabled,
+        isRequired: dbDesignRequired,
+        deadline: dbDeadline || deadline || undefined,
+        expectedDesignDescription: dbExpectedDescription,
+        expectedEntities: dbExpectedEntities.split(",").map((s) => s.trim()).filter(Boolean),
+        expectedRelationships: dbExpectedRelationships.split(";").map((s) => s.trim()).filter(Boolean),
+        referenceDiagramName: dbRefDiagramName || undefined,
+        rubricCriteria: dbRubricCriteria,
+      },
     });
 
     setIsSubmitting(false);
@@ -1216,12 +1245,164 @@ Group 03:
       </section>
 
       {/* ============================================================== */}
-      {/* SECTION 4: PROJECT REQUIREMENTS REVIEW & SUMMARY              */}
+      {/* SECTION 4: DATABASE DESIGN & ER DIAGRAM SPECIFICATION          */}
+      {/* ============================================================== */}
+      <section className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-xs border border-teal-100">
+              4
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#0B1220] flex items-center gap-2">
+                <Database className="w-4 h-4 text-teal-600" />
+                Database Design and ER Diagram Specification
+              </h2>
+              <p className="text-xs text-slate-500">
+                Configure entity-relationship modeling expectations, reference schemas, and evaluation rubrics.
+              </p>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700">
+            <input
+              type="checkbox"
+              checked={dbDesignEnabled}
+              onChange={(e) => setDbDesignEnabled(e.target.checked)}
+              className="w-4 h-4 text-teal-600 rounded focus:ring-teal-500"
+            />
+            <span>Enable ER Diagram Submission</span>
+          </label>
+        </div>
+
+        {dbDesignEnabled ? (
+          <div className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">
+                  Submission Requirement
+                </label>
+                <select
+                  value={dbDesignRequired ? "required" : "optional"}
+                  onChange={(e) => setDbDesignRequired(e.target.value === "required")}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                >
+                  <option value="required">Mandatory Core Milestone (Graded in Rubric)</option>
+                  <option value="optional">Optional / Supplemental Design Submission</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">
+                  ER Diagram Submission Deadline
+                </label>
+                <input
+                  type="date"
+                  value={dbDeadline}
+                  onChange={(e) => setDbDeadline(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1.5">
+                Expected Database Design & Architecture Description
+              </label>
+              <textarea
+                rows={2}
+                value={dbExpectedDescription}
+                onChange={(e) => setDbExpectedDescription(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6] resize-none"
+                placeholder="Describe key domain entities, cardinality constraints, and normalization standards..."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">
+                  Expected Domain Entities (Comma Separated)
+                </label>
+                <input
+                  type="text"
+                  value={dbExpectedEntities}
+                  onChange={(e) => setDbExpectedEntities(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                  placeholder="e.g. attendees, events, registrations, sensor_telemetry"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1.5">
+                  Reference ER Diagram PDF / Asset (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={dbRefDiagramName}
+                  onChange={(e) => setDbRefDiagramName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                  placeholder="e.g. CS492_Reference_Data_Model_v1.pdf"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1.5">
+                Expected Relationships & Database Business Rules
+              </label>
+              <textarea
+                rows={2}
+                value={dbExpectedRelationships}
+                onChange={(e) => setDbExpectedRelationships(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6] resize-none"
+                placeholder="e.g. departments (1) to (N) attendees; attendees (M) to (N) events via event_registrations bridge table..."
+              />
+            </div>
+
+            {/* Rubric Preview & Configuration */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-teal-600" />
+                  ER Diagram Evaluation Rubric Criteria ({dbRubricCriteria.length})
+                </span>
+                <span className="font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-200 text-[11px]">
+                  Total: {dbRubricCriteria.reduce((sum, c) => sum + c.maxMarks, 0)} Marks
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {dbRubricCriteria.map((c, idx) => (
+                  <div
+                    key={c.id || idx}
+                    className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between text-[11px]"
+                  >
+                    <div className="truncate mr-2">
+                      <span className="font-bold text-slate-800">{c.name}</span>
+                      <p className="text-slate-400 text-[10px] truncate">{c.description}</p>
+                    </div>
+                    <span className="font-mono font-bold text-teal-700 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 shrink-0">
+                      {c.maxMarks}m
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-slate-50 rounded-xl text-xs text-slate-500 text-center">
+            Database design and ER diagram submission is disabled for this project.
+          </div>
+        )}
+      </section>
+
+      {/* ============================================================== */}
+      {/* SECTION 5: PROJECT REQUIREMENTS REVIEW & SUMMARY              */}
       {/* ============================================================== */}
       <section className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
         <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
           <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-100">
-            4
+            5
           </div>
           <div>
             <h2 className="text-base font-bold text-[#0B1220]">

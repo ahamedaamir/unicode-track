@@ -237,6 +237,7 @@ This repository contains the C firmware and telemetry processing pipeline for th
 - \`src/telemetry.c\`: CRC-16 hardware data verification.
 - \`src/sensor.c\`: Multi-channel analog sensor calibration.
 - \`include/telemetry.h\`: Global headers and function prototypes.
+- \`database/schema.sql\`: Relational database DDL schema and foreign key constraints.
 
 ### Build and Run
 \`\`\`bash
@@ -244,5 +245,69 @@ make
 ./telemetry_runner
 \`\`\`
 `,
+  },
+  {
+    path: "database",
+    name: "database",
+    type: "dir",
+    children: [
+      {
+        path: "database/schema.sql",
+        name: "schema.sql",
+        type: "file",
+        size: 1850,
+        language: "sql",
+        content: `-- UniCodeTrack AI: Academic Capstone Database Schema
+-- Module: Symposium Event Ledger & Edge Sensor Telemetry
+
+CREATE TABLE departments (
+    id SERIAL PRIMARY KEY,
+    department_code VARCHAR(16) NOT NULL UNIQUE,
+    name VARCHAR(128) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE attendees (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(32) NOT NULL UNIQUE,
+    full_name VARCHAR(128) NOT NULL,
+    email VARCHAR(128) NOT NULL UNIQUE,
+    department_id INT NOT NULL REFERENCES departments(id) ON DELETE RESTRICT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE symposium_events (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    venue VARCHAR(128) NOT NULL,
+    event_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    capacity INT NOT NULL CHECK (capacity > 0),
+    is_active BOOLEAN DEFAULT true
+);
+
+-- Associative Entity for Many-to-Many relationship: Attendees <-> Events
+CREATE TABLE event_registrations (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES symposium_events(id) ON DELETE CASCADE,
+    attendee_id INT NOT NULL REFERENCES attendees(id) ON DELETE CASCADE,
+    qr_hash VARCHAR(128) NOT NULL UNIQUE,
+    checked_in BOOLEAN DEFAULT false,
+    checked_in_at TIMESTAMP WITH TIME ZONE,
+    registered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_event_attendee UNIQUE (event_id, attendee_id)
+);
+
+CREATE TABLE sensor_telemetry (
+    id BIGSERIAL PRIMARY KEY,
+    sensor_id INT NOT NULL,
+    sensor_type VARCHAR(32) NOT NULL,
+    reading_value NUMERIC(8,2) NOT NULL,
+    status_flag INT NOT NULL DEFAULT 1,
+    crc16_checksum VARCHAR(8) NOT NULL,
+    recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+`,
+      },
+    ],
   },
 ];

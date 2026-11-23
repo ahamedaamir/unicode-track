@@ -4,6 +4,13 @@ import React, { createContext, useContext, useState } from "react";
 import { Department, Course, Lecturer, Student, ActivityLog, Project } from "@/types/admin";
 import { ProjectGroup, ProjectTimelineActivity, ProposalSubmission, LecturerFeedback, GitHubCommit, GitHubBranch } from "@/types/project";
 import { EvaluationRubric, ProjectEvaluation, DEFAULT_ACADEMIC_RUBRIC_CRITERIA } from "@/types/evaluation";
+import {
+  ERDiagramSubmission,
+  ERDiagramAIAnalysis,
+  ERLecturerFeedback,
+  DEFAULT_ER_DIAGRAM_RUBRIC,
+  ProjectDatabaseDesignConfig,
+} from "@/types/er-diagram";
 import { getDemoCProjectCommits } from "@/services/github/client";
 
 interface AdminDataContextType {
@@ -99,6 +106,25 @@ interface AdminDataContextType {
   ) => { success: boolean };
   approveEvaluation: (evaluationId: string, lecturerComments?: string) => { success: boolean };
   publishEvaluation: (evaluationId: string) => { success: boolean };
+
+  // ER Diagram & Database Evaluation
+  erSubmissions: ERDiagramSubmission[];
+  getERSubmissionForGroup: (groupId: string) => ERDiagramSubmission | undefined;
+  submitERDiagram: (
+    groupId: string,
+    data: {
+      fileName: string;
+      fileSize: string;
+      fileType: "pdf" | "png" | "jpg" | "jpeg";
+      fileUrl: string;
+      versionNote?: string;
+      submittedByName: string;
+      submittedByEmail: string;
+    }
+  ) => { success: boolean; submission?: ERDiagramSubmission };
+  saveERAnalysis: (submissionId: string, analysis: ERDiagramAIAnalysis) => { success: boolean };
+  saveERFeedback: (submissionId: string, feedback: ERLecturerFeedback) => { success: boolean };
+  publishERFeedback: (submissionId: string) => { success: boolean };
 
   // Active Role & Personas
   activeRole: "admin" | "lecturer" | "student";
@@ -344,6 +370,24 @@ const initialProjects: Project[] = [
     status: "Published",
     lecturerId: "lec-1",
     lecturerName: "Dr. Evelyn Reed",
+    databaseDesignConfig: {
+      enabled: true,
+      isRequired: true,
+      deadline: "2026-12-10",
+      expectedDesignDescription: "Relational database model capturing campus attendees, departments, symposium events, QR registrations (associative bridge entity), and telemetry logs.",
+      expectedEntities: ["departments", "attendees", "symposium_events", "event_registrations", "sensor_telemetry"],
+      expectedRelationships: [
+        "departments (1) to (N) attendees",
+        "attendees (M) to (N) symposium_events via event_registrations",
+        "sensor_telemetry logs for real-time edge streaming",
+      ],
+      expectedConstraints: [
+        "Unique student_id and email in attendees",
+        "Composite unique constraint on (event_id, attendee_id) in event_registrations",
+        "Foreign key cascade and restrict rules",
+      ],
+      rubricCriteria: [...DEFAULT_ER_DIAGRAM_RUBRIC],
+    },
     createdAt: "2026-11-10",
   },
   {
@@ -1059,6 +1103,176 @@ const initialEvaluations: ProjectEvaluation[] = [
   },
 ];
 
+const initialERSubmissions: ERDiagramSubmission[] = [
+  {
+    id: "er-sub-grp-proj-1-1",
+    projectId: "proj-1",
+    groupId: "grp-proj-1-1",
+    groupNumber: 1,
+    groupName: "Group 01: Team CyberNova",
+    submittedByName: "Alex Chen",
+    submittedByEmail: "alex.chen@university.edu",
+    fileName: "CS492_Group01_ER_Diagram_v1.pdf",
+    fileSize: "1.2 MB",
+    fileType: "pdf",
+    fileUrl: "/demo/CS492_Group01_ER_Diagram_v1.pdf",
+    version: 1,
+    versionNote: "Initial submission covering attendees, events, registrations, and sensor telemetry tables.",
+    status: "reviewed",
+    submittedAt: "2026-11-20T14:00:00Z",
+    aiAnalysis: {
+      id: "er-analysis-init-1",
+      submissionId: "er-sub-grp-proj-1-1",
+      version: 1,
+      analyzedAt: "2026-11-20T14:10:00Z",
+      aiModel: "gemini-2.5-flash",
+      overallCorrectnessScore: 86,
+      completenessScore: 88,
+      implementationConsistencyScore: 90,
+      totalSuggestedScore: 84,
+      maxMarks: 100,
+      summary: "The submitted ER diagram is well-structured and aligns closely with the PostgreSQL DDL schema in the repository. Core entities, primary keys, and the associative registration bridge table satisfy all capstone requirements. Minor enhancements recommended for 3NF normalization of sensor metadata and composite uniqueness constraints.",
+      missingEntities: [],
+      missingAttributes: ["v_ref reference voltage in sensor telemetry"],
+      incorrectKeys: [],
+      cardinalityProblems: ["event_registrations requires composite unique constraint (event_id, attendee_id)"],
+      normalizationConcerns: ["sensor_type attribute in telemetry_logs has minor transitive dependency"],
+      sqlImplementationDiscrepancies: [],
+      issues: [
+        {
+          id: "iss-1",
+          title: "Missing Unique Constraint on Composite Bridge Entity",
+          severity: "Major",
+          category: "relationships",
+          explanation: "The Many-to-Many association between Attendees and SymposiumEvents correctly specifies event_registrations. However, in the diagram, the composite candidate key (event_id, attendee_id) lacks an explicit unique alternate key constraint, allowing duplicate registration records for the same student in an event.",
+          expectedCorrection: "Add an alternate candidate key or composite unique constraint: CONSTRAINT unique_event_attendee UNIQUE (event_id, attendee_id).",
+          relatedElement: "event_registrations bridge entity",
+          relevantCodeFile: "database/schema.sql",
+          codeLineRange: "L35-L45",
+          confidenceLevel: "High",
+          status: "Definitely incorrect",
+        },
+        {
+          id: "iss-2",
+          title: "Transitive Dependency in Sensor Telemetry Table (2NF / 3NF Concern)",
+          severity: "Minor",
+          category: "normalization",
+          explanation: "The sensor_telemetry entity embeds sensor_type directly alongside sensor_id. If sensor types have metadata (e.g. calibration offsets, units of measure), storing them in the raw telemetry stream creates update anomalies and duplicate storage.",
+          expectedCorrection: "Normalize into a dedicated sensors lookup entity with (id, sensor_type, unit, v_ref) and reference it via Foreign Key sensor_id.",
+          relatedElement: "sensor_telemetry.sensor_type",
+          relevantCodeFile: "database/schema.sql",
+          codeLineRange: "L47-L55",
+          confidenceLevel: "Medium",
+          status: "Potentially incorrect",
+        },
+        {
+          id: "iss-3",
+          title: "Referential Integrity Cascade Action on Department Deletion",
+          severity: "Suggestion",
+          category: "keys",
+          explanation: "Foreign key department_id in attendees utilizes ON DELETE RESTRICT in the SQL implementation, whereas the ER diagram does not explicitly document the deletion rule for orphan attendee records.",
+          expectedCorrection: "Document deletion semantics on the ER diagram relationship line (e.g. 'Restrict' or 'Set Null').",
+          relatedElement: "departments -> attendees relationship",
+          relevantCodeFile: "database/schema.sql",
+          codeLineRange: "L17-L20",
+          confidenceLevel: "High",
+          status: "Potentially incorrect",
+        },
+      ],
+      criterionEvaluations: [
+        {
+          criterionId: "er-crit-1",
+          criterionName: "ER Diagram Completeness",
+          maxMarks: 15,
+          suggestedMarks: 13,
+          finalMarks: 13,
+          explanation: "All 5 required problem domain entities are documented in the ER diagram.",
+          supportingEvidence: "Departments, Attendees, SymposiumEvents, EventRegistrations, and SensorTelemetry present.",
+          identifiedProblems: [],
+        },
+        {
+          criterionId: "er-crit-2",
+          criterionName: "Entity and Attribute Correctness",
+          maxMarks: 15,
+          suggestedMarks: 13,
+          finalMarks: 13,
+          explanation: "Clean entity boundaries and sensible attribute typing.",
+          supportingEvidence: "Attributes like student_id, qr_hash, and capacity are well assigned.",
+          identifiedProblems: [],
+        },
+        {
+          criterionId: "er-crit-3",
+          criterionName: "Primary and Foreign Key Correctness",
+          maxMarks: 15,
+          suggestedMarks: 13,
+          finalMarks: 13,
+          explanation: "Surrogate integer primary keys and foreign key pairings are accurately marked.",
+          supportingEvidence: "department_id and event_id correctly reference their respective parent primary keys.",
+          identifiedProblems: [],
+        },
+        {
+          criterionId: "er-crit-4",
+          criterionName: "Relationship and Cardinality Correctness",
+          maxMarks: 15,
+          suggestedMarks: 12,
+          finalMarks: 12,
+          explanation: "Many-to-Many relationship between attendees and events correctly deploys an associative entity. However, composite uniqueness requires explicit notation.",
+          supportingEvidence: "Associative table event_registrations models (M:N) cardinality.",
+          identifiedProblems: ["Missing composite alternate key indicator on associative table."],
+        },
+        {
+          criterionId: "er-crit-5",
+          criterionName: "Normalization and Redundancy",
+          maxMarks: 10,
+          suggestedMarks: 8,
+          finalMarks: 8,
+          explanation: "Core entities are in 2NF. Telemetry reading stream has a minor transitive attribute dependency between sensor_type and sensor_id.",
+          supportingEvidence: "SensorTelemetry entity embeds sensor_type directly.",
+          identifiedProblems: ["Consider separating sensor metadata from continuous telemetry time-series records."],
+        },
+        {
+          criterionId: "er-crit-6",
+          criterionName: "ER Diagram to SQL/Code Consistency",
+          maxMarks: 20,
+          suggestedMarks: 18,
+          finalMarks: 18,
+          explanation: "Excellent consistency: All 5 ER diagram entities match table definitions in database/schema.sql.",
+          supportingEvidence: "Lines 1-55 in database/schema.sql match ER diagram entity definitions.",
+          identifiedProblems: [],
+        },
+        {
+          criterionId: "er-crit-7",
+          criterionName: "Database Implementation Quality",
+          maxMarks: 10,
+          suggestedMarks: 8,
+          finalMarks: 8,
+          explanation: "Clean DDL syntax with foreign key constraints, default timestamps, and unique constraints.",
+          supportingEvidence: "database/schema.sql includes CHECK (capacity > 0) and unique constraints.",
+          identifiedProblems: [],
+        },
+      ],
+      recommendations: [
+        "Add explicit composite unique constraint on (event_id, attendee_id) to prevent duplicate event passes.",
+        "Extract sensors metadata into an independent 3NF entity and link via foreign key to telemetry logs.",
+        "Document foreign key deletion rules (CASCADE vs RESTRICT) directly on ER diagram relationship connectors.",
+      ],
+      sqlSchemaVerified: true,
+      sqlVerificationNote: "Verified against 1 database schema file: database/schema.sql.",
+    },
+    lecturerFeedback: {
+      id: "fb-er-1",
+      lecturerName: "Dr. Evelyn Reed",
+      reviewedAt: "2026-11-21T10:00:00Z",
+      approvedMarks: 85,
+      status: "published",
+      generalComments: "Commendable database design with clean associative mapping for student registrations. Please ensure the composite key uniqueness constraint is added to the SQL migration before final deployment.",
+      allowStudentAIFeedbackView: true,
+      isPublished: true,
+      publishedAt: "2026-11-21T10:00:00Z",
+    },
+  },
+];
+
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
@@ -1196,6 +1410,15 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       if (saved) return JSON.parse(saved);
     } catch {}
     return initialEvaluations;
+  });
+
+  const [erSubmissions, setERSubmissions] = useState<ERDiagramSubmission[]>(() => {
+    if (typeof window === "undefined") return initialERSubmissions;
+    try {
+      const saved = localStorage.getItem("unicodetrack_er_submissions_store");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return initialERSubmissions;
   });
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
@@ -2152,6 +2375,144 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return { success: true };
   };
 
+  // ER Diagram & Database Methods
+  const getERSubmissionForGroup = (groupId: string): ERDiagramSubmission | undefined => {
+    return erSubmissions.find((s) => s.groupId === groupId);
+  };
+
+  const submitERDiagram = (
+    groupId: string,
+    data: {
+      fileName: string;
+      fileSize: string;
+      fileType: "pdf" | "png" | "jpg" | "jpeg";
+      fileUrl: string;
+      versionNote?: string;
+      submittedByName: string;
+      submittedByEmail: string;
+    }
+  ) => {
+    const group = groups.find((g) => g.id === groupId);
+    const existing = erSubmissions.find((s) => s.groupId === groupId);
+    const newVersion = existing ? existing.version + 1 : 1;
+
+    const submission: ERDiagramSubmission = {
+      id: `er-sub-${groupId}-${Date.now()}`,
+      projectId: group?.projectId || "proj-1",
+      groupId,
+      groupNumber: group?.groupNumber,
+      groupName: group?.groupName,
+      submittedByName: data.submittedByName,
+      submittedByEmail: data.submittedByEmail,
+      fileName: data.fileName,
+      fileSize: data.fileSize,
+      fileType: data.fileType,
+      fileUrl: data.fileUrl,
+      version: newVersion,
+      versionNote: data.versionNote,
+      status: "submitted",
+      submittedAt: new Date().toISOString(),
+    };
+
+    const nextSubmissions = [submission, ...erSubmissions.filter((s) => s.groupId !== groupId)];
+    setERSubmissions(nextSubmissions);
+
+    try {
+      localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
+    } catch {}
+
+    addTimelineActivity({
+      projectId: submission.projectId,
+      groupId: submission.groupId,
+      groupNumber: submission.groupNumber,
+      type: "proposal_submitted",
+      user: data.submittedByName,
+      userRole: "student",
+      action: "submitted ER diagram and database specification",
+      target: `${data.fileName} (v${newVersion})`,
+    });
+
+    showToast(`ER diagram v${newVersion} uploaded successfully!`, "success");
+    return { success: true, submission };
+  };
+
+  const saveERAnalysis = (submissionId: string, analysis: ERDiagramAIAnalysis) => {
+    const nextSubmissions = erSubmissions.map((s) =>
+      s.id === submissionId
+        ? {
+            ...s,
+            status: "reviewed" as const,
+            aiAnalysis: analysis,
+          }
+        : s
+    );
+    setERSubmissions(nextSubmissions);
+    try {
+      localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
+    } catch {}
+    return { success: true };
+  };
+
+  const saveERFeedback = (submissionId: string, feedback: ERLecturerFeedback) => {
+    const nextSubmissions = erSubmissions.map((s) =>
+      s.id === submissionId
+        ? {
+            ...s,
+            status:
+              feedback.status === "resubmission_requested"
+                ? ("resubmission_requested" as const)
+                : ("approved" as const),
+            lecturerFeedback: feedback,
+          }
+        : s
+    );
+    setERSubmissions(nextSubmissions);
+    try {
+      localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
+    } catch {}
+    showToast("ER diagram evaluation saved successfully", "success");
+    return { success: true };
+  };
+
+  const publishERFeedback = (submissionId: string) => {
+    const nextSubmissions = erSubmissions.map((s) => {
+      if (s.id === submissionId && s.lecturerFeedback) {
+        return {
+          ...s,
+          status: "published" as const,
+          lecturerFeedback: {
+            ...s.lecturerFeedback,
+            isPublished: true,
+            status: "published" as const,
+            publishedAt: new Date().toISOString(),
+          },
+        };
+      }
+      return s;
+    });
+    setERSubmissions(nextSubmissions);
+    try {
+      localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
+    } catch {}
+
+    const targetSub = erSubmissions.find((s) => s.id === submissionId);
+    if (targetSub) {
+      addTimelineActivity({
+        projectId: targetSub.projectId,
+        groupId: targetSub.groupId,
+        groupNumber: targetSub.groupNumber,
+        type: "feedback_given",
+        user: "Dr. Evelyn Reed",
+        userRole: "lecturer",
+        action: "published ER diagram assessment and marks to workspace",
+        target: `${targetSub.fileName} (Score: ${targetSub.lecturerFeedback?.approvedMarks || 85}/100)`,
+      });
+    }
+
+    showToast("ER diagram evaluation published to student group workspace!", "success");
+    return { success: true };
+  };
+
   return (
     <AdminDataContext.Provider
       value={{
@@ -2202,6 +2563,12 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         updateEvaluationCriterionScore,
         approveEvaluation,
         publishEvaluation,
+        erSubmissions,
+        getERSubmissionForGroup,
+        submitERDiagram,
+        saveERAnalysis,
+        saveERFeedback,
+        publishERFeedback,
         activeRole,
         setActiveRole,
         activeLecturerEmail,
