@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
-import { Department, Course, Lecturer, Student, ActivityLog } from "@/types/admin";
+import { Department, Course, Lecturer, Student, ActivityLog, Project } from "@/types/admin";
 
 interface AdminDataContextType {
   departments: Department[];
@@ -44,6 +44,20 @@ interface AdminDataContextType {
   deleteStudent: (id: string) => void;
   findStudentByEmail: (email: string) => Student | undefined;
   changeStudentPassword: (email: string, newPass: string) => boolean;
+
+  // Project Management (Lecturer & Admin)
+  projects: Project[];
+  addProject: (data: Omit<Project, "id" | "createdAt">) => { success: boolean; project?: Project; error?: string };
+  editProject: (id: string, updates: Partial<Project>) => { success: boolean; error?: string };
+  publishProject: (id: string) => void;
+  archiveProject: (id: string) => void;
+  deleteProject: (id: string) => void;
+
+  // Active Role & Lecturer Persona
+  activeRole: "admin" | "lecturer" | "student";
+  setActiveRole: (role: "admin" | "lecturer" | "student") => void;
+  activeLecturerEmail: string;
+  setActiveLecturerEmail: (email: string) => void;
 
   toast: { message: string; type: "success" | "error" | "info" } | null;
   showToast: (message: string, type?: "success" | "error" | "info") => void;
@@ -265,6 +279,78 @@ const normalizeStudent = (raw: RawStudentRecord): Student => {
   };
 };
 
+const initialProjects: Project[] = [
+  {
+    id: "proj-1",
+    title: "University Event & Symposium Management System",
+    description: "An integrated web and mobile platform for managing campus hackathons, symposiums, and workshop registrations with QR attendance.",
+    type: "Group Project",
+    departmentId: "dept-1",
+    courseCode: "CS492",
+    academicYear: 4,
+    semester: 2,
+    deadline: "2026-12-15",
+    requirementsSource: "ai",
+    requirementsContent: `# 1. Project Title\n**UNIVERSITY EVENT & SYMPOSIUM MANAGEMENT SYSTEM**\n\n## 2. Project Overview\nAn integrated, cloud-native platform for university-wide event scheduling, student badge QR generation, and real-time attendance telemetry.\n\n## 3. Problem Statement\nTraditional university workshops lack automated ticketing, leading to check-in queues and disjointed participant attendance reporting.\n\n## 4. Project Objectives\n1. Implement student attendee registration and automated email passes.\n2. Engineer an edge QR scanner for real-time check-in.\n3. Provide analytics dashboards with attendance velocity.\n\n## 5. Target Users & Stakeholders\n- Event Organizers\n- Enrolled Students\n- Faculty Evaluators\n\n## 6. Functional Requirements\n- FR-1: Attendee self-registration and QR issuance\n- FR-2: Lecturer event creation and capacity control\n- FR-3: Live scanner interface with offline sync\n- FR-4: Exportable CSV/PDF attendance logs\n\n## 7. Non-Functional Requirements\n- QR validation response < 150ms\n- End-to-end TLS encryption\n- 99.9% uptime during live symposiums\n\n## 8. System Features\n- Real-time attendance ledger\n- Role-based permissions for student organizers\n\n## 9. Technical Requirements\n- Next.js 16, TypeScript, Supabase PostgreSQL, Tailwind CSS\n\n## 10. Expected Deliverables\n- Milestone 1: Wireframes and database schema\n- Milestone 2: Working prototype and scanner API\n- Milestone 3: Production deployment and defense presentation\n\n## 11. Project Constraints\n- Mobile responsive down to 375px\n- Strict privacy compliance with student PII\n\n## 12. Evaluation Criteria\n- System Architecture (25%)\n- Feature Execution (30%)\n- Git Collaboration & Commits (20%)\n- Testing & Documentation (15%)\n- Presentation (10%)`,
+    status: "Published",
+    lecturerId: "lec-1",
+    lecturerName: "Dr. Evelyn Reed",
+    createdAt: "2026-11-10",
+  },
+  {
+    id: "proj-2",
+    title: "Distributed Microservices Architecture for Biomedical Telemetry",
+    description: "High-throughput cloud pipeline ingesting real-time physiological telemetry from edge IoT patient monitors with anomaly alerting.",
+    type: "Individual Project",
+    departmentId: "dept-1",
+    courseCode: "CS492",
+    academicYear: 4,
+    semester: 1,
+    deadline: "2026-12-20",
+    requirementsSource: "pdf",
+    requirementsPdfName: "CS492_Biomedical_Telemetry_Specification.pdf",
+    requirementsPdfSize: "1.4 MB",
+    status: "Published",
+    lecturerId: "lec-1",
+    lecturerName: "Dr. Evelyn Reed",
+    createdAt: "2026-11-14",
+  },
+  {
+    id: "proj-3",
+    title: "Multi-Tenant E-Commerce Core & Supply Chain Reconciliation",
+    description: "Scalable B2B enterprise marketplace featuring automated multi-currency checkout, inventory reservations, and supplier reconciliation.",
+    type: "Group Project",
+    departmentId: "dept-2",
+    courseCode: "ICT2142",
+    academicYear: 2,
+    semester: 1,
+    deadline: "2026-12-28",
+    requirementsSource: "ai",
+    status: "Published",
+    lecturerId: "lec-3",
+    lecturerName: "Dr. Sarah Al-Mansoor",
+    createdAt: "2026-11-19",
+  },
+  {
+    id: "proj-4",
+    title: "Automated Git Sprint Analytics & Peer Review Allocation Engine",
+    description: "Deep GitHub webhook integration evaluating student commit patterns, PR review turnaround times, and sprint burndown tracking.",
+    type: "Group Project",
+    departmentId: "dept-3",
+    courseCode: "SE3102",
+    academicYear: 3,
+    semester: 2,
+    deadline: "2027-01-15",
+    requirementsSource: "pdf",
+    requirementsPdfName: "SE3102_Agile_Project_Rubric_v3.pdf",
+    requirementsPdfSize: "920 KB",
+    status: "Draft",
+    lecturerId: "lec-1",
+    lecturerName: "Dr. Evelyn Reed",
+    createdAt: "2026-11-22",
+  },
+];
+
 const initialActivities: ActivityLog[] = [
   {
     id: "act-1",
@@ -365,6 +451,33 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return initialActivities;
   });
 
+  const [projects, setProjects] = useState<Project[]>(() => {
+    if (typeof window === "undefined") return initialProjects;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.projects && Array.isArray(parsed.projects)) {
+          return parsed.projects;
+        }
+      }
+    } catch {}
+    return initialProjects;
+  });
+
+  const [activeRole, setActiveRole] = useState<"admin" | "lecturer" | "student">(() => {
+    if (typeof window === "undefined") return "lecturer";
+    try {
+      const stored = sessionStorage.getItem("unicodetrack_pending_user_role");
+      if (stored === "admin" || stored === "lecturer" || stored === "student") {
+        return stored;
+      }
+    } catch {}
+    return "lecturer";
+  });
+
+  const [activeLecturerEmail, setActiveLecturerEmail] = useState<string>("evelyn.reed@university.edu");
+
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
   // Sync to localStorage
@@ -373,7 +486,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     crsList = courses,
     lecList = lecturers,
     stdList = students,
-    actList = activities
+    actList = activities,
+    projList = projects
   ) => {
     try {
       localStorage.setItem(
@@ -384,6 +498,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           lecturers: lecList,
           students: stdList,
           activities: actList,
+          projects: projList,
         })
       );
     } catch {
@@ -813,6 +928,89 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return true;
   };
 
+  // Project Actions (Lecturer & Admin)
+  const addProject = (data: Omit<Project, "id" | "createdAt">) => {
+    if (!data.title.trim()) {
+      return { success: false, error: "Project Title is required." };
+    }
+    if (!data.courseCode) {
+      return { success: false, error: "Academic Course assignment is required." };
+    }
+    if (!data.departmentId) {
+      return { success: false, error: "Department selection is required." };
+    }
+
+    const newProject: Project = {
+      ...data,
+      id: `proj-${Date.now().toString(36)}`,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    const updatedProjects = [newProject, ...projects];
+    setProjects(updatedProjects);
+    const updatedActs = addActivity(
+      `${data.status === "Published" ? "published" : "created draft for"} academic project`,
+      data.title,
+      "project"
+    );
+    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    showToast(
+      `Project "${data.title}" ${data.status === "Published" ? "published successfully!" : "saved as draft."}`,
+      "success"
+    );
+    return { success: true, project: newProject };
+  };
+
+  const editProject = (id: string, updates: Partial<Project>) => {
+    const proj = projects.find((p) => p.id === id);
+    if (!proj) return { success: false, error: "Project not found" };
+
+    const updatedProjects = projects.map((p) => (p.id === id ? { ...p, ...updates } : p));
+    setProjects(updatedProjects);
+    const updatedActs = addActivity("updated academic project", updates.title || proj.title, "project");
+    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    showToast("Project updated successfully", "success");
+    return { success: true };
+  };
+
+  const publishProject = (id: string) => {
+    const proj = projects.find((p) => p.id === id);
+    if (!proj) return;
+    const updatedProjects: Project[] = projects.map((p) =>
+      p.id === id ? { ...p, status: "Published" as const } : p
+    );
+    setProjects(updatedProjects);
+    const updatedActs = addActivity("published academic project", proj.title, "project");
+    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    showToast(`Project "${proj.title}" is now published and visible to students!`, "success");
+  };
+
+  const archiveProject = (id: string) => {
+    const proj = projects.find((p) => p.id === id);
+    if (!proj) return;
+    const nextStatus = proj.status === "Archived" ? ("Published" as const) : ("Archived" as const);
+    const updatedProjects: Project[] = projects.map((p) =>
+      p.id === id ? { ...p, status: nextStatus } : p
+    );
+    setProjects(updatedProjects);
+    const updatedActs = addActivity(
+      `${nextStatus === "Archived" ? "archived" : "restored"} project`,
+      proj.title,
+      "project"
+    );
+    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    showToast(`Project "${proj.title}" is now ${nextStatus}`, "info");
+  };
+
+  const deleteProject = (id: string) => {
+    const proj = projects.find((p) => p.id === id);
+    const updatedProjects = projects.filter((p) => p.id !== id);
+    setProjects(updatedProjects);
+    const updatedActs = addActivity("removed project", proj?.title || id, "project");
+    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    showToast(`Project "${proj?.title || "record"}" removed`, "info");
+  };
+
   return (
     <AdminDataContext.Provider
       value={{
@@ -821,6 +1019,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         lecturers,
         students,
         activities,
+        projects,
         addDepartment,
         editDepartment,
         deleteDepartment,
@@ -839,6 +1038,15 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         deleteStudent,
         findStudentByEmail,
         changeStudentPassword,
+        addProject,
+        editProject,
+        publishProject,
+        archiveProject,
+        deleteProject,
+        activeRole,
+        setActiveRole,
+        activeLecturerEmail,
+        setActiveLecturerEmail,
         toast,
         showToast,
         dismissToast,

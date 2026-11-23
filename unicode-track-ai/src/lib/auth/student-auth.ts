@@ -216,3 +216,4 @@ export async function updateStudentPassword(
 
   return { success: true };
 }
+

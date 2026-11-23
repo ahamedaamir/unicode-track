@@ -2,16 +2,16 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { 
-  Code2, 
-  Sparkles, 
-  ArrowRight, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  CheckCircle2, 
-  AlertCircle, 
-  ShieldAlert, 
+import {
+  Code2,
+  Sparkles,
+  ArrowRight,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  ShieldAlert,
   KeyRound,
   Check
 } from "lucide-react";
@@ -52,7 +52,7 @@ function ChangePasswordContent() {
 
         const lecturerEmail = sessionStorage.getItem("unicodetrack_pending_lecturer_email");
         if (lecturerEmail) return lecturerEmail;
-      } catch {}
+      } catch { }
     }
     return "alex.chen@university.edu";
   });
@@ -261,11 +261,10 @@ function ChangePasswordContent() {
                       if (errors.currentPassword) setErrors((prev) => ({ ...prev, currentPassword: undefined }));
                     }}
                     placeholder="Enter current administrator-assigned password"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${
-                      errors.currentPassword
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${errors.currentPassword
                         ? "border-rose-300 focus:ring-rose-200"
                         : "border-slate-300 focus:ring-teal-200 focus:border-[#14B8A6]"
-                    }`}
+                      }`}
                     required
                   />
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -299,11 +298,10 @@ function ChangePasswordContent() {
                       if (errors.newPassword) setErrors((prev) => ({ ...prev, newPassword: undefined }));
                     }}
                     placeholder="At least 8 characters"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${
-                      errors.newPassword
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${errors.newPassword
                         ? "border-rose-300 focus:ring-rose-200"
                         : "border-slate-300 focus:ring-teal-200 focus:border-[#14B8A6]"
-                    }`}
+                      }`}
                     required
                   />
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -337,11 +335,10 @@ function ChangePasswordContent() {
                       if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
                     }}
                     placeholder="Re-enter new password"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${
-                      errors.confirmPassword
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${errors.confirmPassword
                         ? "border-rose-300 focus:ring-rose-200"
                         : "border-slate-300 focus:ring-teal-200 focus:border-[#14B8A6]"
-                    }`}
+                      }`}
                     required
                   />
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />

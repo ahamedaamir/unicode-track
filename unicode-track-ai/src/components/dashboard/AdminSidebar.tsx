@@ -16,7 +16,12 @@ import {
   ChevronLeft, 
   ChevronRight,
   ShieldCheck,
-  X
+  X,
+  FolderGit2,
+  FilePlus2,
+  User,
+  CheckSquare,
+  Repeat
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -35,9 +40,69 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { departments, courses, lecturers, students } = useAdminData();
+  const { 
+    departments, 
+    courses, 
+    lecturers, 
+    students, 
+    projects,
+    activeRole,
+    setActiveRole,
+    activeLecturerEmail
+  } = useAdminData();
 
-  const navigation = [
+  const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
+  const lecturerCourseCount = currentLecturer ? currentLecturer.assignedCourses.length : 2;
+  const lecturerProjectsCount = projects.filter((p) => 
+    !currentLecturer || currentLecturer.assignedCourses.includes(p.courseCode)
+  ).length;
+
+  const lecturerNavigation = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      count: undefined,
+    },
+    {
+      name: "My Courses",
+      href: "/dashboard/courses",
+      icon: BookOpen,
+      count: lecturerCourseCount,
+    },
+    {
+      name: "Projects",
+      href: "/dashboard/projects",
+      icon: FolderGit2,
+      count: lecturerProjectsCount,
+    },
+    {
+      name: "Create Project",
+      href: "/dashboard/projects/create",
+      icon: FilePlus2,
+      count: undefined,
+    },
+    {
+      name: "Student Teams",
+      href: "/dashboard/teams",
+      icon: Users,
+      count: 14,
+    },
+    {
+      name: "Evaluations",
+      href: "/dashboard/evaluation",
+      icon: CheckSquare,
+      count: 6,
+    },
+    {
+      name: "Profile",
+      href: "/dashboard/profile",
+      icon: User,
+      count: undefined,
+    },
+  ];
+
+  const adminNavigation = [
     {
       name: "Dashboard",
       href: "/dashboard",
@@ -69,6 +134,12 @@ export function AdminSidebar({
       count: students.length,
     },
     {
+      name: "Projects",
+      href: "/dashboard/projects",
+      icon: FolderGit2,
+      count: projects.length,
+    },
+    {
       name: "Settings",
       href: "/dashboard/settings",
       icon: Settings,
@@ -76,8 +147,11 @@ export function AdminSidebar({
     },
   ];
 
+  const isLecturer = activeRole === "lecturer" || pathname.startsWith("/dashboard/projects");
+  const navigation = isLecturer ? lecturerNavigation : adminNavigation;
+
   const handleLogout = () => {
-    if (confirm("Are you sure you want to sign out of the administrator portal?")) {
+    if (confirm("Are you sure you want to sign out of the university workspace?")) {
       router.push("/login");
     }
   };
@@ -177,7 +251,7 @@ export function AdminSidebar({
         })}
       </nav>
 
-      {/* Bottom Administrator Profile & Logout */}
+      {/* Bottom Profile & Role Switcher */}
       <div className="p-3 border-t border-slate-800/80 space-y-2">
         <div
           className={`flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/80 border border-slate-800 ${
@@ -185,18 +259,36 @@ export function AdminSidebar({
           }`}
         >
           <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center shrink-0">
-            AV
+            {isLecturer ? "ER" : "AV"}
           </div>
           {(!collapsed || mobileOpen) && (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
-                <p className="text-xs font-bold text-white truncate">Dr. Arthur Vance</p>
+                <p className="text-xs font-bold text-white truncate">
+                  {isLecturer ? (currentLecturer?.name || "Dr. Evelyn Reed") : "Dr. Arthur Vance"}
+                </p>
                 <ShieldCheck className="w-3 h-3 text-teal-400 shrink-0" />
               </div>
-              <p className="text-[10px] text-slate-400 truncate">Administrator</p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {isLecturer ? "Senior Lecturer • Faculty" : "University Administrator"}
+              </p>
             </div>
           )}
         </div>
+
+        {/* Quick Role Toggle for Evaluator Convenience */}
+        {(!collapsed || mobileOpen) && (
+          <button
+            type="button"
+            onClick={() => setActiveRole(isLecturer ? "admin" : "lecturer")}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-semibold text-slate-400 bg-slate-900/50 border border-slate-800 hover:text-teal-400 hover:border-slate-700 transition-colors"
+          >
+            <span>Active: <strong className="text-white">{isLecturer ? "Lecturer View" : "Admin View"}</strong></span>
+            <span className="flex items-center gap-1 text-teal-400">
+              <Repeat className="w-3 h-3" /> Switch
+            </span>
+          </button>
+        )}
 
         <button
           onClick={handleLogout}

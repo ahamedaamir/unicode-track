@@ -38,11 +38,31 @@ export interface Student {
   createdAt: string;
 }
 
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  type: "Individual Project" | "Group Project";
+  departmentId: string;
+  courseCode: string;
+  academicYear: 1 | 2 | 3 | 4;
+  semester: 1 | 2;
+  deadline?: string;
+  requirementsSource: "pdf" | "ai";
+  requirementsContent?: string;
+  requirementsPdfName?: string;
+  requirementsPdfSize?: string;
+  status: "Draft" | "Published" | "Archived";
+  lecturerId?: string;
+  lecturerName?: string;
+  createdAt: string;
+}
+
 export interface ActivityLog {
   id: string;
   user: string;
   action: string;
   target: string;
   time: string;
-  type: "department" | "course" | "lecturer" | "student" | "system";
+  type: "department" | "course" | "lecturer" | "student" | "project" | "system";
 }

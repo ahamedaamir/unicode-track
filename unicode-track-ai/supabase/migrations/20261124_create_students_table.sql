@@ -43,3 +43,4 @@ CREATE TRIGGER on_students_updated
     BEFORE UPDATE ON public.students
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
+
