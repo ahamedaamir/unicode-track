@@ -25,12 +25,15 @@ export interface Lecturer {
 
 export interface Student {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
-  regNo: string;
-  assignedCourses: string[];
-  status: "Active" | "Inactive";
-  avatar: string;
+  departmentId: string;
+  academicYear: 1 | 2 | 3 | 4;
+  semester: 1 | 2;
+  defaultPassword?: string;
+  profilePhotoUrl?: string | null;
+  accountStatus: "active" | "inactive";
+  createdAt: string;
 }
 
 export interface ActivityLog {

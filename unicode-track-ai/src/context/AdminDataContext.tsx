@@ -26,6 +26,23 @@ interface AdminDataContextType {
   deleteLecturer: (id: string) => void;
   changeLecturerPassword: (email: string, newPass: string) => boolean;
   findLecturerByEmail: (email: string) => Lecturer | undefined;
+
+  // Student Management
+  addStudent: (data: {
+    fullName: string;
+    email: string;
+    departmentId: string;
+    academicYear: 1 | 2 | 3 | 4;
+    semester: 1 | 2;
+    defaultPassword: string;
+  }) => { success: boolean; student?: Student; error?: string };
+  editStudent: (
+    id: string,
+    updates: Partial<Omit<Student, "id" | "createdAt">>
+  ) => { success: boolean; error?: string };
+  toggleStudentStatus: (id: string) => void;
+  deleteStudent: (id: string) => void;
+
   toast: { message: string; type: "success" | "error" | "info" } | null;
   showToast: (message: string, type?: "success" | "error" | "info") => void;
   dismissToast: () => void;
@@ -99,77 +116,130 @@ const initialLecturers: Lecturer[] = [
 const initialStudents: Student[] = [
   {
     id: "std-1",
-    name: "Alex Chen",
+    fullName: "Alex Chen",
     email: "alex.chen@university.edu",
-    regNo: "STU-2026-041",
-    assignedCourses: ["CS492", "SE3102"],
-    status: "Active",
-    avatar: "AC",
+    departmentId: "dept-1",
+    academicYear: 4,
+    semester: 2,
+    profilePhotoUrl: null,
+    accountStatus: "active",
+    createdAt: "2026-10-15",
   },
   {
     id: "std-2",
-    name: "Sarah Lin",
+    fullName: "Sarah Lin",
     email: "sarah.lin@university.edu",
-    regNo: "STU-2026-088",
-    assignedCourses: ["CS492"],
-    status: "Active",
-    avatar: "SL",
+    departmentId: "dept-1",
+    academicYear: 4,
+    semester: 1,
+    profilePhotoUrl: null,
+    accountStatus: "active",
+    createdAt: "2026-10-16",
   },
   {
     id: "std-3",
-    name: "Marcus Doe",
+    fullName: "Marcus Doe",
     email: "marcus.doe@university.edu",
-    regNo: "STU-2026-102",
-    assignedCourses: ["CS492", "CS3021"],
-    status: "Active",
-    avatar: "MD",
+    departmentId: "dept-3",
+    academicYear: 3,
+    semester: 2,
+    profilePhotoUrl: null,
+    accountStatus: "active",
+    createdAt: "2026-10-18",
   },
   {
     id: "std-4",
-    name: "Priya Patel",
+    fullName: "Priya Patel",
     email: "priya.patel@university.edu",
-    regNo: "STU-2026-114",
-    assignedCourses: ["ICT2142", "IT1040"],
-    status: "Active",
-    avatar: "PP",
+    departmentId: "dept-2",
+    academicYear: 2,
+    semester: 1,
+    profilePhotoUrl: null,
+    accountStatus: "active",
+    createdAt: "2026-10-20",
   },
   {
     id: "std-5",
-    name: "Liam Davis",
+    fullName: "Liam Davis",
     email: "liam.davis@university.edu",
-    regNo: "STU-2026-205",
-    assignedCourses: ["BME401"],
-    status: "Active",
-    avatar: "LD",
+    departmentId: "dept-1",
+    academicYear: 3,
+    semester: 1,
+    profilePhotoUrl: null,
+    accountStatus: "active",
+    createdAt: "2026-10-22",
   },
   {
     id: "std-6",
-    name: "Maya Wang",
+    fullName: "Maya Wang",
     email: "maya.wang@university.edu",
-    regNo: "STU-2026-220",
-    assignedCourses: ["BME401", "SE3102"],
-    status: "Active",
-    avatar: "MW",
+    departmentId: "dept-3",
+    academicYear: 2,
+    semester: 2,
+    profilePhotoUrl: null,
+    accountStatus: "active",
+    createdAt: "2026-10-25",
   },
   {
     id: "std-7",
-    name: "Carlos Ruiz",
+    fullName: "Carlos Ruiz",
     email: "carlos.ruiz@university.edu",
-    regNo: "STU-2026-234",
-    assignedCourses: ["BME401"],
-    status: "Active",
-    avatar: "CR",
+    departmentId: "dept-4",
+    academicYear: 1,
+    semester: 2,
+    profilePhotoUrl: null,
+    accountStatus: "active",
+    createdAt: "2026-10-28",
   },
   {
     id: "std-8",
-    name: "Aisha Tariq",
+    fullName: "Aisha Tariq",
     email: "aisha.tariq@university.edu",
-    regNo: "STU-2026-301",
-    assignedCourses: ["ICT2142", "CS492"],
-    status: "Inactive",
-    avatar: "AT",
+    departmentId: "dept-2",
+    academicYear: 1,
+    semester: 1,
+    profilePhotoUrl: null,
+    accountStatus: "inactive",
+    createdAt: "2026-11-02",
   },
 ];
+
+interface RawStudentRecord {
+  id?: string;
+  fullName?: string;
+  name?: string;
+  email?: string;
+  departmentId?: string;
+  academicYear?: number;
+  semester?: number;
+  profilePhotoUrl?: string | null;
+  accountStatus?: "active" | "inactive";
+  status?: string;
+  createdAt?: string;
+}
+
+const normalizeStudent = (raw: RawStudentRecord): Student => {
+  const validYear: (1 | 2 | 3 | 4) = 
+    raw.academicYear && [1, 2, 3, 4].includes(raw.academicYear) 
+      ? (raw.academicYear as 1 | 2 | 3 | 4) 
+      : 3;
+  const validSem: (1 | 2) = 
+    raw.semester && [1, 2].includes(raw.semester) 
+      ? (raw.semester as 1 | 2) 
+      : 1;
+
+  return {
+    id: raw.id || `std-${Math.random().toString(36).slice(2, 7)}`,
+    fullName: raw.fullName || raw.name || "Student Member",
+    email: raw.email || "student@university.edu",
+    departmentId: raw.departmentId || "dept-1",
+    academicYear: validYear,
+    semester: validSem,
+    profilePhotoUrl: raw.profilePhotoUrl || null,
+    accountStatus: (raw.accountStatus === "inactive" || raw.status === "Inactive") ? "inactive" : "active",
+    createdAt: raw.createdAt || "2026-10-20",
+  };
+};
 
 const initialActivities: ActivityLog[] = [
   {
@@ -245,13 +315,15 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return initialLecturers;
   });
 
-  const [students] = useState<Student[]>(() => {
+  const [students, setStudents] = useState<Student[]>(() => {
     if (typeof window === "undefined") return initialStudents;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.students) return parsed.students;
+        if (parsed.students && Array.isArray(parsed.students)) {
+          return parsed.students.map(normalizeStudent);
+        }
       }
     } catch {}
     return initialStudents;
@@ -540,6 +612,151 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return lecturers.find((l) => l.email.toLowerCase() === email.trim().toLowerCase());
   };
 
+  // Student Actions
+  const addStudent = (data: {
+    fullName: string;
+    email: string;
+    departmentId: string;
+    academicYear: 1 | 2 | 3 | 4;
+    semester: 1 | 2;
+    defaultPassword: string;
+  }) => {
+    const trimmedName = data.fullName.trim();
+    const trimmedEmail = data.email.trim().toLowerCase();
+
+    if (!trimmedName) {
+      return { success: false, error: "Full Name is required" };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      return { success: false, error: "Please enter a valid university email address" };
+    }
+
+    if (students.some((s) => s.email.toLowerCase() === trimmedEmail)) {
+      return {
+        success: false,
+        error: `A student with email "${trimmedEmail}" is already registered.`,
+      };
+    }
+
+    if (!data.departmentId) {
+      return { success: false, error: "Department selection is required" };
+    }
+
+    if (![1, 2, 3, 4].includes(data.academicYear)) {
+      return { success: false, error: "Academic Year (Year 1 - Year 4) is required" };
+    }
+
+    if (![1, 2].includes(data.semester)) {
+      return { success: false, error: "Semester (Semester 1 - Semester 2) is required" };
+    }
+
+    if (!data.defaultPassword || data.defaultPassword.length < 8) {
+      return { success: false, error: "Default password must be at least 8 characters long" };
+    }
+
+    const newStudent: Student = {
+      id: `std-${Date.now().toString(36)}`,
+      fullName: trimmedName,
+      email: trimmedEmail,
+      departmentId: data.departmentId,
+      academicYear: data.academicYear,
+      semester: data.semester,
+      profilePhotoUrl: null,
+      accountStatus: "active",
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    const updatedStudents = [newStudent, ...students];
+    setStudents(updatedStudents);
+    const updatedActs = addActivity("registered new student account", trimmedName, "student");
+    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    showToast(`Student ${trimmedName} created successfully!`, "success");
+
+    return {
+      success: true,
+      student: {
+        ...newStudent,
+        defaultPassword: data.defaultPassword,
+      },
+    };
+  };
+
+  const editStudent = (
+    id: string,
+    updates: Partial<Omit<Student, "id" | "createdAt">>
+  ) => {
+    const std = students.find((s) => s.id === id);
+    if (!std) return { success: false, error: "Student not found" };
+
+    if (updates.email) {
+      const trimmedEmail = updates.email.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        return { success: false, error: "Please enter a valid university email address" };
+      }
+      if (students.some((s) => s.id !== id && s.email.toLowerCase() === trimmedEmail)) {
+        return {
+          success: false,
+          error: `Email "${trimmedEmail}" is already used by another student.`,
+        };
+      }
+      updates.email = trimmedEmail;
+    }
+
+    if (updates.fullName) {
+      updates.fullName = updates.fullName.trim();
+    }
+
+    const updatedStudents = students.map((s) =>
+      s.id === id ? { ...s, ...updates } : s
+    );
+    setStudents(updatedStudents);
+    const updatedActs = addActivity(
+      "updated student profile",
+      updates.fullName || std.fullName,
+      "student"
+    );
+    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    showToast("Student details updated successfully", "success");
+    return { success: true };
+  };
+
+  const toggleStudentStatus = (id: string) => {
+    const std = students.find((s) => s.id === id);
+    if (!std) return;
+    const nextStatus: "active" | "inactive" =
+      std.accountStatus === "active" ? "inactive" : "active";
+    const updatedStudents = students.map((s) =>
+      s.id === id ? { ...s, accountStatus: nextStatus } : s
+    );
+    setStudents(updatedStudents);
+    const updatedActs = addActivity(
+      `${nextStatus === "inactive" ? "deactivated" : "reactivated"} student account`,
+      std.fullName,
+      "student"
+    );
+    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    showToast(
+      `Student ${std.fullName} is now ${nextStatus === "active" ? "Active" : "Deactivated"}`,
+      nextStatus === "active" ? "success" : "info"
+    );
+  };
+
+  const deleteStudent = (id: string) => {
+    const std = students.find((s) => s.id === id);
+    const updatedStudents = students.filter((s) => s.id !== id);
+    setStudents(updatedStudents);
+    const updatedActs = addActivity(
+      "removed student account",
+      std?.fullName || id,
+      "student"
+    );
+    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    showToast(`Student ${std?.fullName || "record"} deleted`, "info");
+  };
+
   return (
     <AdminDataContext.Provider
       value={{
@@ -560,6 +777,10 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         deleteLecturer,
         changeLecturerPassword,
         findLecturerByEmail,
+        addStudent,
+        editStudent,
+        toggleStudentStatus,
+        deleteStudent,
         toast,
         showToast,
         dismissToast,
