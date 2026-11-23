@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   Code2, 
   Sparkles, 
@@ -13,16 +14,83 @@ import {
   Info
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useAdminData, AdminDataProvider } from "@/context/AdminDataContext";
 
-export default function LoginPage() {
+function LoginContent() {
+  const router = useRouter();
+  const { findLecturerByEmail, lecturers } = useAdminData();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [demoNotice, setDemoNotice] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setDemoNotice(true);
+    setErrorMessage("");
+    const trimmedEmail = email.trim().toLowerCase();
+
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+
+      // Check if user is an existing lecturer
+      const lecturer = findLecturerByEmail(trimmedEmail);
+      if (lecturer) {
+        if (lecturer.status === "Deactivated") {
+          setErrorMessage("This lecturer account has been deactivated by the university administrator.");
+          return;
+        }
+
+        // If default password entered
+        if (password === "UniCode@2004") {
+          if (!lecturer.hasChangedDefaultPassword) {
+            // Must change default password first!
+            try {
+              sessionStorage.setItem("unicodetrack_pending_lecturer_email", trimmedEmail);
+            } catch {
+              // Ignore
+            }
+            router.push("/change-password");
+            return;
+          }
+        }
+
+        // Lecturer has already changed password
+        router.push("/dashboard");
+        return;
+      }
+
+      // Check if email has default password for any pending lecturer
+      if (password === "UniCode@2004") {
+        try {
+          sessionStorage.setItem("unicodetrack_pending_lecturer_email", trimmedEmail);
+        } catch {
+          // Ignore
+        }
+        router.push("/change-password");
+        return;
+      }
+
+      // Administrator or generic sign in
+      router.push("/dashboard");
+    }, 350);
+  };
+
+  // Helper buttons for demo review
+  const handleSelectDemoAdmin = () => {
+    setEmail("admin@university.edu");
+    setPassword("adminPassword123");
+    setErrorMessage("");
+  };
+
+  const handleSelectDemoLecturerFirstLogin = () => {
+    // Pick the first lecturer who hasn't changed default password
+    const pendingLec = lecturers.find((l) => !l.hasChangedDefaultPassword) || lecturers[2];
+    setEmail(pendingLec ? pendingLec.email : "sarah.almansoor@university.edu");
+    setPassword("UniCode@2004");
+    setErrorMessage("");
   };
 
   return (
@@ -54,13 +122,36 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white py-8 px-6 shadow-sm border border-[#E2E8F0] rounded-2xl sm:px-10 space-y-5">
-          {demoNotice && (
-            <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-900 flex items-start gap-2.5">
-              <Info className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-              <div>
-                <strong className="block font-semibold">Demo UI Preview:</strong>
-                Authentication APIs are not connected yet. Real backend authentication with Supabase and role management will be configured in the next milestone.
-              </div>
+          {/* Demo Quick-Fill Helpers */}
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/90 text-xs space-y-2">
+            <div className="flex items-center justify-between text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+              <span>Demo Quick-Fill:</span>
+              <span className="text-teal-700 font-medium">Click to test</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={handleSelectDemoAdmin}
+                className="p-1.5 text-left rounded-lg bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-800 transition-colors"
+              >
+                <span className="block font-bold text-slate-900">1. Administrator</span>
+                <span className="text-[10px] text-slate-500">&rarr; Direct to /dashboard</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSelectDemoLecturerFirstLogin}
+                className="p-1.5 text-left rounded-lg bg-white border border-slate-200 hover:border-teal-500 text-[11px] font-medium text-slate-800 transition-colors"
+              >
+                <span className="block font-bold text-teal-900">2. Lecturer (1st Login)</span>
+                <span className="text-[10px] text-amber-700 font-medium">&rarr; Triggers /change-password</span>
+              </button>
+            </div>
+          </div>
+
+          {errorMessage && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2">
+              <Info className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
             </div>
           )}
 
@@ -75,7 +166,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@university.edu"
+                  placeholder="admin@university.edu or lecturer@university.edu"
                   className="w-full px-3.5 py-2.5 pl-10 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-white"
                   required
                 />
@@ -126,10 +217,11 @@ export default function LoginPage() {
               type="submit"
               variant="primary"
               size="lg"
+              disabled={isSubmitting}
               className="w-full justify-center mt-2"
               iconRight={<ArrowRight className="w-4 h-4" />}
             >
-              Sign In
+              {isSubmitting ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 
@@ -155,5 +247,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <AdminDataProvider>
+      <LoginContent />
+    </AdminDataProvider>
   );
 }
