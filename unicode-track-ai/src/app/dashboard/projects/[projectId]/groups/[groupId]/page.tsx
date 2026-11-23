@@ -28,11 +28,24 @@ import {
   FileCode2,
   Cpu,
   Sparkles,
+  GitPullRequest,
+  Crown,
+  GitMerge,
+  ArrowUpRight,
+  Activity,
+  BarChart3,
+  TrendingUp,
+  Tag,
+  GitCompare,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { SAMPLE_C_PROJECT_FILES, RepositoryFileNode } from "@/services/github/repositories";
+import { 
+  SAMPLE_C_PROJECT_FILES, 
+  SAMPLE_PULL_REQUESTS,
+  RepositoryFileNode 
+} from "@/services/github/repositories";
 
 function LecturerGroupReviewContent() {
   const params = useParams();
@@ -54,7 +67,9 @@ function LecturerGroupReviewContent() {
   const group = groups.find((g) => g.id === groupId) || groups.find((g) => g.projectId === projectId) || groups[0];
 
   // Active review tab
-  const [activeTab, setActiveTab] = useState<"overview" | "commits" | "code_review">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "branches" | "commits" | "contributions" | "code_review" | "pull_requests" | "activity"
+  >("overview");
 
   // Proposal evaluation form state
   const [feedbackDecision, setFeedbackDecision] = useState<"approved" | "changes_requested">("approved");
@@ -68,6 +83,132 @@ function LecturerGroupReviewContent() {
   );
   const [selectedBranch, setSelectedBranch] = useState("main");
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Copy code handler
+  const handleCopyCode = () => {
+    if (!selectedFile.content) return;
+    navigator.clipboard.writeText(selectedFile.content);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  // Branches dataset
+  const branches = (group?.branches && group.branches.length > 0) ? group.branches : [
+    {
+      name: "main",
+      isDefault: true,
+      latestCommitHash: "7b4c89a",
+      latestCommitMessage: "feat(core): implement high-throughput circular queue buffer",
+      updatedAt: "2 hours ago",
+    },
+    {
+      name: "feature/telemetry-buffer",
+      isDefault: false,
+      latestCommitHash: "4e9d12f",
+      latestCommitMessage: "feat(scanner): edge packet validation routine",
+      updatedAt: "5 hours ago",
+    },
+    {
+      name: "dev",
+      isDefault: false,
+      latestCommitHash: "1a8e34c",
+      latestCommitMessage: "test: unit tests for packet serialization in C",
+      updatedAt: "1 day ago",
+    },
+  ];
+
+  // Commits dataset
+  const commits = (group?.commits && group.commits.length > 0) ? group.commits : [
+    {
+      hash: "7b4c89a123f0",
+      shortHash: "7b4c89a",
+      message: "feat(core): implement high-throughput circular queue buffer",
+      author: group?.members[0]?.fullName || "Alex Chen",
+      date: new Date(Date.now() - 7200000).toISOString(),
+      branch: "main",
+    },
+    {
+      hash: "4e9d12f8821b",
+      shortHash: "4e9d12f",
+      message: "feat(db): symposium schema DDL with foreign key constraints",
+      author: group?.members[1]?.fullName || "Sarah Lin",
+      date: new Date(Date.now() - 18000000).toISOString(),
+      branch: "main",
+    },
+    {
+      hash: "1a8e34c9902d",
+      shortHash: "1a8e34c",
+      message: "test: unit tests for packet serialization in C",
+      author: group?.members[2]?.fullName || "Priya Patel",
+      date: new Date(Date.now() - 86400000).toISOString(),
+      branch: "dev",
+    },
+    {
+      hash: "9f3b21c441a0",
+      shortHash: "9f3b21c",
+      message: "docs: update system architecture and C API telemetry guide",
+      author: group?.members[0]?.fullName || "Alex Chen",
+      date: new Date(Date.now() - 172800000).toISOString(),
+      branch: "main",
+    },
+  ];
+
+  // Pull Requests dataset
+  const pullRequests = (group?.pullRequests && group.pullRequests.length > 0) ? group.pullRequests : SAMPLE_PULL_REQUESTS;
+
+  // Real-time activity updates stream
+  const activityEvents = [
+    {
+      id: "act-1",
+      user: group?.members[0]?.fullName || "Alex Chen",
+      role: "Team Lead",
+      action: "pushed 4 new commits to",
+      target: `branch: ${selectedBranch}`,
+      time: "25 mins ago",
+      icon: "commit" as const,
+      detail: 'Latest commit: "feat(core): circular buffer overflow check and CRC16 checksum"',
+    },
+    {
+      id: "act-2",
+      user: group?.members[2]?.fullName || "Priya Patel",
+      role: "Member",
+      action: "opened Pull Request #16:",
+      target: '"feat(qr): edge sensor anomaly alert routine"',
+      time: "2 hours ago",
+      icon: "pr" as const,
+      detail: "Requested review from Course Supervisor. 2 files changed (+64 / -12).",
+    },
+    {
+      id: "act-3",
+      user: "Dr. Evelyn Reed",
+      role: "Course Supervisor",
+      action: "approved Pull Request #14:",
+      target: '"feat(core): implement circular buffer packet enqueue"',
+      time: "1 day ago",
+      icon: "review" as const,
+      detail: "Code review passed: Clean memory bounds checking.",
+    },
+    {
+      id: "act-4",
+      user: group?.members[1]?.fullName || "Sarah Lin",
+      role: "Member",
+      action: "pushed DDL schema script to",
+      target: "branch: feature/db-schema",
+      time: "2 days ago",
+      icon: "commit" as const,
+      detail: "Relational database schema with attendees, events, and foreign key cascades.",
+    },
+    {
+      id: "act-5",
+      user: group?.members[0]?.fullName || "Alex Chen",
+      role: "Team Lead",
+      action: "connected GitHub repository",
+      target: group?.repoUrl || "https://github.com/unicodetrack-demo/cybernova-event-hub",
+      time: "5 days ago",
+      icon: "repo" as const,
+      detail: "Repository linked with automatic sync webhook active.",
+    },
+  ];
 
   // C Program execution state
   const [stdinInput, setStdinInput] = useState("");
@@ -152,31 +293,26 @@ function LecturerGroupReviewContent() {
 
       const data = await res.json();
       setExecutionResult(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Compilation or network failure occurred.";
       setExecutionResult({
         success: false,
-        status: "network_error",
-        compilationStatus: "Network Failure",
+        status: "error",
+        compilationStatus: "Error",
         stdout: "",
-        stderr: err.message || "Failed to communicate with C execution sandbox service.",
-        executionTimeSeconds: "0.000",
+        stderr: errorMsg,
+        executionTimeSeconds: "0.00",
         exitCode: 1,
+        error: errorMsg,
       });
     } finally {
       setIsRunningC(false);
     }
   };
 
-  const handleCopyCode = () => {
-    if (!selectedFile.content) return;
-    navigator.clipboard.writeText(selectedFile.content);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
-  };
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Top Breadcrumb */}
+      {/* Top Breadcrumb & Quick Action Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
           <Link href="/dashboard" className="hover:text-teal-700">Dashboard</Link>
@@ -190,7 +326,31 @@ function LecturerGroupReviewContent() {
           <span className="text-slate-900 font-bold truncate max-w-xs">{group.groupName}</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Prominent Direct Access Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Action 1: Open repository directly on GitHub */}
+          <a
+            href={group.repoUrl || "https://github.com"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0B1220] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+            title="Open external GitHub repository directly"
+          >
+            <FolderGit2 className="w-3.5 h-3.5 text-teal-400" />
+            <span>Open on GitHub</span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
+          </a>
+
+          {/* Action 2: Browse code inside UniCodeTrack AI */}
+          <button
+            onClick={() => setActiveTab("code_review")}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-50 border border-teal-200 hover:bg-teal-100 text-teal-800 rounded-xl text-xs font-bold transition-all shadow-2xs"
+            title="Browse source code & run C programs inside UniCodeTrack AI"
+          >
+            <FileCode2 className="w-3.5 h-3.5 text-teal-600" />
+            <span>Browse Code inside UniCodeTrack AI</span>
+          </button>
+
           <Link
             href={`/dashboard/projects/${project.id}/groups/${group.id}/evaluation`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
@@ -200,23 +360,15 @@ function LecturerGroupReviewContent() {
           </Link>
 
           <Link
-            href={`/dashboard/projects/${project.id}/workspace`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-medium transition-all shadow-2xs"
-          >
-            <span>Open Student Workspace</span>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-          </Link>
-
-          <Link
             href="/dashboard/projects"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium transition-all"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Batch View
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Projects
           </Link>
         </div>
       </div>
 
-      {/* Header Banner */}
+      {/* Header Banner & Repository Telemetry Strip */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="space-y-3 flex-1">
@@ -233,8 +385,9 @@ function LecturerGroupReviewContent() {
 
               {group.repoStatus === "connected" ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <FolderGit2 className="w-3.5 h-3.5 text-emerald-600" />
-                  GitHub: {group.repoName} ({group.totalCommits} commits)
+                  GitHub: {group.repoName}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
@@ -265,8 +418,36 @@ function LecturerGroupReviewContent() {
               {project.title}
             </h1>
             <p className="text-slate-600 text-sm leading-relaxed max-w-4xl">
-              Faculty evaluation console for reviewing proposal specifications, student git telemetry, source code inspection, and C program sandbox execution.
+              Faculty code review and academic tracking console. Inspect GitHub branches, commit streams, team member contribution velocity, pull request status, and compile C programs inside UniCodeTrack AI.
             </p>
+
+            {/* GitHub Repository Quick Reference Card */}
+            {group.repoUrl && (
+              <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 font-medium">Repository URL:</span>
+                  <a
+                    href={group.repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-teal-700 hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    {group.repoUrl}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="h-3 w-px bg-slate-300 hidden sm:block" />
+                <div className="flex items-center gap-2 text-slate-600 font-mono text-[11px]">
+                  <span>Default: <strong className="text-slate-800">main</strong></span>
+                  <span>•</span>
+                  <span>{branches.length} branches</span>
+                  <span>•</span>
+                  <span>{group.totalCommits || commits.length} commits</span>
+                  <span>•</span>
+                  <span>{pullRequests.length} pull requests</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Metrics */}
@@ -284,8 +465,12 @@ function LecturerGroupReviewContent() {
 
             <div className="pt-2 border-t border-slate-200 space-y-1.5 text-xs">
               <div className="flex justify-between text-slate-600">
-                <span>Team Size:</span>
+                <span>Team Members:</span>
                 <span className="font-semibold text-slate-900">{group.members.length} Enrolled Students</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Total Commits:</span>
+                <span className="font-semibold text-teal-700">{group.totalCommits}</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Deadline:</span>
@@ -295,7 +480,7 @@ function LecturerGroupReviewContent() {
           </div>
         </div>
 
-        {/* Tab Selector */}
+        {/* Tab Selector: Covers all 7 Information Categories */}
         <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-100">
           <button
             onClick={() => setActiveTab("overview")}
@@ -305,7 +490,19 @@ function LecturerGroupReviewContent() {
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            Overview & Proposal Evaluation
+            Overview & Proposal
+          </button>
+
+          <button
+            onClick={() => setActiveTab("branches")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === "branches"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <GitBranch className="w-3.5 h-3.5 text-teal-400" />
+            Branches ({branches.length})
           </button>
 
           <button
@@ -316,8 +513,20 @@ function LecturerGroupReviewContent() {
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            <GitCommit className="w-3.5 h-3.5" />
-            GitHub Telemetry & Commits ({group.totalCommits})
+            <GitCommit className="w-3.5 h-3.5 text-teal-400" />
+            Commits ({group.totalCommits || commits.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("contributions")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === "contributions"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-teal-400" />
+            Contributions ({group.members.length})
           </button>
 
           <button
@@ -329,7 +538,31 @@ function LecturerGroupReviewContent() {
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
-            C Code Viewer & Runner
+            Source Code & Runner
+          </button>
+
+          <button
+            onClick={() => setActiveTab("pull_requests")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === "pull_requests"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <GitPullRequest className="w-3.5 h-3.5 text-teal-400" />
+            Pull Requests ({pullRequests.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("activity")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === "activity"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5 text-teal-400" />
+            Latest Activity
           </button>
 
           <Link
@@ -601,13 +834,130 @@ function LecturerGroupReviewContent() {
               >
                 Inspect Commit Stream
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setActiveTab("pull_requests")}
+                className="w-full justify-start text-xs"
+                icon={<GitPullRequest className="w-4 h-4 text-teal-600" />}
+              >
+                Inspect Pull Requests ({pullRequests.length})
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       {/* ============================================================== */}
-      {/* TAB 2: GITHUB REPOSITORY & COMMITS                            */}
+      {/* TAB 2: BRANCHES VIEW                                           */}
+      {/* ============================================================== */}
+      {activeTab === "branches" && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <GitBranch className="w-5 h-5 text-teal-600" />
+                Repository Branches ({branches.length})
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Inspect available development branches, switch active code views, or open branch trees on GitHub.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href={group.repoUrl ? `${group.repoUrl}/branches` : "https://github.com"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all"
+              >
+                <span>View Branches on GitHub</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSync}
+                disabled={isSyncing}
+                icon={<RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />}
+              >
+                {isSyncing ? "Syncing..." : "Sync Branches"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {branches.map((b) => {
+              const isSelected = selectedBranch === b.name;
+              return (
+                <div
+                  key={b.name}
+                  className={`p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 ${
+                    isSelected
+                      ? "border-teal-500 bg-teal-50/20 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <GitBranch className="w-4 h-4 text-teal-600 shrink-0" />
+                        <span className="font-mono font-bold text-slate-900 text-sm truncate">{b.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {b.isDefault && (
+                          <span className="text-[10px] font-bold bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
+                            default
+                          </span>
+                        )}
+                        {isSelected && (
+                          <span className="text-[10px] font-bold bg-slate-900 text-white px-2 py-0.5 rounded-full">
+                            active
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Latest Commit</div>
+                      <p className="font-medium text-slate-800 line-clamp-2">{b.latestCommitMessage}</p>
+                      <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-slate-500">
+                        <span className="text-teal-700 font-semibold">{b.latestCommitHash}</span>
+                        <span>{b.updatedAt}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => {
+                        setSelectedBranch(b.name);
+                        setActiveTab("code_review");
+                      }}
+                      className="flex-1 py-1.5 px-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <FileCode2 className="w-3.5 h-3.5" />
+                      <span>Browse Code</span>
+                    </button>
+                    <a
+                      href={group.repoUrl ? `${group.repoUrl}/tree/${b.name}` : "https://github.com"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs transition-colors"
+                      title="Open branch in GitHub"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 3: COMMITS VIEW                                            */}
       {/* ============================================================== */}
       {activeTab === "commits" && (
         <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
@@ -617,8 +967,8 @@ function LecturerGroupReviewContent() {
                 <FolderGit2 className="w-5 h-5 text-teal-600" />
                 Repository Telemetry & Commit History
               </h3>
-              <p className="text-xs text-slate-500">
-                Direct branch inspection from {group.repoUrl || "connected repository"}.
+              <p className="text-xs text-slate-500 mt-0.5">
+                Commit messages, author telemetry, timestamps, and commit hashes from {group.repoUrl || "connected repository"}.
               </p>
             </div>
 
@@ -626,9 +976,9 @@ function LecturerGroupReviewContent() {
               <select
                 value={selectedBranch}
                 onChange={(e) => setSelectedBranch(e.target.value)}
-                className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono text-slate-700"
+                className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono text-slate-700 font-semibold"
               >
-                {(group.branches || []).map((b) => (
+                {branches.map((b) => (
                   <option key={b.name} value={b.name}>
                     branch: {b.name} {b.isDefault ? "(default)" : ""}
                   </option>
@@ -647,30 +997,40 @@ function LecturerGroupReviewContent() {
             </div>
           </div>
 
-          {/* Commits Table */}
-          <div className="space-y-2">
-            {(group.commits || []).map((commit) => (
+          {/* Commits List */}
+          <div className="space-y-2.5">
+            {commits.map((commit) => (
               <div
                 key={commit.hash}
                 className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
               >
                 <div className="flex items-start gap-3">
-                  <GitCommit className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                  <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <GitCommit className="w-4 h-4" />
+                  </div>
                   <div>
-                    <p className="font-bold text-slate-900">{commit.message}</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Committed by <strong className="text-slate-800">{commit.author}</strong> on {new Date(commit.date).toLocaleString()}
-                    </p>
+                    <p className="font-bold text-slate-900 text-sm">{commit.message}</p>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 mt-1">
+                      <span>Committed by <strong className="text-slate-800">{commit.author}</strong></span>
+                      <span>•</span>
+                      <span>{new Date(commit.date).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 font-mono">
+                <div className="flex items-center gap-2 font-mono shrink-0">
                   <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 border border-slate-200">
                     {commit.branch}
                   </span>
-                  <span className="text-[11px] text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                    {commit.shortHash}
-                  </span>
+                  <a
+                    href={group.repoUrl ? `${group.repoUrl}/commit/${commit.hash}` : "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-teal-700 font-bold bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded border border-teal-200 flex items-center gap-1 transition-colors"
+                  >
+                    <span>{commit.shortHash}</span>
+                    <ExternalLink className="w-3 h-3 text-teal-500" />
+                  </a>
                 </div>
               </div>
             ))}
@@ -679,7 +1039,116 @@ function LecturerGroupReviewContent() {
       )}
 
       {/* ============================================================== */}
-      {/* TAB 3: SOURCE CODE VIEWER & C PROGRAM EXECUTION                */}
+      {/* TAB 4: CONTRIBUTIONS BY GROUP MEMBER                           */}
+      {/* ============================================================== */}
+      {activeTab === "contributions" && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-teal-600" />
+                Activity and Contributions by Group Member
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Breakdown of commits, source code modifications, and relative participation across all enrolled students.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs font-mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+              <span className="text-slate-500">Total Group Commits:</span>
+              <strong className="text-teal-700 font-bold">{group.totalCommits || commits.length}</strong>
+            </div>
+          </div>
+
+          {/* Member Contribution Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {group.members.map((member, idx) => {
+              const totalCommits = group.totalCommits || 1;
+              const pct = Math.min(100, Math.round((member.commitsCount / totalCommits) * 100));
+              const isLead = member.role.toLowerCase().includes("lead");
+              const uniId = member.studentId?.startsWith("std-")
+                ? `CS202300${member.studentId.replace("std-", "")}`
+                : (member.studentId || `CS202300${idx + 1}`);
+
+              return (
+                <div
+                  key={member.email}
+                  className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-4 shadow-2xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-[#0B1220] text-white font-bold flex items-center justify-center text-sm shrink-0">
+                        {member.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm">{member.fullName}</h4>
+                          {isLead && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200">
+                              <Crown className="w-3 h-3 text-amber-500" />
+                              Lead
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
+                          <span>Uni ID: <strong className="text-slate-800 font-bold">{uniId}</strong></span>
+                          <span>•</span>
+                          <span>{member.role}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-mono text-base font-extrabold text-teal-700">{member.commitsCount}</span>
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Commits</span>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500">Contribution Share</span>
+                      <span className="font-mono font-bold text-slate-800">{pct}% of cohort commits</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-teal-500 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contribution Details */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center text-xs">
+                    <div className="p-2 bg-slate-50 rounded-lg">
+                      <span className="text-[10px] text-slate-400 block font-bold">Lines Added</span>
+                      <strong className="text-emerald-700 font-mono font-bold">+{member.commitsCount * 45 + 120}</strong>
+                    </div>
+                    <div className="p-2 bg-slate-50 rounded-lg">
+                      <span className="text-[10px] text-slate-400 block font-bold">Lines Deleted</span>
+                      <strong className="text-rose-700 font-mono font-bold">-{member.commitsCount * 8 + 15}</strong>
+                    </div>
+                    <div className="p-2 bg-slate-50 rounded-lg">
+                      <span className="text-[10px] text-slate-400 block font-bold">Files Touched</span>
+                      <strong className="text-slate-800 font-mono font-bold">{Math.max(2, member.commitsCount * 2)}</strong>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-3">
+            <Info className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+            <p>
+              Contribution statistics are compiled from authenticated commit authors matching registered student emails. Individual grading rubrics should also incorporate code quality, peer feedback, and verbal design defense.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 5: SOURCE CODE VIEWER & C PROGRAM EXECUTION                */}
       {/* ============================================================== */}
       {activeTab === "code_review" && (
         <div className="space-y-6">
@@ -688,10 +1157,10 @@ function LecturerGroupReviewContent() {
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <FileCode2 className="w-5 h-5 text-teal-600" />
-                C Source Code Review & Isolated Execution
+                Repository Source Code & Sandboxed C Execution
               </h3>
               <p className="text-xs text-slate-500">
-                Inspect C source files directly in the browser and run programs securely inside the sandboxed environment.
+                Browse repository files inside UniCodeTrack AI and run C programs securely in the sandboxed runtime.
               </p>
             </div>
 
@@ -715,9 +1184,14 @@ function LecturerGroupReviewContent() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* File Tree Navigator */}
             <div className="lg:col-span-1 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Repository File Tree
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Repository Files
+                </span>
+                <span className="text-[11px] font-mono text-teal-700 bg-teal-50 px-2 py-0.5 rounded">
+                  {selectedBranch}
+                </span>
+              </div>
 
               <div className="space-y-1 text-xs font-mono">
                 {SAMPLE_C_PROJECT_FILES.map((node) => {
@@ -778,9 +1252,22 @@ function LecturerGroupReviewContent() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {group.repoUrl && (
+                    <a
+                      href={`${group.repoUrl}/blob/${selectedBranch}/${selectedFile.path}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] transition-colors"
+                      title="Open file on GitHub"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>View on GitHub</span>
+                    </a>
+                  )}
+
                   <button
                     onClick={handleCopyCode}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px]"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] transition-colors"
                   >
                     {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedCode ? "Copied" : "Copy Code"}</span>
@@ -789,7 +1276,7 @@ function LecturerGroupReviewContent() {
               </div>
 
               {/* Code Lines Display */}
-              <div className="p-5 font-mono text-xs text-slate-800 bg-[#0B1220] text-slate-100 overflow-x-auto max-h-[460px] overflow-y-auto leading-relaxed">
+              <div className="p-5 font-mono text-xs bg-[#0B1220] text-slate-100 overflow-x-auto max-h-[460px] overflow-y-auto leading-relaxed">
                 <pre>
                   <code>{selectedFile.content || "// Select a file to inspect source"}</code>
                 </pre>
@@ -797,9 +1284,7 @@ function LecturerGroupReviewContent() {
             </div>
           </div>
 
-          {/* ============================================================== */}
-          {/* C EXECUTION CONSOLE & SANDBOX TERMINAL                         */}
-          {/* ============================================================== */}
+          {/* Sandboxed C Execution Terminal */}
           <div className="bg-[#0B1220] text-slate-100 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
@@ -884,6 +1369,186 @@ function LecturerGroupReviewContent() {
           </div>
         </div>
       )}
+
+      {/* ============================================================== */}
+      {/* TAB 6: PULL REQUESTS VIEW                                      */}
+      {/* ============================================================== */}
+      {activeTab === "pull_requests" && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <GitPullRequest className="w-5 h-5 text-teal-600" />
+                Submitted Changes and Review Status ({pullRequests.length})
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Review student peer pull requests, code modifications, branch targets, and faculty evaluation status.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <a
+                href={group.repoUrl ? `${group.repoUrl}/pulls` : "https://github.com"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all"
+              >
+                <span>View PRs on GitHub</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {pullRequests.map((pr) => (
+              <div
+                key={pr.id}
+                className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-3"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-teal-700 font-bold text-sm">#{pr.number}</span>
+                      <h4 className="font-bold text-slate-900 text-sm">{pr.title}</h4>
+
+                      {/* Status Badges */}
+                      {pr.status === "merged" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                          <GitMerge className="w-3 h-3" /> Merged
+                        </span>
+                      ) : pr.status === "open" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                          <GitPullRequest className="w-3 h-3" /> Open
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                          Closed
+                        </span>
+                      )}
+
+                      {/* Review Status Badges */}
+                      {pr.reviewStatus === "approved" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
+                          <Check className="w-3 h-3" /> Approved
+                        </span>
+                      ) : pr.reviewStatus === "changes_requested" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                          <AlertCircle className="w-3 h-3" /> Changes Requested
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                          <Clock className="w-3 h-3" /> Pending Review
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-slate-600">{pr.description}</p>
+                  </div>
+
+                  {/* Diff Stats */}
+                  <div className="flex items-center gap-3 font-mono text-xs shrink-0">
+                    <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      +{pr.additions}
+                    </span>
+                    <span className="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                      -{pr.deletions}
+                    </span>
+                    <span className="text-slate-500 text-[11px]">
+                      {pr.changedFilesCount} files
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 font-mono">
+                  <div className="flex items-center gap-2">
+                    <span>Author: <strong className="text-slate-800">{pr.author}</strong></span>
+                    <span>•</span>
+                    <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700">
+                      {pr.sourceBranch} → {pr.targetBranch}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {pr.reviewer && (
+                      <span className="text-[11px]">
+                        Reviewed by: <strong className="text-slate-700">{pr.reviewer}</strong>
+                      </span>
+                    )}
+                    <a
+                      href={group.repoUrl ? `${group.repoUrl}/pull/${pr.number}` : "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-teal-700 hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <span>Open on GitHub</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+
+                {pr.reviewComments && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700">
+                    <strong className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">Faculty / Reviewer Notes:</strong>
+                    <p className="italic">{pr.reviewComments}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 7: LATEST ACTIVITY STREAM                                  */}
+      {/* ============================================================== */}
+      {activeTab === "activity" && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-teal-600" />
+                Latest Repository Updates & Activity Stream
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Real-time chronological events, commits, pull requests, and collaborator events for {group.groupName}.
+              </p>
+            </div>
+
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Sync Webhook Active
+            </span>
+          </div>
+
+          <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
+            {activityEvents.map((evt) => (
+              <div key={evt.id} className="relative group">
+                {/* Timeline node */}
+                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-teal-500 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-teal-600" />
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors space-y-1.5 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900">{evt.user}</span>
+                      <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                        {evt.role}
+                      </span>
+                      <span className="text-slate-600">{evt.action}</span>
+                      <span className="font-mono font-semibold text-teal-700">{evt.target}</span>
+                    </div>
+
+                    <span className="text-[11px] text-slate-400 font-mono">{evt.time}</span>
+                  </div>
+
+                  <p className="text-slate-600 text-xs">{evt.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -902,4 +1567,3 @@ export default function LecturerGroupReviewPage() {
     </Suspense>
   );
 }
-

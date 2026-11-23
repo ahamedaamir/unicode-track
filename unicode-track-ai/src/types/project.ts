@@ -57,6 +57,26 @@ export interface GitHubBranch {
   updatedAt: string;
 }
 
+export interface GitHubPullRequest {
+  id: string;
+  number: number;
+  title: string;
+  description: string;
+  author: string;
+  authorAvatar?: string;
+  sourceBranch: string;
+  targetBranch: string;
+  status: "open" | "merged" | "closed";
+  additions: number;
+  deletions: number;
+  changedFilesCount: number;
+  createdAt: string;
+  updatedAt: string;
+  reviewStatus: "approved" | "changes_requested" | "pending";
+  reviewer?: string;
+  reviewComments?: string;
+}
+
 export interface ProjectGroup {
   id: string;
   projectId: string;
@@ -80,6 +100,7 @@ export interface ProjectGroup {
   evaluationScore?: number;
   branches?: GitHubBranch[];
   commits?: GitHubCommit[];
+  pullRequests?: GitHubPullRequest[];
   createdAt: string;
 }
 
