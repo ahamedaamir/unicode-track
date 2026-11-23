@@ -26,6 +26,7 @@ import {
   Sliders,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
+import { LecturerGroupCard } from "@/components/groups/LecturerGroupCard";
 
 function ProjectDetailContent() {
   const params = useParams();
@@ -37,6 +38,7 @@ function ProjectDetailContent() {
     courses,
     departments,
     lecturers,
+    groups,
     publishProject,
     archiveProject,
     deleteProject,
@@ -84,39 +86,8 @@ function ProjectDetailContent() {
     router.push("/dashboard/projects");
   };
 
-  // Demo student teams assigned to this project
-  const demoTeams = [
-    {
-      id: "team-1",
-      name: "Team CyberNova",
-      members: ["Priya Patel (Lead)", "Liam Davis", "Maya Wang"],
-      repo: "github.com/unicodetrack-demo/cybernova-event-hub",
-      commits: 48,
-      lastCommit: "3 hours ago",
-      health: "On Track",
-      progress: 78,
-    },
-    {
-      id: "team-2",
-      name: "Team QuantumByte",
-      members: ["Carlos Ruiz (Lead)", "Aisha Tariq"],
-      repo: "github.com/unicodetrack-demo/quantum-biomed-iot",
-      commits: 34,
-      lastCommit: "1 day ago",
-      health: "Review Required",
-      progress: 55,
-    },
-    {
-      id: "team-3",
-      name: "Team ApexEngineers",
-      members: ["Jordan Miller (Lead)", "Sophia Chen", "David O'Connor"],
-      repo: "github.com/unicodetrack-demo/apex-symposium-web",
-      commits: 62,
-      lastCommit: "45 mins ago",
-      health: "On Track",
-      progress: 90,
-    },
-  ];
+  // Student groups assigned to this project
+  const projectGroups = groups.filter((g) => g.projectId === projectId);
 
   return (
     <div className="space-y-6">
@@ -305,7 +276,7 @@ function ProjectDetailContent() {
             }`}
           >
             <Users className="w-3.5 h-3.5" />
-            Student Teams ({demoTeams.length})
+            Student Teams ({projectGroups.length})
           </button>
         </div>
       </div>
@@ -600,80 +571,43 @@ function ProjectDetailContent() {
             <div>
               <h3 className="text-lg font-bold text-slate-900">Registered Student Cohort Teams</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Monitor team formation, live GitHub telemetry, sprint progress, and submission readiness.
+                Monitor team formation, student university IDs, live GitHub telemetry, milestone progress, and submission readiness.
               </p>
             </div>
             <span className="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-semibold border border-teal-200">
-              {demoTeams.length} Teams Registered
+              {projectGroups.length} Teams Assigned
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {demoTeams.map((team) => (
-              <div
-                key={team.id}
-                className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 text-base">{team.name}</span>
-                    <span
-                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                        team.health === "On Track"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-amber-50 text-amber-700 border border-amber-200"
-                      }`}
-                    >
-                      {team.health}
-                    </span>
-                  </div>
-
-                  {/* Team Members */}
-                  <div className="mt-3 text-xs text-slate-600 space-y-1">
-                    <div className="font-medium text-slate-400 text-[11px] uppercase tracking-wider">Members</div>
-                    <ul className="list-disc list-inside space-y-0.5 text-slate-700">
-                      {team.members.map((m, i) => (
-                        <li key={i} className="truncate">
-                          {m}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="mt-4 pt-3 border-t border-slate-100">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-500">Milestone Progress</span>
-                      <span className="font-bold text-slate-800">{team.progress}%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className="bg-teal-500 h-full rounded-full"
-                        style={{ width: `${team.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* GitHub info */}
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-slate-700 font-mono text-[11px] truncate">
-                    <svg className="w-3.5 h-3.5 shrink-0 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                    </svg>
-                    <span className="truncate">{team.repo}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="flex items-center gap-1">
-                      <GitBranch className="w-3 h-3 text-teal-600" />
-                      {team.commits} commits
-                    </span>
-                    <span>Last commit {team.lastCommit}</span>
-                  </div>
-                </div>
+          {projectGroups.length === 0 ? (
+            <div className="p-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-3">
+              <Users className="w-12 h-12 text-slate-300 mx-auto" />
+              <h4 className="text-base font-bold text-slate-800">No Student Teams Assigned Yet</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                No cohort teams are currently linked with this project. Edit the project or auto-generate teams to assign students.
+              </p>
+              <div className="pt-2">
+                <Link
+                  href="/dashboard/projects/create"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-colors shadow-2xs"
+                >
+                  <span>Assign Academic Teams</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {projectGroups.map((group) => (
+                <LecturerGroupCard
+                  key={group.id}
+                  group={group}
+                  project={project}
+                  courseName={course?.name}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

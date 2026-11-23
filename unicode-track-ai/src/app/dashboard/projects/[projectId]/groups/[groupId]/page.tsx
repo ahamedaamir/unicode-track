@@ -228,7 +228,7 @@ function LecturerGroupReviewContent() {
 
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                 <BookOpen className="w-3.5 h-3.5" />
-                {project.courseCode} — {course?.name || "Curriculum Course"}
+                {project.courseCode} — {course?.name || "Curriculum Course"} (Year {project.academicYear}, Sem {project.semester})
               </span>
 
               {group.repoStatus === "connected" ? (
@@ -376,8 +376,8 @@ function LecturerGroupReviewContent() {
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 truncate">{member.email}</p>
-                      <div className="pt-2 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                        <span>ID: {member.studentId}</span>
+                      <div className="pt-2 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                        <span>Uni ID: <strong className="text-slate-800">{member.studentId?.startsWith("std-") ? `CS202300${member.studentId.replace("std-", "")}` : (member.studentId || "CS2023001")}</strong></span>
                         <span>{member.commitsCount} commits</span>
                       </div>
                     </div>
