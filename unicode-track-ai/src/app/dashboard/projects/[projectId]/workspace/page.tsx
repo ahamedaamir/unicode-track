@@ -46,6 +46,7 @@ function GroupWorkspaceContent() {
     submitProposal,
     activeRole,
     activeStudentEmail,
+    getEvaluationForGroup,
   } = useAdminData();
 
   // Find project
@@ -76,7 +77,10 @@ function GroupWorkspaceContent() {
   const [showRevisionForm, setShowRevisionForm] = useState(false);
 
   // Active tab state
-  const [activeTab, setActiveTab] = useState<"overview" | "members" | "repo" | "proposal" | "activity">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "members" | "repo" | "proposal" | "activity" | "evaluation">("overview");
+
+  // Project evaluation for this group
+  const evaluation = group ? getEvaluationForGroup(group.id) : undefined;
 
   if (!project) {
     return (
@@ -352,6 +356,21 @@ function GroupWorkspaceContent() {
           >
             <GitCommit className="w-3.5 h-3.5" />
             Activity & Commits
+          </button>
+
+          <button
+            onClick={() => setActiveTab("evaluation")}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === "evaluation"
+                ? "bg-slate-900 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+            Evaluation & Grades
+            {evaluation?.status === "published" && (
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            )}
           </button>
         </div>
       </div>
@@ -1044,6 +1063,118 @@ function GroupWorkspaceContent() {
               <strong>Academic Integrity Notice:</strong> Commit counts and volume statistics serve as collaboration indicators. Individual student marks are evaluated comprehensively through architectural quality, unit tests, and viva voce defense.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB E: ACADEMIC EVALUATION & GRADES (STUDENT VIEW)            */}
+      {/* ============================================================== */}
+      {activeTab === "evaluation" && (
+        <div className="space-y-6">
+          {evaluation && evaluation.status === "published" ? (
+            <div className="space-y-6">
+              {/* Published Grade Banner */}
+              <div className="bg-gradient-to-r from-teal-900 to-[#0B1220] rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-teal-500/20 text-teal-300 rounded-full text-xs font-bold border border-teal-500/30 flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5" /> Official Faculty Grade Published
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      Evaluated on {new Date(evaluation.publishedAt || evaluation.evaluatedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-black tracking-tight">{group?.groupName} — Final Academic Assessment</h2>
+                  <p className="text-xs text-slate-300 max-w-xl">
+                    Evaluated by <strong>{evaluation.lecturerName || "Supervising Faculty"}</strong> using the university academic capstone rubric and Gemini 2.5 Flash code review.
+                  </p>
+                </div>
+
+                <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-4 text-center shrink-0 min-w-40">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-teal-300 block">Overall Score</span>
+                  <div className="text-4xl font-black mt-1">
+                    {evaluation.totalScore}
+                    <span className="text-lg text-slate-400 font-normal"> / {evaluation.maxScore}</span>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-400 mt-1 block">
+                    {evaluation.percentage}% Achievement
+                  </span>
+                </div>
+              </div>
+
+              {/* Faculty Qualitative Feedback */}
+              {evaluation.lecturerComments && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-2">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-teal-600" />
+                    Faculty Feedback & Supervisor Comments
+                  </h3>
+                  <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 text-xs text-slate-800 leading-relaxed font-medium">
+                    {evaluation.lecturerComments}
+                  </div>
+                </div>
+              )}
+
+              {/* Criterion-Wise Marks Breakdown */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-teal-600" />
+                  Rubric Assessment Breakdown
+                </h3>
+
+                <div className="space-y-4">
+                  {evaluation.criterionScores.map((scoreItem, idx) => (
+                    <div
+                      key={scoreItem.criterionId || idx}
+                      className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-6 h-6 rounded-lg bg-teal-100 text-teal-800 font-bold flex items-center justify-center text-xs">
+                            {idx + 1}
+                          </span>
+                          <span className="font-bold text-slate-900 text-sm">{scoreItem.criterionName}</span>
+                        </div>
+                        <span className="font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">
+                          {scoreItem.finalScore} / {scoreItem.maxMarks} Marks ({scoreItem.percentage}%)
+                        </span>
+                      </div>
+
+                      <p className="text-slate-700 leading-relaxed">{scoreItem.explanation}</p>
+
+                      {scoreItem.suggestions && scoreItem.suggestions.length > 0 && (
+                        <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-600">
+                          <strong className="text-slate-900 block mb-1 font-semibold">Recommendations for Defense:</strong>
+                          <ul className="list-disc list-inside space-y-0.5">
+                            {scoreItem.suggestions.map((sug, sIdx) => (
+                              <li key={sIdx}>{sug}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Pending Publication Confidentiality Card */
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-2xl mx-auto shadow-sm space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
+                <Clock className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Academic Evaluation Pending Faculty Publication</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                Your group&apos;s project proposal, source code repository, and technical deliverables are undergoing evaluation under university rubric criteria.
+              </p>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 max-w-md mx-auto flex items-center gap-2 text-left">
+                <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0" />
+                <span>
+                  Official grades and individual criterion breakdowns will be unlocked here once your supervising lecturer approves and publishes the evaluation.
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

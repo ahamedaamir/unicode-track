@@ -27,6 +27,7 @@ import {
   Layers,
   FileCode2,
   Cpu,
+  Sparkles,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
@@ -44,6 +45,7 @@ function LecturerGroupReviewContent() {
     groups,
     reviewProposal,
     syncGroupRepo,
+    getEvaluationForGroup,
   } = useAdminData();
 
   // Find project and group
@@ -190,6 +192,14 @@ function LecturerGroupReviewContent() {
 
         <div className="flex items-center gap-2">
           <Link
+            href={`/dashboard/projects/${project.id}/groups/${group.id}/evaluation`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Rubric Evaluation</span>
+          </Link>
+
+          <Link
             href={`/dashboard/projects/${project.id}/workspace`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-medium transition-all shadow-2xs"
           >
@@ -321,6 +331,15 @@ function LecturerGroupReviewContent() {
             <Terminal className="w-3.5 h-3.5" />
             C Code Viewer & Runner
           </button>
+
+          <Link
+            href={`/dashboard/projects/${project.id}/groups/${group.id}/evaluation`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-all sm:ml-auto"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            AI Rubric Evaluation ({group.evaluationScore ? `${group.evaluationScore}/100` : "Run Review"})
+            <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
+          </Link>
         </div>
       </div>
 

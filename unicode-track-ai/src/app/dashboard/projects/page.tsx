@@ -31,6 +31,7 @@ import {
   Terminal,
   ExternalLink,
   Repeat,
+  Sliders,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Project } from "@/types/admin";
@@ -378,6 +379,13 @@ export default function ProjectsDirectoryPage() {
                       {projectGroups.length} Assigned Groups
                     </span>
                     <Link
+                      href={`/dashboard/projects/${proj.id}/evaluation/criteria`}
+                      className="text-xs font-semibold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                    >
+                      <Sliders className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Rubric</span>
+                    </Link>
+                    <Link
                       href={`/dashboard/projects/${proj.id}`}
                       className="text-xs font-semibold text-teal-700 hover:underline flex items-center gap-1"
                     >
@@ -395,27 +403,50 @@ export default function ProjectsDirectoryPage() {
                       className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
                     >
                       <div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                           <h4 className="font-bold text-xs sm:text-sm text-slate-900">{grp.groupName}</h4>
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              grp.proposalStatus === "approved"
-                                ? "bg-emerald-100 text-emerald-800"
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                grp.proposalStatus === "approved"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : grp.proposalStatus === "changes_requested"
+                                  ? "bg-rose-100 text-rose-800"
+                                  : grp.proposalStatus === "submitted"
+                                  ? "bg-sky-100 text-sky-800"
+                                  : "bg-slate-200 text-slate-600"
+                              }`}
+                            >
+                              {grp.proposalStatus === "approved"
+                                ? "Proposal Approved"
                                 : grp.proposalStatus === "changes_requested"
-                                ? "bg-rose-100 text-rose-800"
+                                ? "Changes Requested"
                                 : grp.proposalStatus === "submitted"
-                                ? "bg-sky-100 text-sky-800"
-                                : "bg-slate-200 text-slate-600"
-                            }`}
-                          >
-                            {grp.proposalStatus === "approved"
-                              ? "Proposal Approved"
-                              : grp.proposalStatus === "changes_requested"
-                              ? "Changes Requested"
-                              : grp.proposalStatus === "submitted"
-                              ? "Proposal Submitted"
-                              : "No Proposal"}
-                          </span>
+                                ? "Proposal Submitted"
+                                : "No Proposal"}
+                            </span>
+
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                                grp.evaluationStatus === "published"
+                                  ? "bg-teal-100 text-teal-800 border border-teal-200"
+                                  : grp.evaluationStatus === "approved"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : grp.evaluationStatus === "ai_completed"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              <Sparkles className="w-2.5 h-2.5" />
+                              {grp.evaluationStatus === "published"
+                                ? `Grade Published (${grp.evaluationScore || 84}/100)`
+                                : grp.evaluationStatus === "approved"
+                                ? "Approved by Faculty"
+                                : grp.evaluationStatus === "ai_completed"
+                                ? `AI Evaluated (${grp.evaluationScore || 84}/100)`
+                                : "Not Evaluated"}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Members Stack */}
@@ -457,6 +488,13 @@ export default function ProjectsDirectoryPage() {
 
                         <div className="flex items-center gap-2">
                           <Link
+                            href={`/dashboard/projects/${proj.id}/groups/${grp.id}/evaluation`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            <Sparkles className="w-3 h-3 text-purple-600" />
+                            <span>AI Evaluation</span>
+                          </Link>
+                          <Link
                             href={`/dashboard/projects/${proj.id}/workspace`}
                             className="text-xs font-medium text-slate-600 hover:text-slate-900"
                           >
@@ -466,7 +504,7 @@ export default function ProjectsDirectoryPage() {
                             href={`/dashboard/projects/${proj.id}/groups/${grp.id}`}
                             className="inline-flex items-center gap-1 px-3 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors"
                           >
-                            <span>Review Group</span>
+                            <span>Review</span>
                             <ChevronRight className="w-3 h-3" />
                           </Link>
                         </div>

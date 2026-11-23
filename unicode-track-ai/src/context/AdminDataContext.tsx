@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { Department, Course, Lecturer, Student, ActivityLog, Project } from "@/types/admin";
 import { ProjectGroup, ProjectTimelineActivity, ProposalSubmission, LecturerFeedback, GitHubCommit, GitHubBranch } from "@/types/project";
+import { EvaluationRubric, ProjectEvaluation, DEFAULT_ACADEMIC_RUBRIC_CRITERIA } from "@/types/evaluation";
 import { getDemoCProjectCommits } from "@/services/github/client";
 
 interface AdminDataContextType {
@@ -82,6 +83,22 @@ interface AdminDataContextType {
   // Project Activity Timeline
   timelineActivities: ProjectTimelineActivity[];
   addTimelineActivity: (activity: Omit<ProjectTimelineActivity, "id" | "timestamp">) => void;
+
+  // Evaluation Rubrics & Reviews
+  rubrics: Record<string, EvaluationRubric>;
+  getRubricForProject: (projectId: string) => EvaluationRubric;
+  saveRubric: (projectId: string, rubric: EvaluationRubric) => { success: boolean };
+  evaluations: ProjectEvaluation[];
+  getEvaluationForGroup: (groupId: string) => ProjectEvaluation | undefined;
+  saveEvaluation: (evaluation: ProjectEvaluation) => { success: boolean };
+  updateEvaluationCriterionScore: (
+    evaluationId: string,
+    criterionId: string,
+    lecturerScore: number,
+    lecturerNotes?: string
+  ) => { success: boolean };
+  approveEvaluation: (evaluationId: string, lecturerComments?: string) => { success: boolean };
+  publishEvaluation: (evaluationId: string) => { success: boolean };
 
   // Active Role & Personas
   activeRole: "admin" | "lecturer" | "student";
@@ -548,6 +565,9 @@ const initialGroups: ProjectGroup[] = [
     status: "active",
     progress: 75,
     proposalStatus: "approved",
+    evaluationStatus: "ai_completed",
+    latestEvaluationId: "eval-grp-proj-1-1-1",
+    evaluationScore: 84,
     proposal: {
       id: "prop-1",
       groupId: "grp-proj-1-1",
@@ -763,6 +783,282 @@ const initialGroups: ProjectGroup[] = [
   },
 ];
 
+const initialRubrics: Record<string, EvaluationRubric> = {
+  "proj-1": {
+    id: "rubric-proj-1",
+    projectId: "proj-1",
+    title: "CS492 Academic Capstone Evaluation Rubric",
+    description: "Assessment evaluating algorithmic correctness, code quality, error handling, and Git collaboration.",
+    totalMarks: 100,
+    criteria: [...DEFAULT_ACADEMIC_RUBRIC_CRITERIA],
+    isActive: true,
+    createdAt: "2026-11-20T10:00:00Z",
+    updatedAt: "2026-11-20T10:00:00Z",
+  },
+  "proj-3": {
+    id: "rubric-proj-3",
+    projectId: "proj-3",
+    title: "ICT2142 Enterprise Systems Evaluation Rubric",
+    description: "Assessment criteria for multi-tenant software architecture and database design.",
+    totalMarks: 100,
+    criteria: [...DEFAULT_ACADEMIC_RUBRIC_CRITERIA],
+    isActive: true,
+    createdAt: "2026-11-21T10:00:00Z",
+    updatedAt: "2026-11-21T10:00:00Z",
+  },
+};
+
+const initialEvaluations: ProjectEvaluation[] = [
+  {
+    id: "eval-grp-proj-1-1-1",
+    projectId: "proj-1",
+    groupId: "grp-proj-1-1",
+    groupNumber: 1,
+    groupName: "Group 01: Team CyberNova",
+    lecturerId: "lec-1",
+    lecturerName: "Dr. Evelyn Reed",
+    rubricId: "rubric-proj-1",
+    rubricTitle: "CS492 Academic Capstone Evaluation Rubric",
+    version: 1,
+    commitSha: "7b4c89a",
+    repoUrl: "https://github.com/unicodetrack-demo/cybernova-event-hub",
+    status: "ai_completed",
+    totalScore: 84,
+    maxScore: 100,
+    percentage: 84,
+    aiModel: "gemini-2.5-flash",
+    summary: "The project exhibits clean academic software engineering, well-structured modular C code, and defensive programming in circular telemetry queue management. Minor gaps exist in persistent disk logging and defensive voltage input clamping.",
+    gitTelemetryAnalysis: "Repository exhibits regular commit velocity across development phases. Commits are distributed across team members with descriptive commit messages following conventional commits.",
+    criterionScores: [
+      {
+        id: "score-crit-1",
+        criterionId: "crit-1",
+        criterionName: "Problem-solving and Algorithm Design",
+        maxMarks: 20,
+        aiScore: 18,
+        lecturerScore: 18,
+        finalScore: 18,
+        percentage: 90,
+        explanation: "Circular buffer queue with head/tail modulo arithmetic is correctly implemented to ingest real-time packets without memory fragmentation.",
+        evidence: [
+          {
+            file: "src/main.c",
+            functionName: "enqueue",
+            lineRange: "60-68",
+            commitRef: "7b4c89a",
+            snippet: "Queue buffer capacity boundary check and tail pointer increment.",
+          },
+        ],
+        suggestions: [
+          "Consider documenting algorithmic space/time complexity in telemetry header.",
+        ],
+      },
+      {
+        id: "score-crit-2",
+        criterionId: "crit-2",
+        criterionName: "Code Correctness and Execution",
+        maxMarks: 20,
+        aiScore: 17,
+        lecturerScore: 17,
+        finalScore: 17,
+        percentage: 85,
+        explanation: "Compiles cleanly under -Wall -Wextra -std=c11. Sensor packet structs are initialized properly and queue operations produce zero runtime memory leaks.",
+        evidence: [
+          {
+            file: "src/main.c",
+            functionName: "main",
+            lineRange: "80-115",
+            commitRef: "7b4c89a",
+            snippet: "Clean stack allocation and orderly packet ingestion and drainage loop.",
+          },
+        ],
+        suggestions: [
+          "Add automated unit test assertions for empty queue dequeue edge cases.",
+        ],
+      },
+      {
+        id: "score-crit-3",
+        criterionId: "crit-3",
+        criterionName: "Code Quality and Readability",
+        maxMarks: 15,
+        aiScore: 13,
+        lecturerScore: 13,
+        finalScore: 13,
+        percentage: 87,
+        explanation: "Consistent 4-space indentation, clear struct definitions, and descriptive variable naming throughout `src/main.c` and `src/sensor.c`.",
+        evidence: [
+          {
+            file: "include/telemetry.h",
+            functionName: "typedef struct",
+            lineRange: "10-25",
+            commitRef: "7b4c89a",
+            snippet: "Clear separation of headers from implementation files.",
+          },
+        ],
+        suggestions: [
+          "Add Doxygen style comments for all exported functions in header files.",
+        ],
+      },
+      {
+        id: "score-crit-4",
+        criterionId: "crit-4",
+        criterionName: "Data Structures and Logic",
+        maxMarks: 15,
+        aiScore: 13,
+        lecturerScore: 13,
+        finalScore: 13,
+        percentage: 87,
+        explanation: "Appropriate circular buffer array structure SensorPacket buffer[BUFFER_CAPACITY]. Struct padding and memory alignment are well organized.",
+        evidence: [
+          {
+            file: "src/main.c",
+            functionName: "CircularQueue",
+            lineRange: "47-52",
+            commitRef: "7b4c89a",
+            snippet: "Struct layout encapsulates head, tail, and count primitives.",
+          },
+        ],
+        suggestions: [
+          "Explore dynamic queue resizing if buffer capacity overflows under burst telemetry.",
+        ],
+      },
+      {
+        id: "score-crit-5",
+        criterionId: "crit-5",
+        criterionName: "Error Handling and Boundary Checks",
+        maxMarks: 10,
+        aiScore: 7,
+        lecturerScore: 7,
+        finalScore: 7,
+        percentage: 70,
+        explanation: "Queue buffer overflow and underflow return flags are checked. However, calibration routines in `src/sensor.c` lack checks against negative reference voltages.",
+        evidence: [
+          {
+            file: "src/sensor.c",
+            functionName: "calibrate_temperature",
+            lineRange: "166-171",
+            commitRef: "7b4c89a",
+            snippet: "Raw voltage divided by v_ref without defensive zero/negative guard.",
+          },
+        ],
+        suggestions: [
+          "Add guard clause `if (v_ref <= 0.0) return -1.0;`.",
+          "Log warnings to stderr when anomaly flags are triggered.",
+        ],
+      },
+      {
+        id: "score-crit-6",
+        criterionId: "crit-6",
+        criterionName: "Project Requirements Coverage",
+        maxMarks: 10,
+        aiScore: 8,
+        lecturerScore: 8,
+        finalScore: 8,
+        percentage: 80,
+        explanation: "Satisfies mandatory real-time ingestion, CRC verification, and multi-sensor calibration requirements. Offline file storage ledger remains pending.",
+        evidence: [
+          {
+            file: "src/telemetry.c",
+            functionName: "compute_crc16",
+            lineRange: "131-144",
+            commitRef: "7b4c89a",
+            snippet: "CRC-16 polynomial bitwise checksum.",
+          },
+        ],
+        suggestions: [
+          "Implement persistent telemetry ledger to satisfy secondary project deliverable.",
+        ],
+      },
+      {
+        id: "score-crit-7",
+        criterionId: "crit-7",
+        criterionName: "GitHub Development Activity",
+        maxMarks: 5,
+        aiScore: 4,
+        lecturerScore: 4,
+        finalScore: 4,
+        percentage: 80,
+        explanation: "Regular commit frequency across 3 branches (main, feature/qr-scanner, dev). Conventional commit messages utilized throughout.",
+        evidence: [
+          {
+            file: "git://repository",
+            functionName: "branches",
+            lineRange: "3 branches",
+            commitRef: "7b4c89a",
+            snippet: "Branching hygiene and feature-based branch workflow.",
+          },
+        ],
+        suggestions: [
+          "Ensure all pull requests undergo peer review before merging to main.",
+        ],
+      },
+      {
+        id: "score-crit-8",
+        criterionId: "crit-8",
+        criterionName: "Documentation and Comments",
+        maxMarks: 5,
+        aiScore: 4,
+        lecturerScore: 4,
+        finalScore: 4,
+        percentage: 80,
+        explanation: "Comprehensive README.md outlining build instructions, architecture diagrams, and clean Makefile with all and clean targets.",
+        evidence: [
+          {
+            file: "Makefile",
+            functionName: "all",
+            lineRange: "1-12",
+            commitRef: "7b4c89a",
+            snippet: "Standard gcc flags (-Wall -Wextra -std=c11 -O2).",
+          },
+        ],
+        suggestions: [
+          "Add brief troubleshooting section to README.md.",
+        ],
+      },
+    ],
+    requirementsCoverage: [
+      {
+        requirement: "FR-1: Real-time Circular Telemetry Ingestion Buffer",
+        status: "Implemented",
+        explanation: "Implemented via `CircularQueue` in `src/main.c` with bounded capacity, enqueue/dequeue primitives, and overflow guards.",
+      },
+      {
+        requirement: "FR-2: CRC-16 Packet Integrity Verification",
+        status: "Implemented",
+        explanation: "Hardware polynomial CRC calculation fully implemented in `src/telemetry.c`.",
+      },
+      {
+        requirement: "FR-3: Multi-Channel Analog Sensor Calibration",
+        status: "Implemented",
+        explanation: "Temperature and pressure ADC conversion functions defined in `src/sensor.c`.",
+      },
+      {
+        requirement: "FR-4: Anomaly Detection and Notification Flagging",
+        status: "Partial",
+        explanation: "Anomaly flags are detected and printed to terminal; however, a dedicated alert callback or persistent error ledger is not yet implemented.",
+      },
+      {
+        requirement: "FR-5: Persistent File System Logging & Offline Storage",
+        status: "Missing",
+        explanation: "No persistent file I/O operations (`fopen`/`fwrite`) found in the retrieved source files.",
+      },
+      {
+        requirement: "NFR-1: Zero Memory Leaks & Fixed Stack Allocations",
+        status: "Implemented",
+        explanation: "Clean stack and static buffer allocations utilized throughout; no unmanaged `malloc` allocations observed.",
+      },
+    ],
+    generalSuggestions: [
+      "Add explicit input validation in calibration routines to prevent potential divide-by-zero conditions.",
+      "Expand unit testing suite in `Makefile` with a `test` target validating buffer boundary conditions.",
+      "Implement persistent telemetry logging to secondary storage to satisfy all capstone milestone specifications.",
+    ],
+    evaluatedAt: "2026-11-23T14:30:00Z",
+    createdAt: "2026-11-23T14:30:00Z",
+    updatedAt: "2026-11-23T14:30:00Z",
+  },
+];
+
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
@@ -882,6 +1178,24 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {}
     return initialTimelineActivities;
+  });
+
+  const [rubrics, setRubrics] = useState<Record<string, EvaluationRubric>>(() => {
+    if (typeof window === "undefined") return initialRubrics;
+    try {
+      const saved = localStorage.getItem("unicodetrack_rubrics_store");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return initialRubrics;
+  });
+
+  const [evaluations, setEvaluations] = useState<ProjectEvaluation[]>(() => {
+    if (typeof window === "undefined") return initialEvaluations;
+    try {
+      const saved = localStorage.getItem("unicodetrack_evaluations_store");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return initialEvaluations;
   });
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
@@ -1673,6 +1987,171 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return { success: true };
   };
 
+  // Evaluation & Rubrics Methods
+  const getRubricForProject = (projectId: string): EvaluationRubric => {
+    if (rubrics[projectId]) return rubrics[projectId];
+    const defaultRubric: EvaluationRubric = {
+      id: `rubric-${projectId}`,
+      projectId,
+      title: "Academic Capstone Project Evaluation Rubric",
+      description: "Comprehensive assessment evaluating algorithmic correctness, code quality, error handling, and Git collaboration.",
+      totalMarks: 100,
+      criteria: [...DEFAULT_ACADEMIC_RUBRIC_CRITERIA],
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    return defaultRubric;
+  };
+
+  const saveRubric = (projectId: string, rubric: EvaluationRubric) => {
+    const nextRubrics = { ...rubrics, [projectId]: rubric };
+    setRubrics(nextRubrics);
+    try {
+      localStorage.setItem("unicodetrack_rubrics_store", JSON.stringify(nextRubrics));
+    } catch {}
+    showToast("Evaluation rubric saved successfully", "success");
+    return { success: true };
+  };
+
+  const getEvaluationForGroup = (groupId: string): ProjectEvaluation | undefined => {
+    return evaluations.find((e) => e.groupId === groupId);
+  };
+
+  const saveEvaluation = (evaluation: ProjectEvaluation) => {
+    const existingIndex = evaluations.findIndex(
+      (e) => e.id === evaluation.id || (e.groupId === evaluation.groupId && e.version === evaluation.version)
+    );
+    let nextEvaluations: ProjectEvaluation[];
+    if (existingIndex >= 0) {
+      nextEvaluations = [...evaluations];
+      nextEvaluations[existingIndex] = evaluation;
+    } else {
+      nextEvaluations = [evaluation, ...evaluations];
+    }
+    setEvaluations(nextEvaluations);
+
+    // Update group's evaluation status and score
+    const updatedGroups = groups.map((g) => {
+      if (g.id === evaluation.groupId) {
+        return {
+          ...g,
+          evaluationStatus: evaluation.status,
+          latestEvaluationId: evaluation.id,
+          evaluationScore: evaluation.totalScore,
+          progress:
+            evaluation.status === "published"
+              ? 100
+              : evaluation.status === "approved"
+              ? 90
+              : g.progress,
+        };
+      }
+      return g;
+    });
+    setGroups(updatedGroups);
+
+    try {
+      localStorage.setItem("unicodetrack_evaluations_store", JSON.stringify(nextEvaluations));
+    } catch {}
+    return { success: true };
+  };
+
+  const updateEvaluationCriterionScore = (
+    evaluationId: string,
+    criterionId: string,
+    lecturerScore: number,
+    lecturerNotes?: string
+  ) => {
+    const evaluation = evaluations.find((e) => e.id === evaluationId);
+    if (!evaluation) return { success: false };
+
+    const updatedCriterionScores = evaluation.criterionScores.map((c) => {
+      if (c.criterionId === criterionId) {
+        const bounded = Math.max(0, Math.min(c.maxMarks, lecturerScore));
+        return {
+          ...c,
+          lecturerScore: bounded,
+          finalScore: bounded,
+          percentage: Math.round((bounded / c.maxMarks) * 100),
+          explanation: lecturerNotes ? `${c.explanation}\n[Lecturer Note]: ${lecturerNotes}` : c.explanation,
+        };
+      }
+      return c;
+    });
+
+    const newTotalScore =
+      Math.round(updatedCriterionScores.reduce((acc, c) => acc + c.finalScore, 0) * 10) / 10;
+    const newPercentage = Math.round((newTotalScore / evaluation.maxScore) * 100);
+
+    const updatedEvaluation: ProjectEvaluation = {
+      ...evaluation,
+      criterionScores: updatedCriterionScores,
+      totalScore: newTotalScore,
+      percentage: newPercentage,
+      status: evaluation.status === "not_evaluated" ? "in_review" : evaluation.status,
+      updatedAt: new Date().toISOString(),
+    };
+
+    saveEvaluation(updatedEvaluation);
+    return { success: true };
+  };
+
+  const approveEvaluation = (evaluationId: string, lecturerComments?: string) => {
+    const evaluation = evaluations.find((e) => e.id === evaluationId);
+    if (!evaluation) return { success: false };
+
+    const updated: ProjectEvaluation = {
+      ...evaluation,
+      status: "approved",
+      lecturerComments: lecturerComments || evaluation.lecturerComments,
+      updatedAt: new Date().toISOString(),
+    };
+    saveEvaluation(updated);
+
+    addTimelineActivity({
+      projectId: evaluation.projectId,
+      groupId: evaluation.groupId,
+      groupNumber: evaluation.groupNumber,
+      type: "feedback_given",
+      user: "Dr. Evelyn Reed",
+      userRole: "lecturer",
+      action: "approved academic project evaluation",
+      target: `Score: ${evaluation.totalScore}/${evaluation.maxScore} (${evaluation.percentage}%)`,
+    });
+
+    showToast(`Evaluation for ${evaluation.groupName || "Group"} approved! Ready for publication.`, "success");
+    return { success: true };
+  };
+
+  const publishEvaluation = (evaluationId: string) => {
+    const evaluation = evaluations.find((e) => e.id === evaluationId);
+    if (!evaluation) return { success: false };
+
+    const now = new Date().toISOString();
+    const updated: ProjectEvaluation = {
+      ...evaluation,
+      status: "published",
+      publishedAt: now,
+      updatedAt: now,
+    };
+    saveEvaluation(updated);
+
+    addTimelineActivity({
+      projectId: evaluation.projectId,
+      groupId: evaluation.groupId,
+      groupNumber: evaluation.groupNumber,
+      type: "feedback_given",
+      user: "Dr. Evelyn Reed",
+      userRole: "lecturer",
+      action: "published final grades and feedback to group workspace",
+      target: `Final Grade: ${evaluation.totalScore}/${evaluation.maxScore} (${evaluation.percentage}%)`,
+    });
+
+    showToast(`Official marks published! Group members can now view feedback in workspace.`, "success");
+    return { success: true };
+  };
+
   return (
     <AdminDataContext.Provider
       value={{
@@ -1714,6 +2193,15 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         reviewProposal,
         timelineActivities,
         addTimelineActivity,
+        rubrics,
+        getRubricForProject,
+        saveRubric,
+        evaluations,
+        getEvaluationForGroup,
+        saveEvaluation,
+        updateEvaluationCriterionScore,
+        approveEvaluation,
+        publishEvaluation,
         activeRole,
         setActiveRole,
         activeLecturerEmail,

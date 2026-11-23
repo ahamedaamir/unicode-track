@@ -75,6 +75,9 @@ export interface ProjectGroup {
   progress: number;
   proposalStatus: "not_submitted" | "submitted" | "under_review" | "changes_requested" | "approved";
   proposal?: ProposalSubmission;
+  evaluationStatus?: "not_evaluated" | "ai_completed" | "in_review" | "approved" | "published";
+  latestEvaluationId?: string;
+  evaluationScore?: number;
   branches?: GitHubBranch[];
   commits?: GitHubCommit[];
   createdAt: string;

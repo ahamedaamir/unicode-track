@@ -23,6 +23,7 @@ import {
   Layers,
   ChevronRight,
   Award,
+  Sliders,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -137,6 +138,14 @@ function ProjectDetailContent() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          <Link
+            href={`/dashboard/projects/${project.id}/evaluation/criteria`}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-semibold shadow-2xs transition-all"
+          >
+            <Sliders className="w-3.5 h-3.5 text-purple-600" />
+            <span>Evaluation Rubric</span>
+          </Link>
+
           {project.status === "Draft" ? (
             <button
               onClick={() => publishProject(project.id)}
