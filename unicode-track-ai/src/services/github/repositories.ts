@@ -1,1 +1,248 @@
-export {};
+export interface RepositoryFileNode {
+  path: string;
+  name: string;
+  type: "file" | "dir";
+  size?: number;
+  language?: string;
+  content?: string;
+  children?: RepositoryFileNode[];
+}
+
+/**
+ * Standard C academic capstone project source tree
+ */
+export const SAMPLE_C_PROJECT_FILES: RepositoryFileNode[] = [
+  {
+    path: "src",
+    name: "src",
+    type: "dir",
+    children: [
+      {
+        path: "src/main.c",
+        name: "main.c",
+        type: "file",
+        size: 1420,
+        language: "c",
+        content: `/**
+ * UniCodeTrack AI — Academic C Project
+ * Course: CS492 / SE3102 Capstone
+ * Module: Real-time Telemetry & Sensor Packet Ingestion
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX_SENSORS 4
+#define BUFFER_CAPACITY 8
+
+typedef struct {
+    int sensor_id;
+    char sensor_type[20];
+    double reading_value;
+    int status_flag; // 1 = OK, 0 = Anomaly Alert
+} SensorPacket;
+
+typedef struct {
+    SensorPacket buffer[BUFFER_CAPACITY];
+    int head;
+    int tail;
+    int count;
+} CircularQueue;
+
+void init_queue(CircularQueue* q) {
+    q->head = 0;
+    q->tail = 0;
+    q->count = 0;
+}
+
+int enqueue(CircularQueue* q, SensorPacket packet) {
+    if (q->count >= BUFFER_CAPACITY) {
+        return 0; // Buffer Overflow
+    }
+    q->buffer[q->tail] = packet;
+    q->tail = (q->tail + 1) % BUFFER_CAPACITY;
+    q->count++;
+    return 1;
+}
+
+int dequeue(CircularQueue* q, SensorPacket* out) {
+    if (q->count <= 0) {
+        return 0; // Empty Buffer
+    }
+    *out = q->buffer[q->head];
+    q->head = (q->head + 1) % BUFFER_CAPACITY;
+    q->count--;
+    return 1;
+}
+
+int main(void) {
+    printf("========================================\\n");
+    printf(" UniCodeTrack AI — Embedded C Processor \\n");
+    printf(" Real-Time Telemetry Pipeline v2.4       \\n");
+    printf("========================================\\n\\n");
+
+    CircularQueue queue;
+    init_queue(&queue);
+
+    SensorPacket p1 = {101, "Temperature", 38.6, 1};
+    SensorPacket p2 = {102, "HeartRate", 84.0, 1};
+    SensorPacket p3 = {103, "SpO2", 98.2, 1};
+    SensorPacket p4 = {104, "Vibration", 4.8, 0}; // Anomaly
+
+    enqueue(&queue, p1);
+    enqueue(&queue, p2);
+    enqueue(&queue, p3);
+    enqueue(&queue, p4);
+
+    printf("[INFO] Ingested %d sensor packets into circular telemetry buffer.\\n\\n", queue.count);
+
+    SensorPacket current;
+    int processed = 0;
+    while (dequeue(&queue, &current)) {
+        processed++;
+        printf("[PACKET %d] Sensor #%d (%s) -> Value: %.2f | Status: %s\\n",
+               processed,
+               current.sensor_id,
+               current.sensor_type,
+               current.reading_value,
+               current.status_flag ? "NORMAL" : "** ANOMALY DETECTED **");
+    }
+
+    printf("\\n[SUCCESS] Telemetry processing pipeline executed cleanly with 0 memory leaks.\\n");
+    return 0;
+}
+`,
+      },
+      {
+        path: "src/telemetry.c",
+        name: "telemetry.c",
+        type: "file",
+        size: 980,
+        language: "c",
+        content: `/**
+ * telemetry.c — Packet verification and CRC validation
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+unsigned short compute_crc16(const unsigned char* data, int length) {
+    unsigned short crc = 0xFFFF;
+    for (int i = 0; i < length; i++) {
+        crc ^= (unsigned short)data[i];
+        for (int j = 0; j < 8; j++) {
+            if (crc & 0x0001) {
+                crc = (crc >> 1) ^ 0xA001;
+            } else {
+                crc = crc >> 1;
+            }
+        }
+    }
+    return crc;
+}
+
+int validate_packet_integrity(const unsigned char* raw_packet, int len) {
+    if (len < 4) return 0;
+    unsigned short crc = compute_crc16(raw_packet, len - 2);
+    unsigned short expected = (raw_packet[len-1] << 8) | raw_packet[len-2];
+    return crc == expected;
+}
+`,
+      },
+      {
+        path: "src/sensor.c",
+        name: "sensor.c",
+        type: "file",
+        size: 720,
+        language: "c",
+        content: `/**
+ * sensor.c — Calibration routines for peripheral sensors
+ */
+
+#include <stdio.h>
+
+double calibrate_temperature(double raw_voltage, double v_ref) {
+    // Converts raw millivolts to Celsius with polynomial correction
+    double mv = (raw_voltage / v_ref) * 3300.0;
+    double celsius = (mv - 500.0) / 10.0;
+    return celsius;
+}
+
+double calibrate_pressure(double raw_adc) {
+    return (raw_adc / 1023.0) * 101.325; // kPa conversion
+}
+`,
+      },
+    ],
+  },
+  {
+    path: "include",
+    name: "include",
+    type: "dir",
+    children: [
+      {
+        path: "include/telemetry.h",
+        name: "telemetry.h",
+        type: "file",
+        size: 512,
+        language: "c",
+        content: `#ifndef TELEMETRY_H
+#define TELEMETRY_H
+
+#define PROTOCOL_VERSION 0x02
+
+unsigned short compute_crc16(const unsigned char* data, int length);
+int validate_packet_integrity(const unsigned char* raw_packet, int len);
+double calibrate_temperature(double raw_voltage, double v_ref);
+
+#endif // TELEMETRY_H
+`,
+      },
+    ],
+  },
+  {
+    path: "Makefile",
+    name: "Makefile",
+    type: "file",
+    size: 420,
+    language: "makefile",
+    content: `CC = gcc
+CFLAGS = -Wall -Wextra -std=c11 -O2 -Iinclude
+TARGET = telemetry_runner
+
+all: $(TARGET)
+
+$(TARGET): src/main.c src/telemetry.c src/sensor.c
+\t$(CC) $(CFLAGS) -o $(TARGET) src/main.c src/telemetry.c src/sensor.c
+
+clean:
+\trm -f $(TARGET) *.o
+`,
+  },
+  {
+    path: "README.md",
+    name: "README.md",
+    type: "file",
+    size: 890,
+    language: "markdown",
+    content: `# Academic Embedded C Capstone Project
+
+## Overview
+This repository contains the C firmware and telemetry processing pipeline for the **UniCodeTrack AI** academic capstone project.
+
+### Architecture
+- \`src/main.c\`: Ring-buffer queue and stream processing pipeline.
+- \`src/telemetry.c\`: CRC-16 hardware data verification.
+- \`src/sensor.c\`: Multi-channel analog sensor calibration.
+- \`include/telemetry.h\`: Global headers and function prototypes.
+
+### Build and Run
+\`\`\`bash
+make
+./telemetry_runner
+\`\`\`
+`,
+  },
+];

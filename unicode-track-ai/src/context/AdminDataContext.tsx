@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState } from "react";
 import { Department, Course, Lecturer, Student, ActivityLog, Project } from "@/types/admin";
+import { ProjectGroup, ProjectTimelineActivity, ProposalSubmission, LecturerFeedback, GitHubCommit, GitHubBranch } from "@/types/project";
+import { getDemoCProjectCommits } from "@/services/github/client";
 
 interface AdminDataContextType {
   departments: Department[];
@@ -53,11 +55,41 @@ interface AdminDataContextType {
   archiveProject: (id: string) => void;
   deleteProject: (id: string) => void;
 
-  // Active Role & Lecturer Persona
+  // Academic Group Workspaces & GitHub Integration
+  groups: ProjectGroup[];
+  addGroup: (data: Omit<ProjectGroup, "id" | "createdAt">) => { success: boolean; group?: ProjectGroup };
+  updateGroup: (id: string, updates: Partial<ProjectGroup>) => { success: boolean };
+  connectRepoToGroup: (groupId: string, repoUrl: string) => Promise<{ success: boolean; error?: string }>;
+  syncGroupRepo: (groupId: string) => Promise<{ success: boolean; error?: string }>;
+  submitProposal: (
+    groupId: string,
+    data: {
+      title: string;
+      description: string;
+      fileName: string;
+      fileSize: string;
+      submittedBy: string;
+      submittedByEmail: string;
+    }
+  ) => { success: boolean; proposal?: ProposalSubmission };
+  reviewProposal: (
+    groupId: string,
+    decision: "approved" | "changes_requested",
+    comments: string,
+    rubricScore?: number
+  ) => { success: boolean };
+
+  // Project Activity Timeline
+  timelineActivities: ProjectTimelineActivity[];
+  addTimelineActivity: (activity: Omit<ProjectTimelineActivity, "id" | "timestamp">) => void;
+
+  // Active Role & Personas
   activeRole: "admin" | "lecturer" | "student";
   setActiveRole: (role: "admin" | "lecturer" | "student") => void;
   activeLecturerEmail: string;
   setActiveLecturerEmail: (email: string) => void;
+  activeStudentEmail: string;
+  setActiveStudentEmail: (email: string) => void;
 
   toast: { message: string; type: "success" | "error" | "info" } | null;
   showToast: (message: string, type?: "success" | "error" | "info") => void;
@@ -386,6 +418,351 @@ const initialActivities: ActivityLog[] = [
   },
 ];
 
+const initialTimelineActivities: ProjectTimelineActivity[] = [
+  {
+    id: "tl-1",
+    projectId: "proj-1",
+    groupId: "grp-proj-1-1",
+    groupNumber: 1,
+    type: "proposal_approved",
+    user: "Dr. Evelyn Reed",
+    userRole: "lecturer",
+    action: "approved project proposal",
+    target: "CS492_Group01_Proposal_Final.pdf (Score: 94/100)",
+    timestamp: "3 days ago",
+  },
+  {
+    id: "tl-2",
+    projectId: "proj-1",
+    groupId: "grp-proj-1-1",
+    groupNumber: 1,
+    type: "repo_connected",
+    user: "Alex Chen",
+    userRole: "student",
+    action: "connected GitHub repository",
+    target: "https://github.com/unicodetrack-demo/cybernova-event-hub",
+    timestamp: "4 days ago",
+  },
+  {
+    id: "tl-3",
+    projectId: "proj-1",
+    groupId: "grp-proj-1-1",
+    groupNumber: 1,
+    type: "proposal_submitted",
+    user: "Alex Chen",
+    userRole: "student",
+    action: "submitted official project proposal",
+    target: "CS492_Group01_Proposal_Final.pdf (v1.0)",
+    timestamp: "5 days ago",
+  },
+  {
+    id: "tl-4",
+    projectId: "proj-1",
+    groupId: "grp-proj-1-2",
+    groupNumber: 2,
+    type: "proposal_submitted",
+    user: "Maya Wang",
+    userRole: "student",
+    action: "submitted initial proposal",
+    target: "CS492_Group02_Project_Proposal_Draft.pdf",
+    timestamp: "2 days ago",
+  },
+  {
+    id: "tl-5",
+    projectId: "proj-1",
+    groupId: "grp-proj-1-1",
+    groupNumber: 1,
+    type: "commit_pushed",
+    user: "Priya Patel",
+    userRole: "student",
+    action: "pushed 3 commits to branch",
+    target: "feature/qr-scanner",
+    timestamp: "5 hours ago",
+  },
+];
+
+const initialGroups: ProjectGroup[] = [
+  {
+    id: "grp-proj-1-1",
+    projectId: "proj-1",
+    groupNumber: 1,
+    groupName: "Group 01: Team CyberNova",
+    workspaceId: "ws-proj-1-1",
+    members: [
+      {
+        studentId: "std-1",
+        fullName: "Alex Chen",
+        email: "alex.chen@university.edu",
+        department: "Department of Computer Science & Engineering",
+        academicYear: 4,
+        semester: 2,
+        role: "Team Lead",
+        githubUsername: "alexchen-dev",
+        commitsCount: 28,
+        avatar: null,
+      },
+      {
+        studentId: "std-2",
+        fullName: "Sarah Lin",
+        email: "sarah.lin@university.edu",
+        department: "Department of Computer Science & Engineering",
+        academicYear: 4,
+        semester: 1,
+        role: "Member",
+        githubUsername: "sarahlin-code",
+        commitsCount: 22,
+        avatar: null,
+      },
+      {
+        studentId: "std-4",
+        fullName: "Priya Patel",
+        email: "priya.patel@university.edu",
+        department: "Department of Information Technology",
+        academicYear: 2,
+        semester: 1,
+        role: "Member",
+        githubUsername: "priyapatel-eng",
+        commitsCount: 16,
+        avatar: null,
+      },
+      {
+        studentId: "std-5",
+        fullName: "Liam Davis",
+        email: "liam.davis@university.edu",
+        department: "Department of Computer Science & Engineering",
+        academicYear: 3,
+        semester: 1,
+        role: "Member",
+        githubUsername: "liamdavis-sys",
+        commitsCount: 14,
+        avatar: null,
+      },
+    ],
+    repoUrl: "https://github.com/unicodetrack-demo/cybernova-event-hub",
+    repoName: "cybernova-event-hub",
+    repoOwner: "unicodetrack-demo",
+    defaultBranch: "main",
+    repoStatus: "connected",
+    lastSyncAt: new Date(Date.now() - 3600000).toISOString(),
+    totalCommits: 80,
+    status: "active",
+    progress: 75,
+    proposalStatus: "approved",
+    proposal: {
+      id: "prop-1",
+      groupId: "grp-proj-1-1",
+      title: "Distributed University Symposium & Attendance Platform",
+      description: "An integrated cloud-native system for real-time QR check-in, attendance verification, and automated evaluation metrics.",
+      fileName: "CS492_Group01_Proposal_Final.pdf",
+      fileSize: "1.85 MB",
+      submittedBy: "Alex Chen",
+      submittedByEmail: "alex.chen@university.edu",
+      submittedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+      status: "approved",
+      version: 1,
+      feedback: {
+        id: "fb-1",
+        lecturerName: "Dr. Evelyn Reed",
+        decision: "approved",
+        comments: "Outstanding system architecture and well-formulated non-functional requirements. The edge QR verification threat model is thorough. Approved to commence Milestone 2 sprint.",
+        reviewedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+        rubricScore: 94,
+      },
+    },
+    branches: [
+      {
+        name: "main",
+        isDefault: true,
+        latestCommitHash: "7b4c89a",
+        latestCommitMessage: "feat(core): implement high-throughput circular queue buffer",
+        updatedAt: "2 hours ago",
+      },
+      {
+        name: "feature/qr-scanner",
+        isDefault: false,
+        latestCommitHash: "4e9d12f",
+        latestCommitMessage: "feat(scanner): edge packet validation routine",
+        updatedAt: "5 hours ago",
+      },
+      {
+        name: "dev",
+        isDefault: false,
+        latestCommitHash: "1a8e34c",
+        latestCommitMessage: "test: unit tests for packet serialization in C",
+        updatedAt: "1 day ago",
+      },
+    ],
+    commits: getDemoCProjectCommits("main"),
+    createdAt: "2026-11-12",
+  },
+  {
+    id: "grp-proj-1-2",
+    projectId: "proj-1",
+    groupNumber: 2,
+    groupName: "Group 02: Team ApexEngineers",
+    workspaceId: "ws-proj-1-2",
+    members: [
+      {
+        studentId: "std-6",
+        fullName: "Maya Wang",
+        email: "maya.wang@university.edu",
+        department: "Department of Software Engineering",
+        academicYear: 2,
+        semester: 2,
+        role: "Team Lead",
+        githubUsername: "mayawang-code",
+        commitsCount: 20,
+        avatar: null,
+      },
+      {
+        studentId: "std-7",
+        fullName: "Carlos Ruiz",
+        email: "carlos.ruiz@university.edu",
+        department: "Department of Management & Information Systems",
+        academicYear: 1,
+        semester: 2,
+        role: "Member",
+        githubUsername: "carlosruiz-dev",
+        commitsCount: 15,
+        avatar: null,
+      },
+      {
+        studentId: "std-8",
+        fullName: "Aisha Tariq",
+        email: "aisha.tariq@university.edu",
+        department: "Department of Information Technology",
+        academicYear: 1,
+        semester: 1,
+        role: "Member",
+        githubUsername: "aishatariq",
+        commitsCount: 11,
+        avatar: null,
+      },
+      {
+        studentId: "std-3",
+        fullName: "Marcus Doe",
+        email: "marcus.doe@university.edu",
+        department: "Department of Software Engineering",
+        academicYear: 3,
+        semester: 2,
+        role: "Member",
+        githubUsername: "marcusdoe",
+        commitsCount: 8,
+        avatar: null,
+      },
+    ],
+    repoUrl: "https://github.com/unicodetrack-demo/apex-symposium-web",
+    repoName: "apex-symposium-web",
+    repoOwner: "unicodetrack-demo",
+    defaultBranch: "main",
+    repoStatus: "connected",
+    lastSyncAt: new Date(Date.now() - 7200000).toISOString(),
+    totalCommits: 54,
+    status: "active",
+    progress: 55,
+    proposalStatus: "under_review",
+    proposal: {
+      id: "prop-2",
+      groupId: "grp-proj-1-2",
+      title: "Symposium Check-in Mobile Companion & Badge Sync",
+      description: "Low-latency offline mobile companion application synchronizing attendee badges.",
+      fileName: "CS492_Group02_Project_Proposal_Draft.pdf",
+      fileSize: "1.42 MB",
+      submittedBy: "Maya Wang",
+      submittedByEmail: "maya.wang@university.edu",
+      submittedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+      status: "under_review",
+      version: 1,
+    },
+    branches: [
+      {
+        name: "main",
+        isDefault: true,
+        latestCommitHash: "3f8b12a",
+        latestCommitMessage: "feat: attendee registration workflow",
+        updatedAt: "3 hours ago",
+      },
+    ],
+    commits: getDemoCProjectCommits("main"),
+    createdAt: "2026-11-14",
+  },
+  {
+    id: "grp-proj-3-1",
+    projectId: "proj-3",
+    groupNumber: 1,
+    groupName: "Group 01: Team SupplyCore",
+    workspaceId: "ws-proj-3-1",
+    members: [
+      {
+        studentId: "std-1",
+        fullName: "Alex Chen",
+        email: "alex.chen@university.edu",
+        department: "Department of Computer Science & Engineering",
+        academicYear: 4,
+        semester: 2,
+        role: "Team Lead",
+        githubUsername: "alexchen-dev",
+        commitsCount: 16,
+        avatar: null,
+      },
+      {
+        studentId: "std-2",
+        fullName: "Sarah Lin",
+        email: "sarah.lin@university.edu",
+        department: "Department of Computer Science & Engineering",
+        academicYear: 4,
+        semester: 1,
+        role: "Member",
+        githubUsername: "sarahlin-code",
+        commitsCount: 12,
+        avatar: null,
+      },
+    ],
+    repoUrl: "https://github.com/unicodetrack-demo/supplycore-b2b",
+    repoName: "supplycore-b2b",
+    repoOwner: "unicodetrack-demo",
+    defaultBranch: "main",
+    repoStatus: "connected",
+    lastSyncAt: new Date(Date.now() - 14400000).toISOString(),
+    totalCommits: 28,
+    status: "active",
+    progress: 40,
+    proposalStatus: "changes_requested",
+    proposal: {
+      id: "prop-3",
+      groupId: "grp-proj-3-1",
+      title: "Multi-Tenant Enterprise Marketplace Core",
+      description: "B2B catalog engine and automated invoice reconciliation.",
+      fileName: "ICT2142_SupplyCore_Proposal_v1.pdf",
+      fileSize: "2.1 MB",
+      submittedBy: "Alex Chen",
+      submittedByEmail: "alex.chen@university.edu",
+      submittedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      status: "changes_requested",
+      version: 1,
+      feedback: {
+        id: "fb-3",
+        lecturerName: "Dr. Sarah Al-Mansoor",
+        decision: "changes_requested",
+        comments: "Please expand on multi-currency reconciliation and add automated audit trail specifications. Resubmit updated PDF proposal.",
+        reviewedAt: new Date(Date.now() - 86400000).toISOString(),
+        rubricScore: 68,
+      },
+    },
+    branches: [
+      {
+        name: "main",
+        isDefault: true,
+        latestCommitHash: "9a1c45e",
+        latestCommitMessage: "feat: order processing state machine",
+        updatedAt: "1 day ago",
+      },
+    ],
+    commits: getDemoCProjectCommits("main"),
+    createdAt: "2026-11-20",
+  },
+];
+
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
@@ -477,6 +854,35 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [activeLecturerEmail, setActiveLecturerEmail] = useState<string>("evelyn.reed@university.edu");
+  const [activeStudentEmail, setActiveStudentEmail] = useState<string>("alex.chen@university.edu");
+
+  const [groups, setGroups] = useState<ProjectGroup[]>(() => {
+    if (typeof window === "undefined") return initialGroups;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.groups && Array.isArray(parsed.groups)) {
+          return parsed.groups;
+        }
+      }
+    } catch {}
+    return initialGroups;
+  });
+
+  const [timelineActivities, setTimelineActivities] = useState<ProjectTimelineActivity[]>(() => {
+    if (typeof window === "undefined") return initialTimelineActivities;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.timelineActivities && Array.isArray(parsed.timelineActivities)) {
+          return parsed.timelineActivities;
+        }
+      }
+    } catch {}
+    return initialTimelineActivities;
+  });
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
@@ -487,7 +893,9 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     lecList = lecturers,
     stdList = students,
     actList = activities,
-    projList = projects
+    projList = projects,
+    grpList = groups,
+    timelineList = timelineActivities
   ) => {
     try {
       localStorage.setItem(
@@ -499,6 +907,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           students: stdList,
           activities: actList,
           projects: projList,
+          groups: grpList,
+          timelineActivities: timelineList,
         })
       );
     } catch {
@@ -1007,8 +1417,260 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedProjects = projects.filter((p) => p.id !== id);
     setProjects(updatedProjects);
     const updatedActs = addActivity("removed project", proj?.title || id, "project");
-    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    persist(departments, courses, lecturers, students, updatedActs, updatedProjects, groups, timelineActivities);
     showToast(`Project "${proj?.title || "record"}" removed`, "info");
+  };
+
+  // Group & Workspace Actions
+  const addGroup = (data: Omit<ProjectGroup, "id" | "createdAt">) => {
+    const newGroup: ProjectGroup = {
+      ...data,
+      id: `grp-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+    const updatedGroups = [...groups, newGroup];
+    setGroups(updatedGroups);
+
+    // Timeline event
+    const newTl: ProjectTimelineActivity = {
+      id: `tl-${Date.now()}`,
+      projectId: data.projectId,
+      groupId: newGroup.id,
+      groupNumber: data.groupNumber,
+      type: "group_created",
+      user: "Course Coordinator",
+      userRole: "lecturer",
+      action: "formed academic project group",
+      target: `${data.groupName} (${data.members.length} members)`,
+      timestamp: "Just now",
+    };
+    const updatedTimeline = [newTl, ...timelineActivities];
+    setTimelineActivities(updatedTimeline);
+
+    persist(departments, courses, lecturers, students, activities, projects, updatedGroups, updatedTimeline);
+    showToast(`Group "${data.groupName}" formed successfully!`, "success");
+    return { success: true, group: newGroup };
+  };
+
+  const updateGroup = (id: string, updates: Partial<ProjectGroup>) => {
+    const grp = groups.find((g) => g.id === id);
+    if (!grp) return { success: false };
+
+    const updatedGroups = groups.map((g) => (g.id === id ? { ...g, ...updates } : g));
+    setGroups(updatedGroups);
+    persist(departments, courses, lecturers, students, activities, projects, updatedGroups, timelineActivities);
+    return { success: true };
+  };
+
+  const addTimelineActivity = (activity: Omit<ProjectTimelineActivity, "id" | "timestamp">) => {
+    const newAct: ProjectTimelineActivity = {
+      ...activity,
+      id: `tl-${Date.now()}`,
+      timestamp: "Just now",
+    };
+    const updated = [newAct, ...timelineActivities.slice(0, 49)];
+    setTimelineActivities(updated);
+    persist(departments, courses, lecturers, students, activities, projects, groups, updated);
+  };
+
+  const connectRepoToGroup = async (groupId: string, repoUrl: string) => {
+    const grp = groups.find((g) => g.id === groupId);
+    if (!grp) return { success: false, error: "Group not found" };
+
+    try {
+      const res = await fetch("/api/github/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repoUrl }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || "Failed to connect repository" };
+      }
+
+      const updatedGroups = groups.map((g) =>
+        g.id === groupId
+          ? {
+              ...g,
+              repoUrl: data.repository.repoUrl,
+              repoName: data.repository.repoName,
+              repoOwner: data.repository.repoOwner,
+              defaultBranch: data.repository.defaultBranch,
+              repoStatus: "connected" as const,
+              lastSyncAt: data.repository.lastSyncAt,
+              totalCommits: data.totalCommits || 24,
+              branches: data.branches,
+              commits: data.commits,
+            }
+          : g
+      );
+      setGroups(updatedGroups);
+
+      addTimelineActivity({
+        projectId: grp.projectId,
+        groupId: grp.id,
+        groupNumber: grp.groupNumber,
+        type: "repo_connected",
+        user: activeRole === "student" ? "Alex Chen" : "Lecturer",
+        userRole: activeRole === "student" ? "student" : "lecturer",
+        action: "connected group GitHub repository",
+        target: data.repository.repoUrl,
+      });
+
+      showToast(`GitHub repository "${data.repository.repoName}" connected!`, "success");
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Network error connecting repository" };
+    }
+  };
+
+  const syncGroupRepo = async (groupId: string) => {
+    const grp = groups.find((g) => g.id === groupId);
+    if (!grp || !grp.repoUrl) return { success: false, error: "No repository connected" };
+
+    try {
+      const res = await fetch("/api/github/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repoUrl: grp.repoUrl, branch: grp.defaultBranch || "main" }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || "Sync failed" };
+      }
+
+      const updatedGroups = groups.map((g) =>
+        g.id === groupId
+          ? {
+              ...g,
+              lastSyncAt: data.syncedAt,
+              totalCommits: data.totalCommits || g.totalCommits,
+              branches: data.branches || g.branches,
+              commits: data.commits || g.commits,
+            }
+          : g
+      );
+      setGroups(updatedGroups);
+
+      showToast(`Repository synced (${data.totalCommits} commits).`, "success");
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Sync network error" };
+    }
+  };
+
+  const submitProposal = (
+    groupId: string,
+    data: {
+      title: string;
+      description: string;
+      fileName: string;
+      fileSize: string;
+      submittedBy: string;
+      submittedByEmail: string;
+    }
+  ) => {
+    const grp = groups.find((g) => g.id === groupId);
+    if (!grp) return { success: false };
+
+    const currentVersion = grp.proposal?.version ? grp.proposal.version + 1 : 1;
+    const newProposal: ProposalSubmission = {
+      id: `prop-${Date.now()}`,
+      groupId,
+      title: data.title.trim(),
+      description: data.description.trim(),
+      fileName: data.fileName,
+      fileSize: data.fileSize,
+      submittedBy: data.submittedBy,
+      submittedByEmail: data.submittedByEmail,
+      submittedAt: new Date().toISOString(),
+      status: "submitted",
+      version: currentVersion,
+    };
+
+    const updatedGroups = groups.map((g) =>
+      g.id === groupId
+        ? {
+            ...g,
+            proposalStatus: "submitted" as const,
+            proposal: newProposal,
+            progress: Math.max(g.progress, 25),
+          }
+        : g
+    );
+    setGroups(updatedGroups);
+
+    addTimelineActivity({
+      projectId: grp.projectId,
+      groupId: grp.id,
+      groupNumber: grp.groupNumber,
+      type: "proposal_submitted",
+      user: data.submittedBy,
+      userRole: "student",
+      action: `submitted project proposal v${currentVersion}.0`,
+      target: data.fileName,
+    });
+
+    showToast(`Proposal "${data.title}" submitted for lecturer review!`, "success");
+    return { success: true, proposal: newProposal };
+  };
+
+  const reviewProposal = (
+    groupId: string,
+    decision: "approved" | "changes_requested",
+    comments: string,
+    rubricScore?: number
+  ) => {
+    const grp = groups.find((g) => g.id === groupId);
+    if (!grp || !grp.proposal) return { success: false };
+
+    const feedback: LecturerFeedback = {
+      id: `fb-${Date.now()}`,
+      lecturerName: "Dr. Evelyn Reed",
+      decision,
+      comments: comments.trim(),
+      reviewedAt: new Date().toISOString(),
+      rubricScore: rubricScore || (decision === "approved" ? 90 : 65),
+    };
+
+    const nextStatus = decision === "approved" ? "approved" : "changes_requested";
+
+    const updatedGroups = groups.map((g) =>
+      g.id === groupId
+        ? {
+            ...g,
+            proposalStatus: nextStatus as any,
+            proposal: {
+              ...g.proposal!,
+              status: nextStatus as any,
+              feedback,
+            },
+            progress: decision === "approved" ? Math.max(g.progress, 60) : g.progress,
+          }
+        : g
+    );
+    setGroups(updatedGroups);
+
+    addTimelineActivity({
+      projectId: grp.projectId,
+      groupId: grp.id,
+      groupNumber: grp.groupNumber,
+      type: decision === "approved" ? "proposal_approved" : "feedback_given",
+      user: "Dr. Evelyn Reed",
+      userRole: "lecturer",
+      action: decision === "approved" ? "approved project proposal" : "requested proposal revisions",
+      target: `${grp.proposal.fileName} (Score: ${feedback.rubricScore}/100)`,
+    });
+
+    showToast(
+      decision === "approved"
+        ? `Proposal approved! Group ${grp.groupNumber} can proceed to implementation.`
+        : `Feedback sent to Group ${grp.groupNumber}. Revisions requested.`,
+      decision === "approved" ? "success" : "info"
+    );
+    return { success: true };
   };
 
   return (
@@ -1043,10 +1705,21 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         publishProject,
         archiveProject,
         deleteProject,
+        groups,
+        addGroup,
+        updateGroup,
+        connectRepoToGroup,
+        syncGroupRepo,
+        submitProposal,
+        reviewProposal,
+        timelineActivities,
+        addTimelineActivity,
         activeRole,
         setActiveRole,
         activeLecturerEmail,
         setActiveLecturerEmail,
+        activeStudentEmail,
+        setActiveStudentEmail,
         toast,
         showToast,
         dismissToast,

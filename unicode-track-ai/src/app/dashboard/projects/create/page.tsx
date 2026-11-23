@@ -22,13 +22,16 @@ import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Project } from "@/types/admin";
+import { ExtractedGroupData, GroupMember } from "@/types/project";
 
 export default function CreateProjectPage() {
   const { 
     courses, 
     departments, 
     lecturers, 
+    students,
     addProject, 
+    addGroup,
     activeLecturerEmail 
   } = useAdminData();
 
@@ -57,6 +60,13 @@ export default function CreateProjectPage() {
   const [pdfFileSize, setPdfFileSize] = useState("");
   const [pdfError, setPdfError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Option A & PDF Group Extraction State
+  const [extractedGroups, setExtractedGroups] = useState<ExtractedGroupData[]>([]);
+  const [isExtractingGroups, setIsExtractingGroups] = useState(false);
+  const [isGroupsApproved, setIsGroupsApproved] = useState(false);
+  const [extractionError, setExtractionError] = useState("");
+  const [newMemberStudentId, setNewMemberStudentId] = useState<Record<number, string>>({});
 
   // Option B: Gemini AI Requirements Generator State
   const [aiPrompt, setAiPrompt] = useState("");
@@ -207,8 +217,151 @@ export default function CreateProjectPage() {
     setIsSubmitting(false);
 
     if (result.success && result.project) {
+      // Automatically create approved group workspaces for the project
+      if (extractedGroups.length > 0) {
+        extractedGroups.forEach((eg) => {
+          addGroup({
+            projectId: result.project!.id,
+            groupNumber: eg.groupNumber,
+            groupName: eg.groupName,
+            workspaceId: `ws-${result.project!.id}-${eg.groupNumber}`,
+            members: eg.matchedMembers,
+            repoStatus: "disconnected",
+            totalCommits: 0,
+            status: "active",
+            progress: 0,
+            proposalStatus: "not_submitted",
+          });
+        });
+      }
       setCreatedProjectSummary(result.project);
     }
+  };
+
+  // Trigger Gemini group extraction from uploaded requirements
+  const handleExtractGroupsFromPdf = async () => {
+    setIsExtractingGroups(true);
+    setExtractionError("");
+    try {
+      const samplePdfContent = `
+COURSE: ${selectedCourseCode} - ${getCourseName(selectedCourseCode)}
+PROJECT TITLE: ${title || "Embedded Real-Time Telemetry & Distributed Sensors"}
+OBJECTIVE: Real-time sensor processing and telemetry monitoring in C.
+
+STUDENT GROUP ASSIGNMENTS:
+Group 01:
+- Alex Chen (std-1, alex.chen@university.edu)
+- Sarah Lin (std-2, sarah.lin@university.edu)
+- Priya Patel (std-4, priya.patel@university.edu)
+- Liam Davis (std-5, liam.davis@university.edu)
+
+Group 02:
+- Maya Wang (std-6, maya.wang@university.edu)
+- Carlos Ruiz (std-7, carlos.ruiz@university.edu)
+- Aisha Tariq (std-8, aisha.tariq@university.edu)
+- Marcus Doe (std-3, marcus.doe@university.edu)
+
+Group 03:
+- David O'Connor (External Exchange Student)
+`;
+      const res = await fetch("/api/ai/extract-groups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: samplePdfContent,
+          registeredStudents: students,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.data?.groups) {
+        setExtractedGroups(data.data.groups);
+        if (!title && data.data.title) setTitle(data.data.title);
+        if (!description && data.data.description) setDescription(data.data.description);
+        setIsGroupsApproved(false);
+      } else {
+        setExtractionError(data.error || "Failed to extract groups from document.");
+      }
+    } catch (err: any) {
+      setExtractionError(err.message || "Failed to communicate with extraction service.");
+    } finally {
+      setIsExtractingGroups(false);
+    }
+  };
+
+  // Match an unresolved student with a registered student
+  const handleResolveStudent = (groupNum: number, unresolvedIdx: number, studentId: string) => {
+    const student = students.find((s) => s.id === studentId || s.studentId === studentId);
+    if (!student) return;
+
+    setExtractedGroups((prev) =>
+      prev.map((g) => {
+        if (g.groupNumber !== groupNum) return g;
+        const newMatched: GroupMember = {
+          studentId: student.studentId || student.id,
+          fullName: student.fullName,
+          email: student.email,
+          department: student.departmentId || "Computing",
+          academicYear: student.academicYear || 4,
+          semester: student.semester || 1,
+          role: g.matchedMembers.length === 0 ? "Team Lead" : "Member",
+          commitsCount: 0,
+          avatar: student.profilePhotoUrl,
+        };
+        return {
+          ...g,
+          matchedMembers: [...g.matchedMembers, newMatched],
+          unresolvedMembers: g.unresolvedMembers.filter((_, idx) => idx !== unresolvedIdx),
+        };
+      })
+    );
+  };
+
+  // Add a member from registered students into a group
+  const handleAddMemberToGroup = (groupNum: number, studentId: string) => {
+    const student = students.find((s) => s.id === studentId || s.studentId === studentId);
+    if (!student) return;
+
+    setExtractedGroups((prev) =>
+      prev.map((g) => {
+        if (g.groupNumber !== groupNum) return g;
+        if (g.matchedMembers.some((m) => m.email === student.email)) return g;
+        const newMember: GroupMember = {
+          studentId: student.studentId || student.id,
+          fullName: student.fullName,
+          email: student.email,
+          department: student.departmentId || "Computing",
+          academicYear: student.academicYear || 4,
+          semester: student.semester || 1,
+          role: g.matchedMembers.length === 0 ? "Team Lead" : "Member",
+          commitsCount: 0,
+          avatar: student.profilePhotoUrl,
+        };
+        return {
+          ...g,
+          matchedMembers: [...g.matchedMembers, newMember],
+        };
+      })
+    );
+  };
+
+  // Remove a member from a group
+  const handleRemoveMember = (groupNum: number, memberIdx: number) => {
+    setExtractedGroups((prev) =>
+      prev.map((g) => {
+        if (g.groupNumber !== groupNum) return g;
+        return {
+          ...g,
+          matchedMembers: g.matchedMembers.filter((_, idx) => idx !== memberIdx),
+        };
+      })
+    );
+  };
+
+  // Update group name
+  const handleUpdateGroupName = (groupNum: number, newName: string) => {
+    setExtractedGroups((prev) =>
+      prev.map((g) => (g.groupNumber === groupNum ? { ...g, groupName: newName } : g))
+    );
   };
 
   const getDeptName = (deptId: string): string => {
@@ -636,7 +789,7 @@ export default function CreateProjectPage() {
 
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" /> Ready to publish
+                    <Check className="w-3.5 h-3.5" /> PDF Attached
                   </span>
                   <button
                     onClick={handleRemovePdf}
@@ -645,6 +798,235 @@ export default function CreateProjectPage() {
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* AI Group & Project Extraction Action */}
+            <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h5 className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                  AI Group Roster Extraction
+                </h5>
+                <p className="text-[11px] text-slate-500">
+                  Analyze the requirements document with Gemini to extract project info and detect student groups automatically.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleExtractGroupsFromPdf}
+                disabled={isExtractingGroups}
+                icon={isExtractingGroups ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-teal-600" />}
+              >
+                {isExtractingGroups ? "Extracting Groups with Gemini..." : "Extract Groups from Document"}
+              </Button>
+            </div>
+
+            {extractionError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{extractionError}</span>
+              </div>
+            )}
+
+            {/* Extracted Groups Review & Approval Interface */}
+            {extractedGroups.length > 0 && (
+              <div className="pt-4 border-t border-slate-200 space-y-4 animate-in fade-in-50">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-teal-50/60 p-3.5 rounded-xl border border-teal-200">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-xs text-teal-950">
+                        Extracted Student Groups ({extractedGroups.length} Groups Detected)
+                      </h4>
+                      <Badge variant={isGroupsApproved ? "teal" : "outline"} size="sm">
+                        {isGroupsApproved ? "Approved by Faculty" : "Pending Review"}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-teal-800 mt-0.5">
+                      Verify student names against university records. Edit, add, or replace members before approving.
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant={isGroupsApproved ? "outline" : "primary"}
+                    size="sm"
+                    onClick={() => setIsGroupsApproved(true)}
+                    icon={<Check className="w-3.5 h-3.5" />}
+                  >
+                    {isGroupsApproved ? "Assignments Approved ✓" : "Approve Group Assignments"}
+                  </Button>
+                </div>
+
+                {/* Groups Grid */}
+                <div className="space-y-3">
+                  {extractedGroups.map((grp) => {
+                    const hasUnresolved = grp.unresolvedMembers.length > 0;
+
+                    return (
+                      <div
+                        key={grp.groupNumber}
+                        className="bg-white p-4 rounded-xl border border-slate-200 space-y-3 shadow-2xs"
+                      >
+                        {/* Group Header & Name Edit */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-[11px]">
+                              {grp.groupNumber}
+                            </span>
+                            <input
+                              type="text"
+                              value={grp.groupName}
+                              onChange={(e) => handleUpdateGroupName(grp.groupNumber, e.target.value)}
+                              className="font-bold text-xs text-slate-900 bg-transparent border-b border-dashed border-slate-300 hover:border-slate-500 focus:border-teal-500 focus:outline-hidden px-1 py-0.5"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-[11px] text-slate-500">
+                              {grp.matchedMembers.length} Verified Members
+                            </span>
+                            {hasUnresolved && (
+                              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3 text-amber-600" />
+                                {grp.unresolvedMembers.length} Unresolved
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Matched Students List */}
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            Assigned Cohort Members
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {grp.matchedMembers.map((member, mIdx) => (
+                              <div
+                                key={member.email}
+                                className="p-2 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs"
+                              >
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                  <div className="w-7 h-7 rounded-full bg-teal-100 text-teal-800 font-bold flex items-center justify-center text-[10px] shrink-0">
+                                    {member.fullName.slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="truncate">
+                                    <p className="font-semibold text-slate-900 truncate">{member.fullName}</p>
+                                    <p className="text-[10px] text-slate-400 truncate">{member.email}</p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span className="text-[10px] font-medium text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
+                                    {member.role}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveMember(grp.groupNumber, mIdx)}
+                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                                    title="Remove from group"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Unresolved Members Warning & Match Dropdown */}
+                        {hasUnresolved && (
+                          <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 space-y-2">
+                            <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1">
+                              <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                              Unmatched Student Warning in Document
+                            </span>
+                            {grp.unresolvedMembers.map((unresolved, uIdx) => (
+                              <div
+                                key={uIdx}
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 bg-white rounded-md border border-amber-200 text-xs"
+                              >
+                                <div>
+                                  <span className="font-bold text-slate-900">{unresolved.name}</span>
+                                  <span className="text-[10px] text-slate-500 block">
+                                    Not found in database registry. Match with an enrolled student:
+                                  </span>
+                                </div>
+                                <select
+                                  onChange={(e) => {
+                                    if (e.target.value) {
+                                      handleResolveStudent(grp.groupNumber, uIdx, e.target.value);
+                                    }
+                                  }}
+                                  defaultValue=""
+                                  className="text-xs bg-slate-50 border border-slate-300 rounded px-2 py-1 text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-teal-500"
+                                >
+                                  <option value="" disabled>
+                                    Select registered student...
+                                  </option>
+                                  {students
+                                    .filter(
+                                      (s) =>
+                                        !grp.matchedMembers.some((m) => m.email === s.email)
+                                    )
+                                    .map((s) => (
+                                      <option key={s.id} value={s.id}>
+                                        {s.fullName} ({s.email})
+                                      </option>
+                                    ))}
+                                </select>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Add Registered Student Selector */}
+                        <div className="pt-2 flex items-center gap-2 text-xs">
+                          <select
+                            value={newMemberStudentId[grp.groupNumber] || ""}
+                            onChange={(e) =>
+                              setNewMemberStudentId((prev) => ({
+                                ...prev,
+                                [grp.groupNumber]: e.target.value,
+                              }))
+                            }
+                            className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 flex-1 max-w-xs focus:outline-hidden focus:ring-1 focus:ring-teal-500"
+                          >
+                            <option value="">+ Add student to {grp.groupName}...</option>
+                            {students
+                              .filter(
+                                (s) =>
+                                  !grp.matchedMembers.some((m) => m.email === s.email)
+                              )
+                              .map((s) => (
+                                <option key={s.id} value={s.id}>
+                                  {s.fullName} ({s.email})
+                                </option>
+                              ))}
+                          </select>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={!newMemberStudentId[grp.groupNumber]}
+                            onClick={() => {
+                              const sId = newMemberStudentId[grp.groupNumber];
+                              if (sId) {
+                                handleAddMemberToGroup(grp.groupNumber, sId);
+                                setNewMemberStudentId((prev) => ({ ...prev, [grp.groupNumber]: "" }));
+                              }
+                            }}
+                          >
+                            Add Member
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
