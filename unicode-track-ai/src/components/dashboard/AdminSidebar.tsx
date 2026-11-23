@@ -48,14 +48,51 @@ export function AdminSidebar({
     projects,
     activeRole,
     setActiveRole,
-    activeLecturerEmail
+    activeLecturerEmail,
+    activeStudentEmail,
+    getProjectsForStudent,
   } = useAdminData();
 
   const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
+  const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || students[0];
   const lecturerCourseCount = currentLecturer ? currentLecturer.assignedCourses.length : 2;
   const lecturerProjectsCount = projects.filter((p) => 
     !currentLecturer || currentLecturer.assignedCourses.includes(p.courseCode)
   ).length;
+  const studentProjects = getProjectsForStudent(activeStudentEmail);
+
+  const studentNavigation = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      count: undefined,
+    },
+    {
+      name: "My Projects",
+      href: "/dashboard/projects",
+      icon: FolderGit2,
+      count: studentProjects.length,
+    },
+    {
+      name: "My Courses",
+      href: "/dashboard/courses",
+      icon: BookOpen,
+      count: 2,
+    },
+    {
+      name: "Evaluations",
+      href: "/dashboard/evaluation",
+      icon: CheckSquare,
+      count: undefined,
+    },
+    {
+      name: "Profile",
+      href: "/dashboard/profile",
+      icon: User,
+      count: undefined,
+    },
+  ];
 
   const lecturerNavigation = [
     {
@@ -147,8 +184,9 @@ export function AdminSidebar({
     },
   ];
 
-  const isLecturer = activeRole === "lecturer" || pathname.startsWith("/dashboard/projects");
-  const navigation = isLecturer ? lecturerNavigation : adminNavigation;
+  const isStudent = activeRole === "student";
+  const isLecturer = activeRole === "lecturer";
+  const navigation = isStudent ? studentNavigation : isLecturer ? lecturerNavigation : adminNavigation;
 
   const handleLogout = () => {
     if (confirm("Are you sure you want to sign out of the university workspace?")) {
@@ -259,35 +297,73 @@ export function AdminSidebar({
           }`}
         >
           <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center shrink-0">
-            {isLecturer ? "ER" : "AV"}
+            {isStudent ? "AC" : isLecturer ? "ER" : "AV"}
           </div>
           {(!collapsed || mobileOpen) && (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
                 <p className="text-xs font-bold text-white truncate">
-                  {isLecturer ? (currentLecturer?.name || "Dr. Evelyn Reed") : "Dr. Arthur Vance"}
+                  {isStudent 
+                    ? (currentStudent?.fullName || "Alex Chen")
+                    : isLecturer 
+                    ? (currentLecturer?.name || "Dr. Evelyn Reed") 
+                    : "Dr. Arthur Vance"}
                 </p>
                 <ShieldCheck className="w-3 h-3 text-teal-400 shrink-0" />
               </div>
               <p className="text-[10px] text-slate-400 truncate">
-                {isLecturer ? "Senior Lecturer • Faculty" : "University Administrator"}
+                {isStudent
+                  ? "Student • Software Engineering"
+                  : isLecturer
+                  ? "Senior Lecturer • Faculty"
+                  : "University Administrator"}
               </p>
             </div>
           )}
         </div>
 
-        {/* Quick Role Toggle for Evaluator Convenience */}
+        {/* Persona Switcher */}
         {(!collapsed || mobileOpen) && (
-          <button
-            type="button"
-            onClick={() => setActiveRole(isLecturer ? "admin" : "lecturer")}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-semibold text-slate-400 bg-slate-900/50 border border-slate-800 hover:text-teal-400 hover:border-slate-700 transition-colors"
-          >
-            <span>Active: <strong className="text-white">{isLecturer ? "Lecturer View" : "Admin View"}</strong></span>
-            <span className="flex items-center gap-1 text-teal-400">
-              <Repeat className="w-3 h-3" /> Switch
-            </span>
-          </button>
+          <div className="space-y-1">
+            <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider px-1">
+              Workspace Persona
+            </div>
+            <div className="grid grid-cols-3 gap-1 p-1 bg-slate-900/90 rounded-lg border border-slate-800 text-[10px] font-semibold text-center">
+              <button
+                type="button"
+                onClick={() => setActiveRole("admin")}
+                className={`py-1 rounded transition-colors ${
+                  activeRole === "admin"
+                    ? "bg-teal-600 text-white font-bold"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveRole("lecturer")}
+                className={`py-1 rounded transition-colors ${
+                  activeRole === "lecturer"
+                    ? "bg-teal-600 text-white font-bold"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Lecturer
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveRole("student")}
+                className={`py-1 rounded transition-colors ${
+                  activeRole === "student"
+                    ? "bg-teal-600 text-white font-bold"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Student
+              </button>
+            </div>
+          </div>
         )}
 
         <button

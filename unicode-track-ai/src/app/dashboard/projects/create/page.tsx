@@ -19,12 +19,16 @@ import {
   HelpCircle,
   Database,
   Sliders,
+  Users,
+  Plus,
+  UserPlus,
+  Crown,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Project } from "@/types/admin";
-import { ExtractedGroupData, GroupMember } from "@/types/project";
+import { ExtractedGroupData, GroupMember, ProjectGroup } from "@/types/project";
 import { DEFAULT_ER_DIAGRAM_RUBRIC, ProjectDatabaseDesignConfig } from "@/types/er-diagram";
 
 export default function CreateProjectPage() {
@@ -207,6 +211,112 @@ export default function CreateProjectPage() {
     return Object.keys(errs).length === 0;
   };
 
+  // Auto-generate cohort groups from enrolled students
+  const handleAutoGenerateCohortGroups = () => {
+    const eligibleStudents = students.filter(
+      (s) => s.departmentId === selectedDeptId || !selectedDeptId
+    );
+    const pool = eligibleStudents.length >= 4 ? eligibleStudents : students;
+
+    const group1Members: GroupMember[] = pool.slice(0, 3).map((s, idx) => ({
+      studentId: s.studentId || s.id,
+      fullName: s.fullName,
+      email: s.email,
+      department: getDeptName(s.departmentId),
+      academicYear: s.academicYear || 4,
+      semester: s.semester || 2,
+      role: idx === 0 ? "Team Lead" : "Member",
+      commitsCount: 0,
+      avatar: s.profilePhotoUrl,
+    }));
+
+    const group2Members: GroupMember[] = pool.slice(3, 6).map((s, idx) => ({
+      studentId: s.studentId || s.id,
+      fullName: s.fullName,
+      email: s.email,
+      department: getDeptName(s.departmentId),
+      academicYear: s.academicYear || 4,
+      semester: s.semester || 2,
+      role: idx === 0 ? "Team Lead" : "Member",
+      commitsCount: 0,
+      avatar: s.profilePhotoUrl,
+    }));
+
+    const generated: ExtractedGroupData[] = [
+      {
+        groupNumber: 1,
+        groupName: "Group 01 — Cloud Pioneers",
+        rawMembers: group1Members.map((m) => ({ name: m.fullName, studentId: m.studentId, email: m.email })),
+        matchedMembers: group1Members,
+        unresolvedMembers: [],
+      },
+      {
+        groupNumber: 2,
+        groupName: "Group 02 — Neural Architects",
+        rawMembers: group2Members.map((m) => ({ name: m.fullName, studentId: m.studentId, email: m.email })),
+        matchedMembers: group2Members,
+        unresolvedMembers: [],
+      },
+    ];
+
+    setExtractedGroups(generated);
+    setIsGroupsApproved(true);
+  };
+
+  // Add a new empty or initial group
+  const handleAddNewGroup = () => {
+    const nextGroupNum = extractedGroups.length > 0 
+      ? Math.max(...extractedGroups.map((g) => g.groupNumber)) + 1 
+      : 1;
+
+    // Pick first unused student if possible
+    const usedEmails = new Set(extractedGroups.flatMap((g) => g.matchedMembers.map((m) => m.email)));
+    const availableStudent = students.find((s) => !usedEmails.has(s.email)) || students[0];
+
+    const initialMember: GroupMember = {
+      studentId: availableStudent.studentId || availableStudent.id,
+      fullName: availableStudent.fullName,
+      email: availableStudent.email,
+      department: getDeptName(availableStudent.departmentId),
+      academicYear: availableStudent.academicYear || 4,
+      semester: availableStudent.semester || 2,
+      role: "Team Lead",
+      commitsCount: 0,
+      avatar: availableStudent.profilePhotoUrl,
+    };
+
+    const newGroup: ExtractedGroupData = {
+      groupNumber: nextGroupNum,
+      groupName: `Group ${String(nextGroupNum).padStart(2, "0")} — Project Team`,
+      rawMembers: [{ name: initialMember.fullName, studentId: initialMember.studentId, email: initialMember.email }],
+      matchedMembers: [initialMember],
+      unresolvedMembers: [],
+    };
+
+    setExtractedGroups((prev) => [...prev, newGroup]);
+  };
+
+  // Remove group
+  const handleRemoveGroup = (groupNum: number) => {
+    setExtractedGroups((prev) => prev.filter((g) => g.groupNumber !== groupNum));
+  };
+
+  // Toggle Team Lead
+  const handleToggleTeamLead = (groupNum: number, memberIdx: number) => {
+    setExtractedGroups((prev) =>
+      prev.map((g) => {
+        if (g.groupNumber !== groupNum) return g;
+        return {
+          ...g,
+          matchedMembers: g.matchedMembers.map((m, idx) => ({
+            ...m,
+            role: idx === memberIdx ? "Team Lead" : "Member",
+          })),
+        };
+      })
+    );
+  };
+
   // Handle Form Submission (Draft or Publish)
   const handleSubmitProject = (status: "Published" | "Draft") => {
     if (status === "Published" && !validateForm()) {
@@ -215,54 +325,87 @@ export default function CreateProjectPage() {
 
     setIsSubmitting(true);
 
-    const result = addProject({
-      title: title.trim() || "Untitled Project",
-      description: description.trim(),
-      type: projectType,
-      departmentId: selectedDeptId,
-      courseCode: selectedCourseCode,
-      academicYear,
-      semester,
-      deadline: deadline || undefined,
-      requirementsSource: requirementsMethod,
-      requirementsContent: requirementsMethod === "ai" ? aiGeneratedContent : undefined,
-      requirementsPdfName: requirementsMethod === "pdf" ? pdfFileName : undefined,
-      requirementsPdfSize: requirementsMethod === "pdf" ? pdfFileSize : undefined,
-      status,
-      lecturerId: currentLecturer?.id || "lec-1",
-      lecturerName: currentLecturer?.name || "Dr. Evelyn Reed",
-      databaseDesignConfig: {
-        enabled: dbDesignEnabled,
-        isRequired: dbDesignRequired,
-        deadline: dbDeadline || deadline || undefined,
-        expectedDesignDescription: dbExpectedDescription,
-        expectedEntities: dbExpectedEntities.split(",").map((s) => s.trim()).filter(Boolean),
-        expectedRelationships: dbExpectedRelationships.split(";").map((s) => s.trim()).filter(Boolean),
-        referenceDiagramName: dbRefDiagramName || undefined,
-        rubricCriteria: dbRubricCriteria,
+    // Prepare groups to save into Supabase and local context
+    let groupsToSave: ProjectGroup[] = extractedGroups.map((eg, idx) => ({
+      id: `grp-${Date.now()}-${idx + 1}`,
+      projectId: "",
+      groupNumber: eg.groupNumber || idx + 1,
+      groupName: eg.groupName || `Group ${String(idx + 1).padStart(2, "0")}`,
+      workspaceId: `ws-${idx + 1}`,
+      members: eg.matchedMembers,
+      repoStatus: "disconnected",
+      totalCommits: 0,
+      status: "active",
+      progress: 0,
+      proposalStatus: "not_submitted",
+      createdAt: new Date().toISOString(),
+    }));
+
+    // If no groups configured, generate default cohort groups so workspace is immediately available
+    if (groupsToSave.length === 0) {
+      const defaultMembers: GroupMember[] = students.slice(0, 3).map((s, idx) => ({
+        studentId: s.studentId || s.id,
+        fullName: s.fullName,
+        email: s.email,
+        department: getDeptName(s.departmentId),
+        academicYear: s.academicYear || 4,
+        semester: s.semester || 2,
+        role: idx === 0 ? "Team Lead" : "Member",
+        commitsCount: 0,
+        avatar: s.profilePhotoUrl,
+      }));
+      groupsToSave = [
+        {
+          id: `grp-${Date.now()}-1`,
+          projectId: "",
+          groupNumber: 1,
+          groupName: "Group 01 — Project Team",
+          workspaceId: "ws-1",
+          members: defaultMembers,
+          repoStatus: "disconnected",
+          totalCommits: 0,
+          status: "active",
+          progress: 0,
+          proposalStatus: "not_submitted",
+          createdAt: new Date().toISOString(),
+        },
+      ];
+    }
+
+    const result = addProject(
+      {
+        title: title.trim() || "Untitled Project",
+        description: description.trim(),
+        type: projectType,
+        departmentId: selectedDeptId,
+        courseCode: selectedCourseCode,
+        academicYear,
+        semester,
+        deadline: deadline || undefined,
+        requirementsSource: requirementsMethod,
+        requirementsContent: requirementsMethod === "ai" ? aiGeneratedContent : undefined,
+        requirementsPdfName: requirementsMethod === "pdf" ? pdfFileName : undefined,
+        requirementsPdfSize: requirementsMethod === "pdf" ? pdfFileSize : undefined,
+        status,
+        lecturerId: currentLecturer?.id || "lec-1",
+        lecturerName: currentLecturer?.name || "Dr. Evelyn Reed",
+        databaseDesignConfig: {
+          enabled: dbDesignEnabled,
+          isRequired: dbDesignRequired,
+          deadline: dbDeadline || deadline || undefined,
+          expectedDesignDescription: dbExpectedDescription,
+          expectedEntities: dbExpectedEntities.split(",").map((s) => s.trim()).filter(Boolean),
+          expectedRelationships: dbExpectedRelationships.split(";").map((s) => s.trim()).filter(Boolean),
+          referenceDiagramName: dbRefDiagramName || undefined,
+          rubricCriteria: dbRubricCriteria,
+        },
       },
-    });
+      groupsToSave
+    );
 
     setIsSubmitting(false);
 
     if (result.success && result.project) {
-      // Automatically create approved group workspaces for the project
-      if (extractedGroups.length > 0) {
-        extractedGroups.forEach((eg) => {
-          addGroup({
-            projectId: result.project!.id,
-            groupNumber: eg.groupNumber,
-            groupName: eg.groupName,
-            workspaceId: `ws-${result.project!.id}-${eg.groupNumber}`,
-            members: eg.matchedMembers,
-            repoStatus: "disconnected",
-            totalCommits: 0,
-            status: "active",
-            progress: 0,
-            proposalStatus: "not_submitted",
-          });
-        });
-      }
       setCreatedProjectSummary(result.project);
     }
   };
@@ -1397,6 +1540,240 @@ Group 03:
       </section>
 
       {/* ============================================================== */}
+      {/* SECTION 4: ACADEMIC GROUPS & STUDENT ASSIGNMENTS               */}
+      {/* ============================================================== */}
+      <section className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-2xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs border border-teal-100">
+              4
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#0B1220] flex items-center gap-2">
+                <Users className="w-4 h-4 text-teal-600" />
+                Academic Groups & Student Assignments
+              </h2>
+              <p className="text-xs text-slate-500">
+                Form student project teams, assign team leads, or auto-generate balanced groups from the enrolled course cohort.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoGenerateCohortGroups}
+              icon={<Sparkles className="w-3.5 h-3.5 text-teal-600" />}
+            >
+              Auto-Generate Groups
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddNewGroup}
+              icon={<Plus className="w-3.5 h-3.5" />}
+            >
+              Add Group
+            </Button>
+          </div>
+        </div>
+
+        {/* Groups List */}
+        {extractedGroups.length === 0 ? (
+          <div className="p-8 bg-slate-50 border border-dashed border-slate-300 rounded-2xl text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
+              <Users className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">No Student Groups Configured Yet</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                You can auto-generate collaborative teams from enrolled {selectedCourseCode} cohort students, or create custom groups manually.
+              </p>
+            </div>
+            <div className="pt-1 flex items-center justify-center gap-2">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleAutoGenerateCohortGroups}
+                icon={<Sparkles className="w-3.5 h-3.5" />}
+              >
+                Auto-Generate Cohort Groups
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddNewGroup}
+                icon={<Plus className="w-3.5 h-3.5" />}
+              >
+                Add Custom Group
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-slate-800">
+                  {extractedGroups.length} Active {extractedGroups.length === 1 ? "Group" : "Groups"}
+                </span>
+                <span>•</span>
+                <span>
+                  {extractedGroups.reduce((acc, g) => acc + g.matchedMembers.length, 0)} Total Assigned Students
+                </span>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <Check className="w-3 h-3" /> Ready for Workspace Provisioning
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {extractedGroups.map((grp) => (
+                <div
+                  key={grp.groupNumber}
+                  className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 space-y-4 shadow-2xs"
+                >
+                  {/* Group Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 flex items-center justify-center font-bold text-xs shrink-0">
+                        {String(grp.groupNumber).padStart(2, "0")}
+                      </span>
+                      <input
+                        type="text"
+                        value={grp.groupName}
+                        onChange={(e) => handleUpdateGroupName(grp.groupNumber, e.target.value)}
+                        className="font-bold text-sm text-slate-900 bg-transparent border-b border-dashed border-slate-300 hover:border-slate-500 focus:border-teal-500 focus:outline-hidden px-1 py-0.5"
+                        placeholder="Group Name"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500 font-medium">
+                        {grp.matchedMembers.length} Members
+                      </span>
+                      {extractedGroups.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGroup(grp.groupNumber)}
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 transition-colors"
+                          title="Remove group"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Members Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {grp.matchedMembers.map((member, mIdx) => {
+                      const isLead = member.role === "Team Lead";
+                      return (
+                        <div
+                          key={member.email || mIdx}
+                          className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs transition-colors ${
+                            isLead
+                              ? "bg-teal-50/50 border-teal-200"
+                              : "bg-slate-50 border-slate-200/80"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-8 h-8 rounded-full font-bold flex items-center justify-center text-[10px] shrink-0 ${
+                                isLead
+                                  ? "bg-teal-600 text-white shadow-2xs"
+                                  : "bg-slate-200 text-slate-700"
+                              }`}
+                            >
+                              {member.fullName.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-slate-900 truncate flex items-center gap-1">
+                                <span className="truncate">{member.fullName}</span>
+                                {isLead && (
+                                  <span title="Team Lead">
+                                    <Crown className="w-3 h-3 text-amber-500 shrink-0" />
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-[10px] text-slate-400 truncate font-mono">
+                                {member.studentId || member.email}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleTeamLead(grp.groupNumber, mIdx)}
+                              className={`p-1 rounded text-[10px] font-semibold transition-colors ${
+                                isLead
+                                  ? "text-teal-700 bg-teal-100 hover:bg-teal-200"
+                                  : "text-slate-400 hover:text-amber-600 hover:bg-slate-200"
+                              }`}
+                              title={isLead ? "Assigned as Team Lead" : "Make Team Lead"}
+                            >
+                              <Crown className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMember(grp.groupNumber, mIdx)}
+                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              title="Remove from group"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Add Member Dropdown Toolbar */}
+                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2 text-xs">
+                      <UserPlus className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-slate-500">Add Registered Student:</span>
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            handleAddMemberToGroup(grp.groupNumber, e.target.value);
+                            e.target.value = "";
+                          }
+                        }}
+                        defaultValue=""
+                        className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-hidden focus:border-teal-500"
+                      >
+                        <option value="" disabled>
+                          Select student to add...
+                        </option>
+                        {students
+                          .filter((s) => !grp.matchedMembers.some((m) => m.email === s.email))
+                          .map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.fullName} ({s.studentId || s.email})
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="text-[11px] text-slate-400 italic">
+                      Workspaces are created automatically upon project publishing.
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* ============================================================== */}
       {/* SECTION 5: PROJECT REQUIREMENTS REVIEW & SUMMARY              */}
       {/* ============================================================== */}
       <section className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
@@ -1604,6 +1981,13 @@ Group 03:
                 </span>
               </div>
 
+              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                <span className="text-slate-500 font-medium">Assigned Academic Groups</span>
+                <span className="font-semibold text-slate-900">
+                  {extractedGroups.length > 0 ? `${extractedGroups.length} Teams Provisioned` : "1 Team Provisioned"}
+                </span>
+              </div>
+
               <div className="flex justify-between items-center py-1">
                 <span className="text-slate-500 font-medium">Requirements Status</span>
                 <span className="font-semibold text-emerald-700 flex items-center gap-1">
@@ -1613,19 +1997,28 @@ Group 03:
               </div>
             </div>
 
-            {/* 3 Action Buttons */}
+            {/* Action Buttons */}
             <div className="space-y-2 pt-2">
               <Button
                 variant="primary"
                 size="md"
-                href="/dashboard/projects"
-                className="w-full justify-center"
+                href={`/dashboard/projects/${createdProjectSummary.id}/workspace`}
+                className="w-full justify-center bg-teal-600 hover:bg-teal-700 text-white font-bold"
                 iconRight={<ArrowRight className="w-4 h-4" />}
               >
-                View Projects
+                Open Project Workspace
               </Button>
 
               <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  href="/dashboard/projects"
+                  className="w-full justify-center"
+                >
+                  View in Directory
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -1635,19 +2028,11 @@ Group 03:
                     setDescription("");
                     setAiGeneratedContent("");
                     setPdfFileName("");
+                    setExtractedGroups([]);
                   }}
                   className="w-full justify-center"
                 >
                   Create Another
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  href="/dashboard"
-                  className="w-full justify-center"
-                >
-                  Back to Dashboard
                 </Button>
               </div>
             </div>

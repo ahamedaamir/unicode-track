@@ -52,6 +52,8 @@ export default function ProjectsDirectoryPage() {
     activeLecturerEmail,
     activeStudentEmail,
     setActiveStudentEmail,
+    getProjectsForStudent,
+    getStudentAssignedGroup,
   } = useAdminData();
 
   // Filters state
@@ -88,9 +90,11 @@ export default function ProjectsDirectoryPage() {
   // Filter projects according to role
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
-      // Role scope: if student mode, only show projects assigned to this student
+      // Role scope: if student mode, show projects assigned to this student or their enrolled cohort
       if (activeRole === "student") {
-        if (!studentProjectIds.has(p.id)) return false;
+        const studentProjects = getProjectsForStudent(activeStudentEmail);
+        const validIds = new Set(studentProjects.map((sp) => sp.id));
+        if (!validIds.has(p.id)) return false;
       } else if (activeRole === "lecturer" && currentLecturer) {
         // Show projects assigned to lecturer or matching their assigned courses
         const isAssigned =
@@ -604,13 +608,7 @@ export default function ProjectsDirectoryPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredProjects.map((project) => {
                 const course = courses.find((c) => c.code === project.courseCode);
-                const assignedGroup = groups.find(
-                  (g) =>
-                    g.projectId === project.id &&
-                    (activeRole === "student"
-                      ? g.members.some((m) => m.email.toLowerCase() === activeStudentEmail.toLowerCase())
-                      : true)
-                );
+                const assignedGroup = getStudentAssignedGroup(project.id, activeStudentEmail);
 
                 return (
                   <div

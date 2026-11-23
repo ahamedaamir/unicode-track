@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { Department, Course, Lecturer, Student, ActivityLog, Project } from "@/types/admin";
 import { ProjectGroup, ProjectTimelineActivity, ProposalSubmission, LecturerFeedback, GitHubCommit, GitHubBranch } from "@/types/project";
 import { EvaluationRubric, ProjectEvaluation, DEFAULT_ACADEMIC_RUBRIC_CRITERIA } from "@/types/evaluation";
@@ -57,11 +57,16 @@ interface AdminDataContextType {
 
   // Project Management (Lecturer & Admin)
   projects: Project[];
-  addProject: (data: Omit<Project, "id" | "createdAt">) => { success: boolean; project?: Project; error?: string };
+  addProject: (
+    data: Omit<Project, "id" | "createdAt">,
+    initialProjectGroups?: ProjectGroup[]
+  ) => { success: boolean; project?: Project; error?: string };
   editProject: (id: string, updates: Partial<Project>) => { success: boolean; error?: string };
   publishProject: (id: string) => void;
   archiveProject: (id: string) => void;
   deleteProject: (id: string) => void;
+  getProjectsForStudent: (studentEmail?: string) => Project[];
+  getStudentAssignedGroup: (projectId: string, studentEmail?: string) => ProjectGroup | undefined;
 
   // Academic Group Workspaces & GitHub Integration
   groups: ProjectGroup[];
@@ -1363,8 +1368,51 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return "lecturer";
   });
 
-  const [activeLecturerEmail, setActiveLecturerEmail] = useState<string>("evelyn.reed@university.edu");
-  const [activeStudentEmail, setActiveStudentEmail] = useState<string>("alex.chen@university.edu");
+  const [activeLecturerEmail, setActiveLecturerEmail] = useState<string>(() => {
+    if (typeof window === "undefined") return "evelyn.reed@university.edu";
+    try {
+      const user = sessionStorage.getItem("unicodetrack_authenticated_user");
+      if (user) {
+        const parsed = JSON.parse(user);
+        if (parsed.email && parsed.role === "lecturer") return parsed.email;
+      }
+    } catch {}
+    return "evelyn.reed@university.edu";
+  });
+
+  const [activeStudentEmail, setActiveStudentEmail] = useState<string>(() => {
+    if (typeof window === "undefined") return "alex.chen@university.edu";
+    try {
+      const user = sessionStorage.getItem("unicodetrack_authenticated_user");
+      if (user) {
+        const parsed = JSON.parse(user);
+        if (parsed.email && parsed.role === "student") return parsed.email;
+      }
+    } catch {}
+    return "alex.chen@university.edu";
+  });
+
+  // Sync projects from Supabase on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    fetch("/api/projects")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.projects && data.projects.length > 0) {
+          setProjects((prev) => {
+            const existingIds = new Set(prev.map((p) => p.id));
+            const newFromDb = data.projects.filter((p: Project) => !existingIds.has(p.id));
+            if (newFromDb.length > 0) {
+              return [...prev, ...newFromDb];
+            }
+            return prev;
+          });
+        }
+      })
+      .catch(() => {
+        // Silently continue if Supabase is offline
+      });
+  }, []);
 
   const [groups, setGroups] = useState<ProjectGroup[]>(() => {
     if (typeof window === "undefined") return initialGroups;
@@ -1876,7 +1924,10 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Project Actions (Lecturer & Admin)
-  const addProject = (data: Omit<Project, "id" | "createdAt">) => {
+  const addProject = (
+    data: Omit<Project, "id" | "createdAt">,
+    initialProjectGroups?: ProjectGroup[]
+  ) => {
     if (!data.title.trim()) {
       return { success: false, error: "Project Title is required." };
     }
@@ -1893,6 +1944,19 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split("T")[0],
     };
 
+    let nextGroups = groups;
+    if (initialProjectGroups && initialProjectGroups.length > 0) {
+      const preparedGroups: ProjectGroup[] = initialProjectGroups.map((g, idx) => ({
+        ...g,
+        id: g.id || `grp-${newProject.id}-${g.groupNumber || idx + 1}`,
+        projectId: newProject.id,
+        workspaceId: g.workspaceId || `ws-${newProject.id}-${g.groupNumber || idx + 1}`,
+        createdAt: g.createdAt || new Date().toISOString(),
+      }));
+      nextGroups = [...preparedGroups, ...groups.filter((g) => g.projectId !== newProject.id)];
+      setGroups(nextGroups);
+    }
+
     const updatedProjects = [newProject, ...projects];
     setProjects(updatedProjects);
     const updatedActs = addActivity(
@@ -1900,7 +1964,20 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       data.title,
       "project"
     );
-    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    persist(departments, courses, lecturers, students, updatedActs, updatedProjects, nextGroups);
+
+    // Save project and academic groups to Supabase database
+    fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        project: newProject,
+        groups: initialProjectGroups?.map((g) => ({ ...g, projectId: newProject.id })),
+      }),
+    }).catch((err) => {
+      console.warn("Background sync to Supabase project table:", err);
+    });
+
     showToast(
       `Project "${data.title}" ${data.status === "Published" ? "published successfully!" : "saved as draft."}`,
       "success"
@@ -1916,6 +1993,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     setProjects(updatedProjects);
     const updatedActs = addActivity("updated academic project", updates.title || proj.title, "project");
     persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+
+    // Sync to Supabase
+    fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ project: { ...proj, ...updates } }),
+    }).catch(() => {});
+
     showToast("Project updated successfully", "success");
     return { success: true };
   };
@@ -1929,7 +2014,57 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     setProjects(updatedProjects);
     const updatedActs = addActivity("published academic project", proj.title, "project");
     persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+
+    // Sync published status to Supabase
+    fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ project: { ...proj, status: "Published" } }),
+    }).catch(() => {});
+
     showToast(`Project "${proj.title}" is now published and visible to students!`, "success");
+  };
+
+  const getProjectsForStudent = (studentEmail?: string): Project[] => {
+    const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
+    const currentStudent = students.find((s) => s.email.toLowerCase() === email);
+
+    // Projects where student is a group member
+    const assignedProjectIds = new Set(
+      groups
+        .filter((g) => g.members.some((m) => m.email.toLowerCase() === email))
+        .map((g) => g.projectId)
+    );
+
+    return projects.filter((p) => {
+      // Direct group assignment
+      if (assignedProjectIds.has(p.id)) return true;
+
+      // Published project for their enrolled course/cohort
+      if (
+        p.status === "Published" &&
+        currentStudent &&
+        p.departmentId === currentStudent.departmentId &&
+        p.academicYear === currentStudent.academicYear &&
+        p.semester === currentStudent.semester
+      ) {
+        return true;
+      }
+
+      return false;
+    });
+  };
+
+  const getStudentAssignedGroup = (projectId: string, studentEmail?: string): ProjectGroup | undefined => {
+    const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
+    return (
+      groups.find(
+        (g) =>
+          g.projectId === projectId &&
+          g.members.some((m) => m.email.toLowerCase() === email)
+      ) ||
+      groups.find((g) => g.projectId === projectId)
+    );
   };
 
   const archiveProject = (id: string) => {
@@ -2545,6 +2680,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         publishProject,
         archiveProject,
         deleteProject,
+        getProjectsForStudent,
+        getStudentAssignedGroup,
         groups,
         addGroup,
         updateGroup,

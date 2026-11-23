@@ -32,7 +32,7 @@ import {
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { ProposalSubmission } from "@/types/project";
+import { ProposalSubmission, ProjectGroup } from "@/types/project";
 
 function GroupWorkspaceContent() {
   const params = useParams();
@@ -58,12 +58,40 @@ function GroupWorkspaceContent() {
   const course = project ? courses.find((c) => c.code === project.courseCode) : null;
   const lecturer = project ? lecturers.find((l) => l.id === project.lecturerId || l.name === project.lecturerName) : null;
 
-  // Find the user's group for this project (or first group if in lecturer mode)
-  const group = groups.find(
+  // Find the user's group for this project (or first group for this project, or dynamic fallback group)
+  const matchedGroup = groups.find(
     (g) =>
       g.projectId === projectId &&
       g.members.some((m) => m.email.toLowerCase() === activeStudentEmail.toLowerCase())
-  ) || groups.find((g) => g.projectId === projectId) || groups[0];
+  ) || groups.find((g) => g.projectId === projectId);
+
+  const fallbackGroup: ProjectGroup = {
+    id: `grp-${projectId}-1`,
+    projectId: projectId,
+    groupNumber: 1,
+    groupName: "Group 01 — Academic Workspace",
+    workspaceId: `ws-${projectId}-1`,
+    members: [
+      {
+        studentId: "CS2023001",
+        fullName: activeRole === "student" ? "Alex Chen" : "Student Lead",
+        email: activeStudentEmail,
+        department: "Computer Science & Engineering",
+        academicYear: 4,
+        semester: 2,
+        role: "Team Lead",
+        commitsCount: 0,
+      },
+    ],
+    repoStatus: "disconnected",
+    totalCommits: 0,
+    status: "active",
+    progress: 0,
+    proposalStatus: "not_submitted",
+    createdAt: new Date().toISOString(),
+  };
+
+  const group = matchedGroup || fallbackGroup;
 
   // GitHub repo connection state
   const [repoInputUrl, setRepoInputUrl] = useState("");
