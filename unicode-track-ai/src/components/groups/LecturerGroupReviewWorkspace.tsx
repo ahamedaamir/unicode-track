@@ -66,9 +66,10 @@ export function LecturerGroupReviewWorkspace({
   // Review editable state
   const [groups, setGroups] = useState<ProcessedGroup[]>(initialGroups);
 
-  // Editing group name state
+  // Editing group name & number state
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [editGroupNameVal, setEditGroupNameVal] = useState("");
+  const [editGroupNumVal, setEditGroupNumVal] = useState<number>(1);
 
   // Student Picker Modal state (for resolving unmatched/ambiguous or adding manually)
   const [pickerTarget, setPickerTarget] = useState<{
@@ -179,14 +180,20 @@ export function LecturerGroupReviewWorkspace({
     setGroups(renumbered);
   };
 
-  // Save edited group name
+  // Save edited group name & group number
   const handleSaveGroupName = (groupId: string) => {
     if (!editGroupNameVal.trim()) {
       setEditingGroupId(null);
       return;
     }
     const updated = groups.map((g) =>
-      g.id === groupId ? { ...g, group_name: editGroupNameVal.trim() } : g
+      g.id === groupId
+        ? {
+            ...g,
+            group_name: editGroupNameVal.trim(),
+            group_number: editGroupNumVal > 0 ? editGroupNumVal : g.group_number,
+          }
+        : g
     );
     setGroups(updated);
     setEditingGroupId(null);
@@ -312,7 +319,7 @@ export function LecturerGroupReviewWorkspace({
 
     if (stats.hasBlockingErrors) {
       setConfirmError(
-        `Cannot confirm group allocations: Found ${stats.duplicateCount} duplicate student assignment(s) and ${stats.invalidCount} invalid student(s). Please resolve conflicts before proceeding.`
+        `Cannot confirm group allocations: Found ${stats.duplicateCount} duplicate student assignment(s), ${stats.ambiguousCount} ambiguous student(s), and ${stats.invalidCount} invalid student(s). Please resolve conflicts before proceeding.`
       );
       return;
     }
@@ -522,11 +529,14 @@ export function LecturerGroupReviewWorkspace({
             <span>Resolution Required Before Confirmation</span>
           </div>
           <p className="text-rose-800 leading-relaxed">
-            The project cannot be confirmed while duplicate or invalid student assignments exist. Please reassign, remove, or resolve conflicting student records in the sections below:
+            The project cannot be confirmed while duplicate, invalid, or ambiguous student assignments exist. Please reassign, remove, or resolve conflicting student records in the sections below:
           </p>
           <ul className="list-disc list-inside space-y-1 text-rose-800 pl-1 font-medium">
             {stats.duplicateCount > 0 && (
               <li>{stats.duplicateCount} student(s) are assigned to multiple groups simultaneously.</li>
+            )}
+            {stats.ambiguousCount > 0 && (
+              <li>{stats.ambiguousCount} student(s) have ambiguous database matches. Click &quot;Select Record&quot; on the student row to choose the exact record.</li>
             )}
             {stats.invalidCount > 0 && (
               <li>{stats.invalidCount} student entry has missing or blank name fields.</li>
@@ -618,14 +628,26 @@ export function LecturerGroupReviewWorkspace({
                       </div>
                     </div>
 
-                    {/* Group Name (Inline Editable) */}
+                    {/* Group Number & Group Name (Inline Editable) */}
                     {isEditing ? (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-teal-500">
+                          <span className="text-xs font-mono font-bold text-slate-400">#</span>
+                          <input
+                            type="number"
+                            value={editGroupNumVal}
+                            onChange={(e) => setEditGroupNumVal(parseInt(e.target.value, 10) || 1)}
+                            className="w-12 text-xs font-mono font-bold text-slate-900 focus:outline-hidden"
+                            min={1}
+                            title="Edit group number"
+                          />
+                        </div>
                         <input
                           type="text"
                           value={editGroupNameVal}
                           onChange={(e) => setEditGroupNameVal(e.target.value)}
                           className="px-3 py-1 bg-white border border-teal-500 rounded-lg text-sm font-bold text-slate-900 focus:outline-hidden ring-2 ring-teal-500/20"
+                          placeholder="Group Name"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleSaveGroupName(grp.id);
@@ -635,14 +657,16 @@ export function LecturerGroupReviewWorkspace({
                         <button
                           type="button"
                           onClick={() => handleSaveGroupName(grp.id)}
-                          className="p-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+                          className="p-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                          title="Save changes"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingGroupId(null)}
-                          className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300"
+                          className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"
+                          title="Cancel"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -657,9 +681,10 @@ export function LecturerGroupReviewWorkspace({
                           onClick={() => {
                             setEditingGroupId(grp.id);
                             setEditGroupNameVal(grp.group_name);
+                            setEditGroupNumVal(grp.group_number);
                           }}
                           className="p-1 text-slate-400 hover:text-teal-600 hover:bg-slate-200/60 rounded-md transition-colors"
-                          title="Edit group name"
+                          title="Edit group name and number"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>

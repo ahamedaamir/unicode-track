@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Cannot confirm assignments: Found ${stats.duplicateCount} duplicate student(s) and ${stats.invalidCount} invalid student(s). Please resolve all conflicts in the review screen before confirming.`,
+          error: `Cannot confirm assignments: Found ${stats.duplicateCount} duplicate student(s), ${stats.ambiguousCount} ambiguous student(s), and ${stats.invalidCount} invalid student(s). Please resolve all conflicts in the review screen before confirming.`,
           stats,
           warnings,
         },

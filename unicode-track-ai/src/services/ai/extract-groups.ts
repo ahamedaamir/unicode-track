@@ -522,8 +522,8 @@ export function revalidateAssignmentGroups(
   const uniqueWarnings = Array.from(new Set(warnings));
 
   // Determine if there are blocking errors
-  // Duplicates and Invalid students block confirmation; Unmatched & Ambiguous produce warnings
-  const hasBlockingErrors = duplicateCount > 0 || invalidCount > 0;
+  // Duplicates, Invalid students, and Ambiguous matches block confirmation until lecturer resolves them
+  const hasBlockingErrors = duplicateCount > 0 || invalidCount > 0 || ambiguousCount > 0;
 
   return {
     groups: revalidatedGroups,
