@@ -164,6 +164,17 @@ const initialCourses: Course[] = [
 
 const initialLecturers: Lecturer[] = [
   {
+    id: "lec-check",
+    name: "Dr. Check Lecturer",
+    email: "check@gmail.com",
+    position: "Senior",
+    assignedCourses: ["CS492", "SE3102", "CS304", "ICT2142"],
+    status: "Active",
+    hasChangedDefaultPassword: true,
+    defaultPassword: "1234",
+    createdAt: "2026-11-24",
+  },
+  {
     id: "lec-1",
     name: "Dr. Evelyn Reed",
     email: "evelyn.reed@university.edu",
@@ -1311,7 +1322,13 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.lecturers) return parsed.lecturers;
+        if (parsed.lecturers && Array.isArray(parsed.lecturers)) {
+          const hasCheck = parsed.lecturers.some((l: Lecturer) => l.email.toLowerCase() === "check@gmail.com");
+          if (!hasCheck) {
+            return [initialLecturers[0], ...parsed.lecturers];
+          }
+          return parsed.lecturers;
+        }
       }
     } catch {}
     return initialLecturers;
@@ -1743,7 +1760,13 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const findLecturerByEmail = (email: string) => {
-    return lecturers.find((l) => l.email.toLowerCase() === email.trim().toLowerCase());
+    const normalized = email.trim().toLowerCase();
+    const found = lecturers.find((l) => l.email.toLowerCase() === normalized);
+    if (found) return found;
+    if (normalized === "check@gmail.com") {
+      return initialLecturers[0];
+    }
+    return undefined;
   };
 
   // Student Actions

@@ -104,9 +104,13 @@ export function LecturerGroupCard({
               #{group.groupNumber || "1"}
             </span>
             <div>
-              <h4 className="font-extrabold text-sm sm:text-base text-[#0B1220] tracking-tight">
+              <Link
+                href={`/dashboard/projects/${projectId}/groups/${group.id}`}
+                className="font-extrabold text-sm sm:text-base text-[#0B1220] hover:text-teal-600 transition-colors tracking-tight line-clamp-1"
+                title={`Open review page for ${group.groupName}`}
+              >
                 {group.groupName}
-              </h4>
+              </Link>
             </div>
           </div>
 

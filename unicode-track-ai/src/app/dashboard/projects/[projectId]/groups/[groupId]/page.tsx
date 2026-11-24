@@ -375,7 +375,7 @@ function LecturerGroupReviewContent() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#0B1220] text-white">
                 <Users className="w-3.5 h-3.5 text-teal-400" />
-                {group.groupName}
+                Group #{group.groupNumber || "1"} • {group.groupName}
               </span>
 
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -421,31 +421,199 @@ function LecturerGroupReviewContent() {
               Faculty code review and academic tracking console. Inspect GitHub branches, commit streams, team member contribution velocity, pull request status, and compile C programs inside UniCodeTrack AI.
             </p>
 
-            {/* GitHub Repository Quick Reference Card */}
-            {group.repoUrl && (
-              <div className="flex flex-wrap items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-500 font-medium">Repository URL:</span>
-                  <a
-                    href={group.repoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono text-teal-700 hover:underline flex items-center gap-1 font-semibold"
-                  >
-                    {group.repoUrl}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+            {/* GitHub Repository Quick Reference & Telemetry Overview */}
+            {group.repoUrl ? (
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-[#0B1220] text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
+                      <FolderGit2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xs sm:text-sm text-slate-900">
+                        Connected GitHub Repository Overview
+                      </h3>
+                      <p className="text-[11px] text-slate-500">
+                        Real-time repository telemetry & code inspection console
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={group.repoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1220] hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+                    >
+                      <FolderGit2 className="w-3.5 h-3.5 text-teal-400" />
+                      <span>Open on GitHub</span>
+                      <ExternalLink className="w-3 h-3 text-slate-400" />
+                    </a>
+
+                    <button
+                      onClick={() => setActiveTab("code_review")}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+                    >
+                      <FileCode2 className="w-3.5 h-3.5" />
+                      <span>Browse Code inside UniCodeTrack AI</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="h-3 w-px bg-slate-300 hidden sm:block" />
-                <div className="flex items-center gap-2 text-slate-600 font-mono text-[11px]">
-                  <span>Default: <strong className="text-slate-800">main</strong></span>
-                  <span>•</span>
-                  <span>{branches.length} branches</span>
-                  <span>•</span>
-                  <span>{group.totalCommits || commits.length} commits</span>
-                  <span>•</span>
-                  <span>{pullRequests.length} pull requests</span>
+
+                {/* Table of 7 Repository Items matching Image 2 */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <th className="py-2 pr-4 font-semibold">Information</th>
+                        <th className="py-2 font-semibold">What the lecturer sees</th>
+                        <th className="py-2 pl-4 text-right font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200/60 text-xs">
+                      <tr>
+                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                          <FolderGit2 className="w-3.5 h-3.5 text-teal-600" /> Repository
+                        </td>
+                        <td className="py-2.5 text-slate-700 font-mono">
+                          <span className="font-bold text-slate-900">{group.repoName || "repository"}</span> —{" "}
+                          <a
+                            href={group.repoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-teal-700 hover:underline"
+                          >
+                            {group.repoUrl}
+                          </a>
+                        </td>
+                        <td className="py-2.5 pl-4 text-right font-sans">
+                          <a
+                            href={group.repoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-teal-700 hover:underline text-[11px] font-bold inline-flex items-center gap-1"
+                          >
+                            Open <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                          <GitBranch className="w-3.5 h-3.5 text-teal-600" /> Branches
+                        </td>
+                        <td className="py-2.5 text-slate-700 font-mono">
+                          <span className="font-bold text-slate-900">{branches.length} available branches</span>:{" "}
+                          {branches.map((b) => b.name).join(", ")} (Default: <strong className="text-slate-900">main</strong>)
+                        </td>
+                        <td className="py-2.5 pl-4 text-right font-sans">
+                          <button
+                            onClick={() => setActiveTab("branches")}
+                            className="text-teal-700 hover:underline text-[11px] font-bold"
+                          >
+                            View Branches
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                          <GitCommit className="w-3.5 h-3.5 text-teal-600" /> Commits
+                        </td>
+                        <td className="py-2.5 text-slate-700">
+                          <span className="font-bold text-slate-900">{group.totalCommits || commits.length} total commits</span>. Latest: &ldquo;{commits[0]?.message}&rdquo; by <strong className="text-slate-900">{commits[0]?.author}</strong> (<span className="font-mono text-teal-700">{commits[0]?.shortHash}</span>)
+                        </td>
+                        <td className="py-2.5 pl-4 text-right font-sans">
+                          <button
+                            onClick={() => setActiveTab("commits")}
+                            className="text-teal-700 hover:underline text-[11px] font-bold"
+                          >
+                            View Commits
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                          <BarChart3 className="w-3.5 h-3.5 text-teal-600" /> Contributions
+                        </td>
+                        <td className="py-2.5 text-slate-700 font-sans">
+                          Activity by group member: {group.members.map((m) => `${m.fullName} (${m.commitsCount} commits)`).join(", ")}
+                        </td>
+                        <td className="py-2.5 pl-4 text-right font-sans">
+                          <button
+                            onClick={() => setActiveTab("contributions")}
+                            className="text-teal-700 hover:underline text-[11px] font-bold"
+                          >
+                            View Breakdown
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                          <FileCode2 className="w-3.5 h-3.5 text-teal-600" /> Source code
+                        </td>
+                        <td className="py-2.5 text-slate-700 font-sans">
+                          C source files, headers, and build scripts browsable with live GCC sandboxed execution
+                        </td>
+                        <td className="py-2.5 pl-4 text-right font-sans">
+                          <button
+                            onClick={() => setActiveTab("code_review")}
+                            className="text-teal-700 hover:underline text-[11px] font-bold"
+                          >
+                            Browse Code
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                          <GitPullRequest className="w-3.5 h-3.5 text-teal-600" /> Pull requests
+                        </td>
+                        <td className="py-2.5 text-slate-700 font-sans">
+                          <span className="font-bold text-slate-900">{pullRequests.length} pull requests</span> — Submitted changes, code review approvals, and target branches
+                        </td>
+                        <td className="py-2.5 pl-4 text-right font-sans">
+                          <button
+                            onClick={() => setActiveTab("pull_requests")}
+                            className="text-teal-700 hover:underline text-[11px] font-bold"
+                          >
+                            View PRs
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                          <Activity className="w-3.5 h-3.5 text-teal-600" /> Activity
+                        </td>
+                        <td className="py-2.5 text-slate-700 font-sans">
+                          Latest repository updates: {activityEvents[0]?.user} {activityEvents[0]?.action} {activityEvents[0]?.target} ({activityEvents[0]?.time})
+                        </td>
+                        <td className="py-2.5 pl-4 text-right font-sans">
+                          <button
+                            onClick={() => setActiveTab("activity")}
+                            className="text-teal-700 hover:underline text-[11px] font-bold"
+                          >
+                            Activity Stream
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
+
+                <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between text-[11px] text-slate-500 font-medium">
+                  <span>The lecturer can open the repository directly or browse its code inside UniCodeTrack AI.</span>
+                  <span className="text-teal-700 font-semibold font-mono">Sync Status: Active</span>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>GitHub repository not yet connected for this group. Students connect their repository in the group workspace.</span>
               </div>
             )}
           </div>

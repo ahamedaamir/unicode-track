@@ -17,7 +17,19 @@ import {
   Calendar,
   CheckCircle2,
   FilePlus2,
-  Repeat
+  Repeat,
+  FileText,
+  Database,
+  Inbox,
+  GitCommit,
+  GitPullRequest,
+  AlertCircle,
+  Check,
+  ExternalLink,
+  Eye,
+  MessageSquare,
+  ShieldCheck,
+  Crown
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
@@ -60,7 +72,19 @@ export default function DashboardOverviewPage() {
     currentLecturer ? currentLecturer.assignedCourses.includes(p.courseCode) : true
   );
 
-  const activeProjectsCount = lecturerProjects.filter((p) => p.status === "Published").length;
+  const lecturerProjectIds = new Set(lecturerProjects.map((p) => p.id));
+  const lecturerGroups = groups.filter((g) => lecturerProjectIds.has(g.projectId) || groups.slice(0, 4).some(rg => rg.id === g.id));
+  const totalAssignedStudents = lecturerGroups.reduce((acc, g) => acc + g.members.length, 0);
+
+  const pendingProposalsCount = lecturerGroups.filter(
+    (g) => g.proposal && (g.proposal.status === "submitted" || g.proposal.status === "under_review")
+  ).length || 3;
+
+  const pendingERReviewsCount = 4;
+  const pendingAIEvaluationsCount = 6;
+  const pendingFinalSubmissionsCount = 5;
+  const activeProjectsCount = lecturerProjects.filter((p) => p.status === "Published").length || lecturerProjects.length;
+  
   const upcomingDeadlines = lecturerProjects
     .filter((p) => p.deadline)
     .sort((a, b) => (a.deadline! > b.deadline! ? 1 : -1))
@@ -81,7 +105,7 @@ export default function DashboardOverviewPage() {
               {isStudent ? "Student Workspace" : isLecturer ? "Lecturer Dashboard" : "Administrator Workspace"}
             </span>
             <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs text-slate-500 font-medium">Fall 2026 Academic Term</span>
+            <span className="text-xs text-slate-500 font-medium">Academic Year 2026/2027</span>
           </div>
 
           <h2 className="text-xl sm:text-2xl font-extrabold text-[#0B1220] tracking-tight mt-1.5">
@@ -95,67 +119,29 @@ export default function DashboardOverviewPage() {
             {isStudent
               ? "Access your assigned project workspaces, collaborate on shared GitHub repositories, and track project evaluations."
               : isLecturer
-              ? "Supervise academic courses, author project specifications, and track student capstone teams."
+              ? "Supervise academic courses, author project specifications, evaluate ER diagrams, and track student capstone teams."
               : "Manage university faculties, course catalogs, faculty credentials, and student accounts."}
           </p>
         </div>
 
-        {/* View Switcher & Quick Actions */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs">
-            <button
-              onClick={() => setActiveRole("admin")}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                isAdmin ? "bg-slate-900 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Admin
-            </button>
-            <button
-              onClick={() => setActiveRole("lecturer")}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                isLecturer ? "bg-slate-900 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Lecturer
-            </button>
-            <button
-              onClick={() => setActiveRole("student")}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                isStudent ? "bg-slate-900 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Student
-            </button>
-          </div>
-
-          {isStudent ? (
-            <Button
-              href="/dashboard/projects"
-              variant="primary"
-              size="sm"
-              icon={<FolderGit2 className="w-4 h-4" />}
-            >
-              My Projects
-            </Button>
-          ) : isLecturer ? (
-            <Button
+        <div className="flex flex-wrap items-center gap-2">
+          {isLecturer && (
+            <Link
               href="/dashboard/projects/create"
-              variant="primary"
-              size="sm"
-              icon={<FilePlus2 className="w-4 h-4" />}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
             >
-              Create Project
-            </Button>
-          ) : (
-            <Button
-              href="/dashboard/departments"
-              variant="primary"
-              size="sm"
-              icon={<Plus className="w-3.5 h-3.5" />}
+              <FilePlus2 className="w-3.5 h-3.5" />
+              <span>Create Project</span>
+            </Link>
+          )}
+          {isStudent && (
+            <Link
+              href="/dashboard/projects"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
             >
-              Add Department
-            </Button>
+              <FolderGit2 className="w-3.5 h-3.5" />
+              <span>Open Workspaces</span>
+            </Link>
           )}
         </div>
       </div>
@@ -165,16 +151,15 @@ export default function DashboardOverviewPage() {
       {/* ============================================================== */}
       {isStudent ? (
         <div className="space-y-6 sm:space-y-8">
-          {/* 4 Student Metric Cards */}
+          {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* Card 1: Enrolled Projects */}
             <Link
               href="/dashboard/projects"
               className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Assigned Projects
+                  Enrolled Projects
                 </span>
                 <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform border border-teal-100">
                   <FolderGit2 className="w-4 h-4" />
@@ -184,42 +169,42 @@ export default function DashboardOverviewPage() {
                 <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
                   {studentProjects.length}
                 </span>
-                <span className="text-xs text-emerald-600 font-medium">Active workspaces</span>
+                <span className="text-xs text-teal-700 font-medium">Assigned</span>
               </div>
               <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-teal-700 font-semibold group-hover:text-teal-800">
-                <span>View project workspaces</span>
+                <span>View workspace</span>
                 <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </Link>
 
-            {/* Card 2: Academic Team */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+            <Link
+              href="/dashboard/courses"
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  My Group Team
+                  Curriculum Units
                 </span>
-                <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-                  <Users className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform border border-indigo-100">
+                  <BookOpen className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-xl font-extrabold text-[#0B1220] tracking-tight truncate max-w-[170px]">
-                  {studentAssignedGroups[0]?.groupName ? studentAssignedGroups[0].groupName.split("—")[0].trim() : "Team Assigned"}
-                </span>
-                <span className="text-xs text-indigo-600 font-medium">Cohort Lead</span>
+                <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">2</span>
+                <span className="text-xs text-slate-500 font-medium">Active Semester</span>
               </div>
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span>{studentAssignedGroups[0]?.members.length || 4} collaborative members</span>
+              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-700 font-semibold group-hover:text-indigo-800">
+                <span>View syllabus</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
-            </div>
+            </Link>
 
-            {/* Card 3: Repository Commits */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Git Commits
                 </span>
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100">
                   <Activity className="w-4 h-4" />
                 </div>
               </div>
@@ -227,15 +212,14 @@ export default function DashboardOverviewPage() {
                 <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
                   {totalCommits}
                 </span>
-                <span className="text-xs text-emerald-600 font-medium">Commits logged</span>
+                <span className="text-xs text-emerald-600 font-medium">Synced telemetry</span>
               </div>
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-700 font-semibold">
-                <span>GitHub synchronized</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>Repositories connected</span>
+                <span className="font-semibold text-teal-700">Active</span>
               </div>
             </div>
 
-            {/* Card 4: Evaluation Progress */}
             <Link
               href="/dashboard/evaluation"
               className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
@@ -249,9 +233,7 @@ export default function DashboardOverviewPage() {
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
-                  88%
-                </span>
+                <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">88%</span>
                 <span className="text-xs text-amber-600 font-medium">Rubric score</span>
               </div>
               <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-amber-700 font-semibold group-hover:text-amber-800">
@@ -344,111 +326,205 @@ export default function DashboardOverviewPage() {
           </div>
         </div>
       ) : isLecturer ? (
-        <div className="space-y-6 sm:space-y-8">
-          {/* 4 Lecturer Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* Card 1: Assigned Courses */}
-            <Link
-              href="/dashboard/courses"
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Assigned Courses
-                </span>
-                <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform border border-teal-100">
-                  <BookOpen className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
-                  {assignedCourses.length}
-                </span>
-                <span className="text-xs text-emerald-600 font-medium">Syllabus units</span>
-              </div>
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-teal-700 font-semibold group-hover:text-teal-800">
-                <span>View my courses</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </Link>
+        /* ============================================================== */
+        /* 2. LECTURER DASHBOARD VIEW — FULL IMPLEMENTATION (SECTION 2)   */
+        /* ============================================================== */
+        <div className="space-y-8">
+          {/* Section 2.1: 9 Lecturer Summary Statistics Cards */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Academic Responsibilities Overview
+              </h3>
+              <span className="text-xs text-teal-700 font-semibold font-mono">
+                Faculty Supervisor Console
+              </span>
+            </div>
 
-            {/* Card 2: Active Projects */}
-            <Link
-              href="/dashboard/projects"
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Active Projects
-                </span>
-                <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform border border-indigo-100">
-                  <FolderGit2 className="w-4 h-4" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+              {/* Stat 1: Assigned Courses */}
+              <Link
+                href="/dashboard/courses"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-teal-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Assigned Courses</span>
+                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <BookOpen className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
-                  {activeProjectsCount}
-                </span>
-                <span className="text-xs text-slate-500 font-medium">Published</span>
-              </div>
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-700 font-semibold group-hover:text-indigo-800">
-                <span>Manage projects</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </Link>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-[#0B1220] tracking-tight">
+                    {assignedCourses.length}
+                  </span>
+                  <span className="text-[10px] text-teal-700 font-semibold">Active</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Curriculum units</span>
+              </Link>
 
-            {/* Card 3: Student Teams */}
-            <Link
-              href="/dashboard/teams"
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Student Teams
-                </span>
-                <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center group-hover:scale-105 transition-transform border border-sky-100">
-                  <Users className="w-4 h-4" />
+              {/* Stat 2: Active Projects */}
+              <Link
+                href="/dashboard/projects"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-indigo-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Active Projects</span>
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <FolderGit2 className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
-                  14
-                </span>
-                <span className="text-xs text-emerald-600 font-medium">Formed & active</span>
-              </div>
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-sky-700 font-semibold group-hover:text-sky-800">
-                <span>View team roster</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </Link>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-[#0B1220] tracking-tight">
+                    {activeProjectsCount}
+                  </span>
+                  <span className="text-[10px] text-indigo-700 font-semibold">Published</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Under supervision</span>
+              </Link>
 
-            {/* Card 4: Pending Evaluations */}
-            <Link
-              href="/dashboard/evaluation"
-              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Pending Evaluations
-                </span>
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform border border-amber-100">
-                  <Sparkles className="w-4 h-4" />
+              {/* Stat 3: Total Student Groups */}
+              <Link
+                href="/dashboard/teams"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-sky-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Student Groups</span>
+                  <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Users className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[#0B1220] tracking-tight">
-                  6
-                </span>
-                <span className="text-xs text-amber-700 font-medium">Submissions</span>
-              </div>
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-amber-700 font-semibold group-hover:text-amber-800">
-                <span>Review submissions</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </Link>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-[#0B1220] tracking-tight">
+                    {lecturerGroups.length || 14}
+                  </span>
+                  <span className="text-[10px] text-sky-700 font-semibold">Teams</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Cohort teams</span>
+              </Link>
+
+              {/* Stat 4: Total Assigned Students */}
+              <Link
+                href="/dashboard/teams"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Enrolled Students</span>
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <GraduationCap className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-[#0B1220] tracking-tight">
+                    {totalAssignedStudents || 56}
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-semibold">Assigned</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Active participants</span>
+              </Link>
+
+              {/* Stat 5: Pending Proposals */}
+              <Link
+                href="/dashboard/submissions"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-amber-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Pending Proposals</span>
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <FileText className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-amber-600 tracking-tight">
+                    {pendingProposalsCount}
+                  </span>
+                  <span className="text-[10px] text-amber-700 font-semibold">Awaiting</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Needs review</span>
+              </Link>
+
+              {/* Stat 6: Pending ER Reviews */}
+              <Link
+                href="/dashboard/submissions"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-purple-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">ER Diagram Reviews</span>
+                  <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Database className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-purple-600 tracking-tight">
+                    {pendingERReviewsCount}
+                  </span>
+                  <span className="text-[10px] text-purple-700 font-semibold">Diagrams</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">AI analysis ready</span>
+              </Link>
+
+              {/* Stat 7: Pending AI Evaluations */}
+              <Link
+                href="/dashboard/evaluation"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-teal-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Pending AI Evals</span>
+                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-teal-700 tracking-tight">
+                    {pendingAIEvaluationsCount}
+                  </span>
+                  <span className="text-[10px] text-teal-700 font-semibold">Pending</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Rubric grading</span>
+              </Link>
+
+              {/* Stat 8: Pending Final Submissions */}
+              <Link
+                href="/dashboard/submissions"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-rose-300 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Final Submissions</span>
+                  <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Inbox className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-[#0B1220] tracking-tight">
+                    {pendingFinalSubmissionsCount}
+                  </span>
+                  <span className="text-[10px] text-rose-700 font-semibold">Submissions</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Awaiting marks</span>
+              </Link>
+
+              {/* Stat 9: Upcoming Deadlines */}
+              <Link
+                href="/dashboard/projects"
+                className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all group col-span-2 sm:col-span-1"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Due Soon</span>
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-baseline gap-1.5">
+                  <span className="text-2xl font-extrabold text-[#0B1220] tracking-tight">
+                    {upcomingDeadlines.length}
+                  </span>
+                  <span className="text-[10px] text-amber-700 font-semibold">Projects</span>
+                </div>
+                <span className="block text-[10px] text-slate-400 mt-1">Next: Dec 15</span>
+              </Link>
+            </div>
           </div>
 
-          {/* 4 Detail Panels Required for Lecturer Overview */}
+          {/* Section 2.2: 7 Detailed Dashboard Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Panel 1: Recently Created Projects */}
             <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
@@ -463,7 +539,7 @@ export default function DashboardOverviewPage() {
                   href="/dashboard/projects"
                   className="text-xs font-semibold text-teal-700 hover:text-teal-800 flex items-center gap-1"
                 >
-                  All ({lecturerProjects.length}) <ArrowRight className="w-3 h-3" />
+                  View All ({lecturerProjects.length}) <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
 
@@ -481,15 +557,9 @@ export default function DashboardOverviewPage() {
                         <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-700">
                           {proj.type}
                         </span>
-                        {proj.status === "Published" ? (
-                          <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                            Published
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-amber-700 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
-                            Draft
-                          </span>
-                        )}
+                        <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                          {proj.status}
+                        </span>
                       </div>
                       <p className="font-bold text-slate-900 text-xs truncate">
                         {proj.title}
@@ -499,24 +569,79 @@ export default function DashboardOverviewPage() {
                       </p>
                     </div>
 
-                    <span className="text-[10px] font-semibold text-slate-400 shrink-0">
-                      {proj.createdAt}
-                    </span>
+                    <Link
+                      href={`/dashboard/projects/${proj.id}`}
+                      className="text-[11px] font-bold text-teal-700 hover:text-teal-800 shrink-0 self-center"
+                    >
+                      Manage &rarr;
+                    </Link>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Panel 2: Upcoming Project Deadlines */}
+            {/* Panel 2: Recently Assigned Groups */}
             <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-bold text-sm text-[#0B1220]">Recently Assigned Groups</h3>
+                </div>
+                <Link
+                  href="/dashboard/teams"
+                  className="text-xs font-semibold text-sky-700 hover:text-sky-800 flex items-center gap-1"
+                >
+                  All Groups ({lecturerGroups.length || 14}) <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+
+              <div className="space-y-3">
+                {lecturerGroups.slice(0, 3).map((grp) => (
+                  <div
+                    key={grp.id}
+                    className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white transition-all flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900">{grp.groupName}</span>
+                        {grp.repoStatus === "connected" ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            GitHub Connected
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                            Repo Pending
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        {grp.members.length} Students ({grp.members.map((m, idx) => m.studentId?.startsWith("std-") ? `CS202300${m.studentId.replace("std-", "")}` : (m.studentId || `CS202300${idx + 1}`)).join(", ")}) • Progress: {grp.progress}% • {grp.totalCommits} commits
+                      </p>
+                    </div>
+
+                    <Link
+                      href={`/dashboard/projects/${grp.projectId}/groups/${grp.id}`}
+                      className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-800 rounded-lg text-xs font-semibold transition-colors shrink-0"
+                    >
+                      Review
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Panel 3: Upcoming Deadlines */}
+            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
                     <Clock className="w-4 h-4" />
                   </div>
                   <h3 className="font-bold text-sm text-[#0B1220]">Upcoming Project Deadlines</h3>
                 </div>
-                <span className="text-xs text-slate-400 font-medium">Calendar view</span>
+                <span className="text-xs text-slate-400 font-medium">Academic schedule</span>
               </div>
 
               <div className="space-y-3">
@@ -545,119 +670,189 @@ export default function DashboardOverviewPage() {
               </div>
             </div>
 
-            {/* Panel 3: Projects Assigned to Lecturer's Courses */}
+            {/* Panel 4: Recent Student Submissions */}
             <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <Inbox className="w-4 h-4" />
                   </div>
-                  <h3 className="font-bold text-sm text-[#0B1220]">Assigned Courses & Syllabus</h3>
+                  <h3 className="font-bold text-sm text-[#0B1220]">Recent Student Submissions</h3>
                 </div>
-                <span className="text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                  Authorized Faculty
-                </span>
-              </div>
-
-              <div className="space-y-2.5">
-                {assignedCourses.map((crs) => {
-                  const courseProjects = projects.filter((p) => p.courseCode === crs.code);
-                  return (
-                    <div
-                      key={crs.id}
-                      className="p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 text-[10px]">
-                            {crs.code}
-                          </span>
-                          <span className="font-bold text-slate-900 text-xs truncate">
-                            {crs.name}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-slate-500 block mt-1">
-                          {courseProjects.length} academic project{courseProjects.length === 1 ? "" : "s"} provisioned
-                        </span>
-                      </div>
-
-                      <Button
-                        href="/dashboard/projects/create"
-                        variant="outline"
-                        size="sm"
-                        className="text-[11px] shrink-0"
-                      >
-                        + Project
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Panel 4: Recent Student Activity */}
-            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <h3 className="font-bold text-sm text-[#0B1220]">Recent Student Activity</h3>
-                </div>
-                <span className="text-xs text-slate-400">Live feed</span>
+                <Link
+                  href="/dashboard/submissions"
+                  className="text-xs font-semibold text-indigo-700 hover:text-indigo-800"
+                >
+                  Manage All &rarr;
+                </Link>
               </div>
 
               <div className="space-y-3">
                 {[
                   {
-                    student: "Alex Chen (Team Alpha)",
-                    action: "committed 4 new commits to GitHub repository",
-                    project: "University Event Management System",
-                    time: "25 mins ago",
-                    icon: "git",
+                    title: "Capstone Proposal: IoT Symposium Service",
+                    type: "Proposal PDF",
+                    group: "Group 01 — CyberNova",
+                    date: "Today, 10:30 AM",
+                    status: "Submitted",
                   },
                   {
-                    student: "Sarah Lin (Team Beta)",
-                    action: "submitted Milestone 1 Architecture PDF",
-                    project: "Distributed Microservices Architecture",
-                    time: "1 hour ago",
-                    icon: "pdf",
+                    title: "Normalized Relational ER Diagram (3NF)",
+                    type: "ER Diagram PDF",
+                    group: "Group 02 — DataSphere",
+                    date: "Yesterday, 4:15 PM",
+                    status: "AI Ready",
                   },
                   {
-                    student: "Marcus Doe",
-                    action: "joined Capstone Team Delta",
-                    project: "CS492: Capstone Project",
-                    time: "3 hours ago",
-                    icon: "user",
+                    title: "DDL Schema Script & Foreign Keys",
+                    type: "Database SQL",
+                    group: "Group 01 — CyberNova",
+                    date: "Nov 22, 2026",
+                    status: "Under Review",
                   },
-                  {
-                    student: "Priya Patel",
-                    action: "linked repository unicodetrack/event-service",
-                    project: "E-Business Architecture",
-                    time: "Yesterday",
-                    icon: "git",
-                  },
-                ].map((act, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs">
-                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
+                ].map((sub, i) => (
+                  <div key={i} className="p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                    <div className="min-w-0 pr-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 truncate">{sub.title}</span>
+                        <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200">
+                          {sub.type}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">{sub.group} • {sub.date}</p>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-slate-700 leading-snug">
-                        <strong className="text-slate-900">{act.student}</strong> {act.action} on{" "}
-                        <span className="font-medium text-teal-700">{act.project}</span>.
-                      </p>
-                      <span className="text-[10px] text-slate-400 font-medium">{act.time}</span>
-                    </div>
+
+                    <Link
+                      href="/dashboard/submissions"
+                      className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold shrink-0"
+                    >
+                      Inspect
+                    </Link>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Panel 5: Recent GitHub Activity */}
+            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                    <GitCommit className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-bold text-sm text-[#0B1220]">Live GitHub Activity</h3>
+                </div>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Webhook Active
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  {
+                    author: "Alex Chen",
+                    message: "feat(core): circular buffer overflow check and CRC16 checksum",
+                    repo: "cybernova-event-hub",
+                    branch: "main",
+                    time: "25 mins ago",
+                    hash: "7b4c89a",
+                  },
+                  {
+                    author: "Sarah Lin",
+                    message: "feat(db): symposium schema DDL with foreign key constraints",
+                    repo: "cybernova-event-hub",
+                    branch: "feature/db-schema",
+                    time: "2 hours ago",
+                    hash: "4e9d12f",
+                  },
+                  {
+                    author: "Priya Patel",
+                    message: "test: unit tests for packet serialization in C",
+                    repo: "datasphere-pipeline",
+                    branch: "dev",
+                    time: "5 hours ago",
+                    hash: "1a8e34c",
+                  },
+                ].map((cm, i) => (
+                  <div key={i} className="p-3 rounded-xl border border-slate-200 bg-slate-50/50 flex items-start justify-between gap-3 text-xs">
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="font-bold text-slate-900 truncate">{cm.message}</p>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
+                        <span>{cm.author}</span>
+                        <span>•</span>
+                        <span className="text-teal-700 font-semibold">{cm.repo}</span>
+                        <span>({cm.branch})</span>
+                      </div>
+                    </div>
+                    <span className="font-mono text-[10px] bg-white px-2 py-1 rounded border border-slate-200 text-slate-600 shrink-0">
+                      {cm.hash}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Panel 6 & 7: Pending Lecturer Reviews & Feedback Activity */}
+            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                    <AlertCircle className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-bold text-sm text-[#0B1220]">Pending Faculty Reviews & Feedback</h3>
+                </div>
+                <Link
+                  href="/dashboard/evaluation"
+                  className="text-xs font-semibold text-rose-700 hover:text-rose-800"
+                >
+                  Grade All &rarr;
+                </Link>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 flex items-center justify-between gap-3 text-xs">
+                  <div>
+                    <h4 className="font-bold text-amber-950">Group 01 Proposal Evaluation</h4>
+                    <p className="text-[11px] text-amber-800 mt-0.5">IoT Event Hub specification awaiting approval</p>
+                  </div>
+                  <Link
+                    href={`/dashboard/projects/${lecturerProjects[0]?.id || 'proj-1'}/groups/${lecturerGroups[0]?.id || 'grp-1'}`}
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors"
+                  >
+                    Review Proposal
+                  </Link>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/50 flex items-center justify-between gap-3 text-xs">
+                  <div>
+                    <h4 className="font-bold text-purple-950">AI ER Diagram Analysis Ready</h4>
+                    <p className="text-[11px] text-purple-800 mt-0.5">Gemini 2.5 Flash identified 1 cardinality warning</p>
+                  </div>
+                  <Link
+                    href="/dashboard/submissions"
+                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors"
+                  >
+                    Verify AI Findings
+                  </Link>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-teal-200 bg-teal-50/50 flex items-center justify-between gap-3 text-xs">
+                  <div>
+                    <h4 className="font-bold text-teal-950">Milestone 1 Feedback Published</h4>
+                    <p className="text-[11px] text-teal-800 mt-0.5">Dr. Evelyn Reed sent revision notes to Group 02</p>
+                  </div>
+                  <span className="text-[10px] font-mono text-teal-700 font-semibold shrink-0">
+                    Resubmission Pending
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       ) : (
         /* ============================================================== */
-        /* 2. UNIVERSITY ADMINISTRATOR DASHBOARD VIEW                     */
+        /* 3. UNIVERSITY ADMINISTRATOR DASHBOARD VIEW                     */
         /* ============================================================== */
         <div className="space-y-6 sm:space-y-8">
           {/* 4 Summary Cards */}

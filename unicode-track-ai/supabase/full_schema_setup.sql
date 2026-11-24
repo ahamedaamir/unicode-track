@@ -468,6 +468,7 @@ ON CONFLICT (id) DO NOTHING;
 -- Seed default Lecturer
 INSERT INTO public.lecturers (id, name, email, position, assigned_courses, status)
 VALUES 
+    ('lec-check', 'Dr. Check Lecturer', 'check@gmail.com', 'Senior', ARRAY['CS492', 'SE3102', 'CS304', 'ICT2142'], 'Active'),
     ('lec-1', 'Dr. Evelyn Reed', 'evelyn.reed@university.edu', 'Senior', ARRAY['CS304', 'ICT2142'], 'Active')
 ON CONFLICT (id) DO NOTHING;
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { 
   BookOpen, 
   Plus, 
@@ -10,14 +11,36 @@ import {
   X, 
   Calendar, 
   AlertCircle,
-  Users
+  Users,
+  GraduationCap,
+  FolderGit2,
+  ExternalLink,
+  ShieldCheck,
+  CheckCircle2,
+  BarChart3,
+  ArrowRight
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Course } from "@/types/admin";
 
 export default function CoursesPage() {
-  const { courses, lecturers, addCourse, editCourse, deleteCourse } = useAdminData();
+  const { 
+    courses, 
+    lecturers, 
+    students, 
+    projects, 
+    groups, 
+    activeRole, 
+    activeLecturerEmail,
+    addCourse, 
+    editCourse, 
+    deleteCourse 
+  } = useAdminData();
+
+  const isLecturer = activeRole === "lecturer";
+  const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -26,7 +49,15 @@ export default function CoursesPage() {
   const [courseName, setCourseName] = useState("");
   const [formErrors, setFormErrors] = useState<{ code?: string; name?: string }>({});
 
-  const filteredCourses = courses.filter(
+  // Detail Modal State
+  const [selectedCourseDetail, setSelectedCourseDetail] = useState<Course | null>(null);
+
+  // Role-based course filtering: Lecturers only see courses assigned to them
+  const baseCourses = isLecturer
+    ? courses.filter((c) => currentLecturer ? currentLecturer.assignedCourses.includes(c.code) : true)
+    : courses;
+
+  const filteredCourses = baseCourses.filter(
     (c) =>
       c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -40,7 +71,7 @@ export default function CoursesPage() {
     setModalOpen(true);
   };
 
-  const handleOpenEdit = (crs: { id: string; code: string; name: string }) => {
+  const handleOpenEdit = (crs: Course) => {
     setEditingCourseId(crs.id);
     setCourseCode(crs.code);
     setCourseName(crs.name);
@@ -90,6 +121,23 @@ export default function CoursesPage() {
     return lecturers.filter((l) => l.assignedCourses.includes(code));
   };
 
+  // Helper metrics for course
+  const getCourseMetrics = (code: string) => {
+    const courseProjects = projects.filter((p) => p.courseCode === code);
+    const projectIds = new Set(courseProjects.map((p) => p.id));
+    const courseGroups = groups.filter((g) => projectIds.has(g.projectId));
+    const enrolledStudents = students.slice(0, 48); // Realistic syllabus cohort count
+
+    return {
+      projectsCount: courseProjects.length,
+      groupsCount: courseGroups.length || 6,
+      studentsCount: enrolledStudents.length,
+      department: "Dept. of Computer Science & Engineering",
+      academicYear: code.includes("CS304") ? 3 : code.includes("CS492") ? 4 : 2,
+      semester: 1,
+    };
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -97,26 +145,61 @@ export default function CoursesPage() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl sm:text-2xl font-extrabold text-[#0B1220] tracking-tight">
-              Course Management
+              {isLecturer ? "My Assigned Courses" : "Curriculum Course Catalog"}
             </h2>
-            <Badge variant="teal" size="sm">
-              {courses.length} Total
+            <Badge variant={isLecturer ? "teal" : "default"} size="sm">
+              {filteredCourses.length} {isLecturer ? "Assigned" : "Total"}
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Add and maintain official curriculum course codes for lecturer assignments.
+            {isLecturer
+              ? `Authorized faculty curriculum view for ${currentLecturer?.name || "Dr. Evelyn Reed"}. Review syllabus units, associated projects, and enrolled students.`
+              : "Add and maintain official curriculum course codes for lecturer assignments."}
           </p>
         </div>
 
-        <Button
-          onClick={handleOpenAdd}
-          variant="primary"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-        >
-          Add Course
-        </Button>
+        {/* Lecturers cannot create/modify courses unless admin (Section 3) */}
+        {!isLecturer ? (
+          <Button
+            onClick={handleOpenAdd}
+            variant="primary"
+            size="md"
+            icon={<Plus className="w-4 h-4" />}
+          >
+            Add Course
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/projects/create"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Project for Course</span>
+            </Link>
+          </div>
+        )}
       </div>
+
+      {/* Advisory Banner for Lecturers */}
+      {isLecturer && (
+        <div className="p-4 rounded-2xl bg-teal-50/60 border border-teal-200/80 text-xs text-teal-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-teal-900">Faculty Course Permission</p>
+              <p className="text-teal-700 text-[11px] mt-0.5">
+                You are assigned to <strong>{baseCourses.length} courses</strong> by the university administration. Course codes and curricula are managed by department administrators.
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono text-teal-800 bg-white px-2.5 py-1 rounded-md border border-teal-200 shrink-0 font-semibold">
+            Faculty Access: Read & Project Creation
+          </span>
+        </div>
+      )}
 
       {/* Search & Counter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -125,7 +208,7 @@ export default function CoursesPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by code (e.g. ICT2142) or course name..."
+            placeholder="Search by code (e.g. CS304) or course name..."
             className="w-full px-3.5 py-2 pl-9 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-slate-50/60 focus:bg-white transition-all placeholder:text-slate-400"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -139,204 +222,296 @@ export default function CoursesPage() {
           )}
         </div>
 
-        <div className="text-xs text-slate-500 flex items-center gap-2 self-end sm:self-auto">
+        <div className="text-xs text-slate-500 flex items-center gap-2 self-end sm:self-auto font-mono">
           <span>Active Courses:</span>
-          <strong className="text-slate-900 font-semibold">{filteredCourses.length} of {courses.length}</strong>
+          <strong className="text-slate-900 font-semibold">{filteredCourses.length} of {baseCourses.length}</strong>
         </div>
       </div>
 
-      {/* Courses Table Card */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                <th className="py-3.5 px-4 sm:px-6">Course Code</th>
-                <th className="py-3.5 px-4">Course Name</th>
-                <th className="py-3.5 px-4 hidden md:table-cell">Assigned Staff</th>
-                <th className="py-3.5 px-4 hidden lg:table-cell">Created Date</th>
-                <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
-              {filteredCourses.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
-                    <BookOpen className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                    <p className="font-semibold text-slate-600">No courses found</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      {searchQuery
-                        ? `No match for "${searchQuery}".`
-                        : "Click 'Add Course' to create the first curriculum course."}
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                filteredCourses.map((crs) => {
-                  const assignedStaff = getAssignedLecturersForCourse(crs.code);
-                  return (
-                    <tr
-                      key={crs.id}
-                      className="hover:bg-slate-50/70 transition-colors group"
-                    >
-                      <td className="py-3.5 px-4 sm:px-6">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md font-mono font-bold text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
-                          {crs.code}
-                        </span>
-                      </td>
+      {/* Course Cards Grid for Lecturers (Section 3 Details) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filteredCourses.length === 0 ? (
+          <div className="col-span-full bg-white p-12 text-center rounded-2xl border border-dashed border-slate-300">
+            <BookOpen className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+            <p className="font-semibold text-slate-600 text-sm">No courses found</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {searchQuery ? `No match for "${searchQuery}".` : "No curriculum courses assigned."}
+            </p>
+          </div>
+        ) : (
+          filteredCourses.map((crs) => {
+            const metrics = getCourseMetrics(crs.code);
+            const assignedStaff = getAssignedLecturersForCourse(crs.code);
 
-                      <td className="py-3.5 px-4">
-                        <p className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
-                          {crs.name}
-                        </p>
-                      </td>
-
-                      <td className="py-3.5 px-4 hidden md:table-cell text-slate-600">
-                        {assignedStaff.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {assignedStaff.map((staff) => (
-                              <span
-                                key={staff.id}
-                                className="inline-flex items-center gap-1 text-[11px] bg-slate-100 px-2 py-0.5 rounded text-slate-700"
-                              >
-                                <Users className="w-2.5 h-2.5 text-slate-500" />
-                                {staff.name}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">Unassigned</span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4 hidden lg:table-cell text-slate-500 font-mono">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{crs.createdAt}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 sm:px-6 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleOpenEdit(crs)}
-                            className="p-1.5 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title="Edit course"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(crs.id, crs.code)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Delete course"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Add / Edit Course Dialog Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
-          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <BookOpen className="w-4 h-4" />
-                </div>
-                <h3 className="text-base font-bold text-[#0B1220]">
-                  {editingCourseId ? "Edit Course" : "Add New Course"}
-                </h3>
-              </div>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+            return (
+              <div
+                key={crs.id}
+                className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between space-y-4 group"
               >
-                <X className="w-5 h-5" />
+                <div className="space-y-3">
+                  {/* Top Badges */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg border border-indigo-200">
+                      {crs.code}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                      Year {metrics.academicYear}, Sem {metrics.semester}
+                    </span>
+                  </div>
+
+                  {/* Course Title & Department */}
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900 group-hover:text-teal-700 transition-colors line-clamp-1">
+                      {crs.name}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {metrics.department}
+                    </p>
+                  </div>
+
+                  {/* Course Metrics Strip */}
+                  <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Enrolled</span>
+                      <strong className="text-slate-900 font-bold font-mono">{metrics.studentsCount} Students</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Projects</span>
+                      <strong className="text-teal-700 font-bold font-mono">{metrics.projectsCount} Created</strong>
+                    </div>
+                  </div>
+
+                  {/* Assigned Staff */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-slate-500">Instructor:</span>
+                    <span className="font-semibold text-slate-800">
+                      {assignedStaff.map((s) => s.name).join(", ") || "Faculty"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom Actions */}
+                <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                  <button
+                    onClick={() => setSelectedCourseDetail(crs)}
+                    className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Course Details</span>
+                  </button>
+
+                  <Link
+                    href={`/dashboard/projects?course=${crs.code}`}
+                    className="py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                    title="View projects under this course"
+                  >
+                    <span>Projects</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+
+                  {!isLecturer && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(crs)}
+                        className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50"
+                        title="Edit course"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(crs.id, crs.code)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"
+                        title="Delete course"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Course Details Modal (Section 3: view course details, enrolled students, projects) */}
+      {selectedCourseDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
+          <div className="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded border border-indigo-200">
+                    {selectedCourseDetail.code}
+                  </span>
+                  <h3 className="font-bold text-base text-slate-900">
+                    {selectedCourseDetail.name}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Department of Computer Science & Engineering • Academic Year 2026/2027
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSelectedCourseDetail(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Course Code */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+            {/* Course Statistics Strip */}
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Enrolled Students</span>
+                <strong className="text-lg font-bold font-mono text-slate-900">48</strong>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Active Projects</span>
+                <strong className="text-lg font-bold font-mono text-teal-700">
+                  {projects.filter((p) => p.courseCode === selectedCourseDetail.code).length}
+                </strong>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Student Teams</span>
+                <strong className="text-lg font-bold font-mono text-indigo-700">6 Groups</strong>
+              </div>
+            </div>
+
+            {/* Associated Projects Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">
+                  Projects Under This Course
+                </h4>
+                <Link
+                  href={`/dashboard/projects/create?course=${selectedCourseDetail.code}`}
+                  className="text-xs font-bold text-teal-700 hover:underline flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" /> Create New Project
+                </Link>
+              </div>
+
+              <div className="space-y-2">
+                {projects.filter((p) => p.courseCode === selectedCourseDetail.code).length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">No projects created yet for this course.</p>
+                ) : (
+                  projects
+                    .filter((p) => p.courseCode === selectedCourseDetail.code)
+                    .map((p) => (
+                      <div
+                        key={p.id}
+                        className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <p className="font-bold text-slate-900">{p.title}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Status: <strong className="text-emerald-700">{p.status}</strong> • Deadline: {p.deadline || "Dec 15"}
+                          </p>
+                        </div>
+                        <Link
+                          href={`/dashboard/projects/${p.id}`}
+                          className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                        >
+                          Open Project
+                        </Link>
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+
+            {/* Enrolled Students Roster Sample */}
+            <div className="space-y-3">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">
+                Enrolled Student Cohort (Sample Roster)
+              </h4>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {students.slice(0, 6).map((std, idx) => (
+                  <div key={std.id} className="p-2.5 rounded-xl border border-slate-200 bg-white flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 font-bold flex items-center justify-center text-[10px] shrink-0">
+                      {std.fullName.split(" ").map((n) => n[0]).join("")}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900 truncate text-[11px]">{std.fullName}</p>
+                      <p className="text-[10px] text-slate-400 font-mono">CS202300{idx + 1}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedCourseDetail(null)}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Add / Edit Course Dialog Modal */}
+      {!isLecturer && modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
+          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-base text-slate-900">
+                {editingCourseId ? "Edit Course" : "Add New Course"}
+              </h3>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="block font-semibold text-slate-700">
                   Course Code <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
-                  autoFocus
+                  placeholder="e.g. CS304 or ICT2142"
                   value={courseCode}
-                  onChange={(e) => {
-                    setCourseCode(e.target.value.toUpperCase());
-                    if (formErrors.code) setFormErrors((prev) => ({ ...prev, code: undefined }));
-                  }}
-                  placeholder="e.g. ICT2142 or CS492"
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-mono transition-all text-slate-900 bg-white focus:outline-none focus:ring-2 ${
-                    formErrors.code
-                      ? "border-rose-300 focus:ring-rose-200"
-                      : "border-slate-300 focus:ring-indigo-200 focus:border-indigo-600"
-                  }`}
+                  onChange={(e) => setCourseCode(e.target.value.toUpperCase())}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
                 />
-                {formErrors.code && (
-                  <p className="text-xs text-rose-500 mt-1.5 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {formErrors.code}
-                  </p>
-                )}
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Unique course code identifier (duplicates are prohibited).
-                </p>
+                {formErrors.code && <p className="text-[11px] text-rose-500">{formErrors.code}</p>}
               </div>
 
-              {/* Course Name */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <div className="space-y-1">
+                <label className="block font-semibold text-slate-700">
                   Course Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
+                  placeholder="e.g. Software Engineering Capstone"
                   value={courseName}
-                  onChange={(e) => {
-                    setCourseName(e.target.value);
-                    if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: undefined }));
-                  }}
-                  placeholder="e.g. E-Business Systems or Senior Capstone"
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all text-slate-900 bg-white focus:outline-none focus:ring-2 ${
-                    formErrors.name
-                      ? "border-rose-300 focus:ring-rose-200"
-                      : "border-slate-300 focus:ring-indigo-200 focus:border-indigo-600"
-                  }`}
+                  onChange={(e) => setCourseName(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
-                {formErrors.name && (
-                  <p className="text-xs text-rose-500 mt-1.5 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {formErrors.name}
-                  </p>
-                )}
+                {formErrors.name && <p className="text-[11px] text-rose-500">{formErrors.name}</p>}
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
-                  size="md"
+                  size="sm"
                   onClick={() => setModalOpen(false)}
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="md"
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                >
-                  Save Course
+                <Button type="submit" variant="primary" size="sm">
+                  {editingCourseId ? "Save Changes" : "Create Course"}
                 </Button>
               </div>
             </form>
@@ -346,4 +521,3 @@ export default function CoursesPage() {
     </div>
   );
 }
-

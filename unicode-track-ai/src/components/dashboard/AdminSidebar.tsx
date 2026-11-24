@@ -14,14 +14,16 @@ import {
   Settings, 
   LogOut, 
   ChevronLeft, 
-  ChevronRight,
-  ShieldCheck,
-  X,
-  FolderGit2,
-  FilePlus2,
-  User,
-  CheckSquare,
-  Repeat
+  ChevronRight, 
+  ShieldCheck, 
+  X, 
+  FolderGit2, 
+  FilePlus2, 
+  User, 
+  CheckSquare, 
+  Repeat,
+  Inbox,
+  FileText
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -46,6 +48,7 @@ export function AdminSidebar({
     lecturers, 
     students, 
     projects,
+    groups,
     activeRole,
     setActiveRole,
     activeLecturerEmail,
@@ -79,6 +82,12 @@ export function AdminSidebar({
       href: "/dashboard/courses",
       icon: BookOpen,
       count: 2,
+    },
+    {
+      name: "Submissions",
+      href: "/dashboard/submissions",
+      icon: Inbox,
+      count: undefined,
     },
     {
       name: "Evaluations",
@@ -120,19 +129,25 @@ export function AdminSidebar({
       count: undefined,
     },
     {
-      name: "Student Teams",
+      name: "Student Groups",
       href: "/dashboard/teams",
       icon: Users,
-      count: 14,
+      count: groups.length || 14,
     },
     {
-      name: "Evaluations",
-      href: "/dashboard/evaluation",
-      icon: CheckSquare,
+      name: "Submissions & Reviews",
+      href: "/dashboard/submissions",
+      icon: Inbox,
       count: 6,
     },
     {
-      name: "Profile",
+      name: "Evaluations & Marks",
+      href: "/dashboard/evaluation",
+      icon: CheckSquare,
+      count: 4,
+    },
+    {
+      name: "My Profile",
       href: "/dashboard/profile",
       icon: User,
       count: undefined,
@@ -219,7 +234,7 @@ export function AdminSidebar({
                 </span>
               </div>
               <span className="text-[10px] text-slate-400 tracking-wide font-medium">
-                Admin Workspace
+                {isStudent ? "Student Workspace" : isLecturer ? "Lecturer Dashboard" : "Admin Workspace"}
               </span>
             </div>
           )}
@@ -249,7 +264,7 @@ export function AdminSidebar({
       {/* Navigation Links */}
       <nav className="flex-1 px-2.5 py-4 space-y-1 overflow-y-auto">
         <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-          {(!collapsed || mobileOpen) ? "Administration" : "Menu"}
+          {(!collapsed || mobileOpen) ? (isLecturer ? "Academic Faculty" : isStudent ? "My Learning" : "Administration") : "Menu"}
         </div>
         {navigation.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
