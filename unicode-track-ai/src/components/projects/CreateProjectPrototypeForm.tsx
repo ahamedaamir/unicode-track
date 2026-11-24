@@ -354,16 +354,16 @@ export function CreateProjectPrototypeForm({
         <div className="crumb">
           <a onClick={handleBackNavigation}>Projects</a> / <span>Create project</span>
         </div>
-        <h1 className="text-[22px] font-bold tracking-tight text-[#14171f] mb-1">
+        <h1 className="text-[22px] font-bold tracking-tight text-white mb-1">
           Project published
         </h1>
-        <p className="text-slate-500 text-sm mb-4">
+        <p className="text-slate-400 text-sm mb-4">
           Students in the selected batch can now see it.
         </p>
 
         <div className="proj-card space-y-4">
-          <b>{title}</b>
-          <p className="text-slate-500 text-sm">
+          <b className="text-white text-base">{title}</b>
+          <p className="text-slate-400 text-sm">
             {course} · Batch {batch} · {type === "group" ? "Group" : "Individual"} project
           </p>
           <div className="proj-row mt-4">
@@ -384,7 +384,7 @@ export function CreateProjectPrototypeForm({
     <>
       <div className="proj-sec">Project title</div>
       <input
-        className="proj-in text-base py-3 px-3.5 bg-white border border-[#e5e7eb] rounded-lg"
+        className="proj-in text-base py-3 px-3.5 bg-[#0e1626] border border-[#1e293b] text-white rounded-lg focus:outline-none focus:border-teal-500"
         placeholder="e.g. Faculty Management System"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -457,7 +457,7 @@ export function CreateProjectPrototypeForm({
       {type === "group" && (
         <>
           <div className="proj-sec">Groups</div>
-          <label className="proj-card proj-tile block border-dashed text-center p-6 cursor-pointer hover:border-[#4f46e5]">
+          <label className="proj-card proj-tile block border-dashed text-center p-6 cursor-pointer hover:border-teal-500">
             <input
               type="file"
               accept=".pdf"
@@ -471,7 +471,7 @@ export function CreateProjectPrototypeForm({
             />
             <b>{pdfName || "Upload group list (PDF)"}</b>
             <br />
-            <span className="text-slate-500 text-xs">
+            <span className="text-slate-400 text-xs">
               {pdfName ? "Click to replace" : "Click to choose a file"}
             </span>
           </label>
@@ -623,7 +623,7 @@ export function CreateProjectPrototypeForm({
             </div>
 
             {item.on && (
-              <div className="proj-two mt-3.5 pt-3 border-t border-[#e5e7eb]">
+              <div className="proj-two mt-3.5 pt-3 border-t border-[#1e293b]">
                 <div>
                   <label className="proj-label">Opens</label>
                   <input
@@ -669,10 +669,10 @@ export function CreateProjectPrototypeForm({
         <a onClick={handleBackNavigation}>Projects</a> / <span>Create project</span>
       </div>
 
-      <h1 className="text-[22px] font-bold tracking-tight text-[#14171f] mb-1">
+      <h1 className="text-[22px] font-bold tracking-tight text-white mb-1">
         Create project
       </h1>
-      <p className="text-slate-500 text-sm mb-4">Step {step + 1} of 4</p>
+      <p className="text-slate-400 text-sm mb-4">Step {step + 1} of 4</p>
 
       {/* Step Chips matching prototype */}
       <div className="chips">

@@ -308,8 +308,8 @@ function LecturerProjectsContent() {
           </span>
         ))}
       </div>
-      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Projects</h1>
-      <p className="sub text-sm text-slate-500 mb-4">Choose a view and a batch to continue.</p>
+      <h1 className="text-2xl font-bold text-white tracking-tight">Projects</h1>
+      <p className="sub text-sm text-slate-400 mb-4">Choose a view and a batch to continue.</p>
 
       {/* Action to create project matching prototype */}
       <div className="proj-row mb-3.5">
@@ -374,8 +374,8 @@ function LecturerProjectsContent() {
           </span>
         ))}
       </div>
-      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Batch {batch}</h1>
-      <p className="sub text-sm text-slate-500 mb-4">Select a course.</p>
+      <h1 className="text-2xl font-bold text-white tracking-tight">Batch {batch}</h1>
+      <p className="sub text-sm text-slate-400 mb-4">Select a course.</p>
 
       <div className="proj-grid">
         {availableCourses.map((c) => (
@@ -409,8 +409,8 @@ function LecturerProjectsContent() {
           </span>
         ))}
       </div>
-      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{course?.c}</h1>
-      <p className="sub text-sm text-slate-500 mb-4">{course?.n} · pick a project.</p>
+      <h1 className="text-2xl font-bold text-white tracking-tight">{course?.c}</h1>
+      <p className="sub text-sm text-slate-400 mb-4">{course?.n} · pick a project.</p>
 
       <div className="proj-grid">
         {(courseProjects.length > 0
@@ -477,8 +477,8 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{proj?.title}</h1>
-        <p className="sub text-sm text-slate-500 mb-4">
+        <h1 className="text-2xl font-bold text-white tracking-tight">{proj?.title}</h1>
+        <p className="sub text-sm text-slate-400 mb-4">
           {isGroup ? "Select a group." : "Select a student index."}
         </p>
 
@@ -540,12 +540,12 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+        <h1 className="text-2xl font-bold text-white tracking-tight">
           {tgt} · {proj?.title}
         </h1>
-        <p className="sub text-sm text-slate-500 mb-4">
+        <p className="sub text-sm text-slate-400 mb-4">
           Linked repository:{" "}
-          <span className="font-mono text-slate-700">github.com/uor-ict/c-mini-shell</span>
+          <span className="font-mono text-teal-400">github.com/uor-ict/c-mini-shell</span>
         </p>
 
         {/* Stats Grid */}
@@ -571,13 +571,13 @@ function LecturerProjectsContent() {
         {/* Two Columns: Branches & Commits per member */}
         <div className="proj-two mb-4">
           <div className="proj-card">
-            <b className="text-base text-slate-900">Branches</b>
+            <b className="text-base text-white">Branches</b>
             {branches.map((bItem) => (
               <div key={bItem[0]} className="mt-3">
                 <div className="proj-row">
-                  <span className="font-mono text-xs">{bItem[0]}</span>
+                  <span className="font-mono text-xs text-slate-200">{bItem[0]}</span>
                   <span className="proj-sp"></span>
-                  <span className="text-xs text-slate-500">{bItem[1]} commits</span>
+                  <span className="text-xs text-slate-400">{bItem[1]} commits</span>
                 </div>
                 <div className="proj-bar">
                   <i style={{ width: `${(bItem[1] / 42) * 100}%` }}></i>
@@ -587,15 +587,15 @@ function LecturerProjectsContent() {
           </div>
 
           <div className="proj-card">
-            <b className="text-base text-slate-900">
+            <b className="text-base text-white">
               {isGroup ? "Commits per member" : "Commits"}
             </b>
             {members.map((mItem) => (
               <div key={mItem[0]} className="mt-3">
                 <div className="proj-row">
-                  <span className="text-xs font-medium">{mItem[0]}</span>
+                  <span className="text-xs font-medium text-slate-200">{mItem[0]}</span>
                   <span className="proj-sp"></span>
-                  <span className="text-xs text-slate-500">{mItem[1]}</span>
+                  <span className="text-xs text-slate-400">{mItem[1]}</span>
                 </div>
                 <div className="proj-bar">
                   <i style={{ width: `${(mItem[1] / 42) * 100}%` }}></i>
@@ -612,7 +612,7 @@ function LecturerProjectsContent() {
             <div key={d[0]} className="proj-card proj-doc" style={{ minWidth: 210 }}>
               <div className="proj-ic">{d[1]}</div>
               <div>
-                <b className="text-xs block text-slate-900">{d[0]}</b>
+                <b className="text-xs block text-white">{d[0]}</b>
                 <span className={`proj-tag ${d[2] ? "ok" : "no"}`}>
                   {d[2] ? "Uploaded" : "Not yet"}
                 </span>
@@ -676,8 +676,8 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Submitted reports</h1>
-        <p className="sub text-sm text-slate-500 mb-4">
+        <h1 className="text-2xl font-bold text-white tracking-tight">Submitted reports</h1>
+        <p className="sub text-sm text-slate-400 mb-4">
           {tgt} · {proj?.title}
         </p>
 
@@ -685,13 +685,14 @@ function LecturerProjectsContent() {
           {reportsList.map((x, idx) => (
             <div
               key={x[0]}
-              className={`proj-row py-3.5 ${idx < reportsList.length - 1 ? "border-b border-slate-200" : ""
-                }`}
+              className={`proj-row py-3.5 ${
+                idx < reportsList.length - 1 ? "border-b border-[#1e293b]" : ""
+              }`}
             >
               <div className="proj-ic">{x[1]}</div>
               <div>
-                <b className="text-sm text-slate-900 block">{x[0]}</b>
-                <span className="text-xs text-slate-500 font-mono">
+                <b className="text-sm text-white block">{x[0]}</b>
+                <span className="text-xs text-slate-400 font-mono">
                   {x[3]} · {x[2]}
                 </span>
               </div>
@@ -740,8 +741,8 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Evaluate project</h1>
-        <p className="sub text-sm text-slate-500 mb-4">
+        <h1 className="text-2xl font-bold text-white tracking-tight">Evaluate project</h1>
+        <p className="sub text-sm text-slate-400 mb-4">
           {tgt} · {proj?.title} · Past project
         </p>
 
@@ -750,7 +751,7 @@ function LecturerProjectsContent() {
           {/* Card 1: Run Project */}
           <div className="proj-card">
             <div className="proj-row">
-              <b className="text-base text-slate-900">Run project</b>
+              <b className="text-base text-white">Run project</b>
               <span className="proj-sp"></span>
               <span className="proj-tag">C · gcc</span>
             </div>
@@ -780,8 +781,8 @@ function LecturerProjectsContent() {
 
           {/* Card 2: AI Evaluation */}
           <div className="proj-card">
-            <b className="text-base text-slate-900">AI evaluation</b>
-            <p className="text-xs text-slate-500 my-2 leading-relaxed">
+            <b className="text-base text-white">AI evaluation</b>
+            <p className="text-xs text-slate-400 my-2 leading-relaxed">
               Gemini compares the proposal, code, ER diagram and final report. Marks are advisory
               and fully editable.
             </p>
@@ -794,7 +795,7 @@ function LecturerProjectsContent() {
               {isEvaluating ? "Analyzing..." : "Evaluate with Gemini"}
             </button>
             {evalStep && (
-              <div id="evs" className="text-xs text-indigo-600 font-mono mt-3">
+              <div id="evs" className="text-xs text-teal-400 font-mono mt-3">
                 {evalStep}
               </div>
             )}
@@ -808,18 +809,18 @@ function LecturerProjectsContent() {
             <div className="proj-card space-y-4">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500">
+                  <tr className="border-b border-[#1e293b] text-slate-400">
                     <th className="py-2.5 px-2">Criterion</th>
                     <th className="py-2.5 px-2">Weight</th>
                     <th className="py-2.5 px-2">Mark</th>
                     <th className="py-2.5 px-2">Evidence</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#1e293b]">
                   {marks.map((x, idx) => (
                     <tr key={x[0]}>
-                      <td className="py-2.5 px-2 font-semibold text-slate-900">{x[0]}</td>
-                      <td className="py-2.5 px-2 text-slate-500">{x[2]}%</td>
+                      <td className="py-2.5 px-2 font-semibold text-slate-200">{x[0]}</td>
+                      <td className="py-2.5 px-2 text-slate-400">{x[2]}%</td>
                       <td className="py-2.5 px-2">
                         <input
                           type="number"
@@ -836,25 +837,25 @@ function LecturerProjectsContent() {
                             });
                             setSavedText("Save marks & summary");
                           }}
-                          className="w-16 p-1.5 border border-slate-300 rounded-md bg-slate-50 font-mono text-xs"
+                          className="w-16 p-1.5 border border-[#1e293b] rounded-md bg-[#0e1626] text-white font-mono text-xs focus:border-teal-500 focus:outline-none"
                         />{" "}
                         <span className="text-slate-400 text-xs">/ {x[2]}</span>
                       </td>
-                      <td className="py-2.5 px-2 text-slate-500 font-mono text-[11px]">{x[3]}</td>
+                      <td className="py-2.5 px-2 text-slate-400 font-mono text-[11px]">{x[3]}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <div className="proj-row my-3 pt-2 border-t border-slate-100">
-                <b className="text-sm text-slate-900">Final mark</b>
-                <b className="text-2xl text-indigo-600 font-mono">
+              <div className="proj-row my-3 pt-2 border-t border-[#1e293b]">
+                <b className="text-sm text-white">Final mark</b>
+                <b className="text-2xl text-teal-400 font-mono">
                   <span id="tot">{totalScore}</span> / 100
                 </b>
               </div>
 
               <div>
-                <b className="text-xs text-slate-900 block mb-1">Project summary</b>
+                <b className="text-xs text-white block mb-1">Project summary</b>
                 <textarea
                   id="sum"
                   rows={3}
@@ -863,7 +864,7 @@ function LecturerProjectsContent() {
                     setSummaryText(e.target.value);
                     setSavedText("Save marks & summary");
                   }}
-                  className="w-full p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-xs text-slate-800 leading-relaxed font-sans"
+                  className="w-full p-2.5 border border-[#1e293b] rounded-lg bg-[#0e1626] text-xs text-slate-200 leading-relaxed font-sans focus:outline-none focus:border-teal-500"
                 />
               </div>
 

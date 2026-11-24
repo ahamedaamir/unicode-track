@@ -28,7 +28,14 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  if (activeRole === "lecturer" && pathname === "/dashboard") {
+  if (
+    activeRole !== "admin" ||
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/projects") ||
+    pathname.startsWith("/dashboard/evaluation") ||
+    pathname.startsWith("/dashboard/hackathons") ||
+    pathname.startsWith("/dashboard/profile")
+  ) {
     return null;
   }
 
