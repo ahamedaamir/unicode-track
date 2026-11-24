@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Project } from "@/types/admin";
 import { SAMPLE_C_PROJECT_FILES } from "@/services/github/repositories";
+import { CreateProjectPrototypeForm } from "@/components/projects/CreateProjectPrototypeForm";
 
 const BATCHES = ["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"] as const;
 
@@ -31,7 +32,7 @@ function LecturerProjectsContent() {
   const [course, setCourse] = useState<{ c: string; n: string } | null>(null);
   const [proj, setProj] = useState<Project | null>(null);
   const [tgt, setTgt] = useState<string | null>(null);
-  const [view, setView] = useState<"list" | "workspace" | "reports" | "evaluate">("list");
+  const [view, setView] = useState<"list" | "workspace" | "reports" | "evaluate" | "create">("list");
   const [fileIndex, setFileIndex] = useState(0);
 
   // Terminal Runner State
@@ -156,7 +157,7 @@ function LecturerProjectsContent() {
     course: { c: string; n: string } | null;
     proj: Project | null;
     tgt: string | null;
-    view: "list" | "workspace" | "reports" | "evaluate";
+    view: "list" | "workspace" | "reports" | "evaluate" | "create";
     fileIndex: number;
     marks: [string, number, number, string][] | null;
   }>) => {
@@ -219,6 +220,13 @@ function LecturerProjectsContent() {
       list.push({
         label: "Evaluate",
         action: () => go({ view: "evaluate" }),
+      });
+    }
+
+    if (view === "create") {
+      list.push({
+        label: "Create project",
+        action: () => go({ view: "create" }),
       });
     }
 
@@ -302,6 +310,13 @@ function LecturerProjectsContent() {
       </div>
       <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Projects</h1>
       <p className="sub text-sm text-slate-500 mb-4">Choose a view and a batch to continue.</p>
+
+      {/* Action to create project matching prototype */}
+      <div className="proj-row mb-3.5">
+        <button className="proj-btn p" onClick={() => go({ view: "create" })}>
+          + Create project
+        </button>
+      </div>
 
       {/* Segmented Switch: Current projects vs Past projects */}
       <div className="seg mb-4">
@@ -401,31 +416,31 @@ function LecturerProjectsContent() {
         {(courseProjects.length > 0
           ? courseProjects
           : [
-              {
-                id: "proj-1",
-                title: "Faculty Management System",
-                type: "Group Project" as const,
-                courseCode: course?.c || "CS492",
-                academicYear: 2 as const,
-                semester: 1 as const,
-                departmentId: "dept-1",
-                createdAt: "2026-11-10",
-                description: "University management with C modules",
-                status: "Published" as const,
-              },
-              {
-                id: "proj-2",
-                title: "C Mini Shell",
-                type: "Individual Project" as const,
-                courseCode: course?.c || "CS492",
-                academicYear: 2 as const,
-                semester: 1 as const,
-                departmentId: "dept-1",
-                createdAt: "2026-11-12",
-                description: "Embedded C command shell with queues",
-                status: "Published" as const,
-              },
-            ]
+            {
+              id: "proj-1",
+              title: "Faculty Management System",
+              type: "Group Project" as const,
+              courseCode: course?.c || "CS492",
+              academicYear: 2 as const,
+              semester: 1 as const,
+              departmentId: "dept-1",
+              createdAt: "2026-11-10",
+              description: "University management with C modules",
+              status: "Published" as const,
+            },
+            {
+              id: "proj-2",
+              title: "C Mini Shell",
+              type: "Individual Project" as const,
+              courseCode: course?.c || "CS492",
+              academicYear: 2 as const,
+              semester: 1 as const,
+              departmentId: "dept-1",
+              createdAt: "2026-11-12",
+              description: "Embedded C command shell with queues",
+              status: "Published" as const,
+            },
+          ]
         ).map((p) => {
           const isGroup = p.type === "Group Project" || p.projectType === "group";
           return (
@@ -502,11 +517,11 @@ function LecturerProjectsContent() {
 
     const members: [string, number][] = isGroup
       ? [
-          ["Nimal P.", 19],
-          ["Sara F.", 14],
-          ["Kasun D.", 9],
-          ["Ayesha R.", 3],
-        ]
+        ["Nimal P.", 19],
+        ["Sara F.", 14],
+        ["Kasun D.", 9],
+        ["Ayesha R.", 3],
+      ]
       : [[tgt || "TG/2004/2004", 42]];
 
     const docs = [
@@ -670,9 +685,8 @@ function LecturerProjectsContent() {
           {reportsList.map((x, idx) => (
             <div
               key={x[0]}
-              className={`proj-row py-3.5 ${
-                idx < reportsList.length - 1 ? "border-b border-slate-200" : ""
-              }`}
+              className={`proj-row py-3.5 ${idx < reportsList.length - 1 ? "border-b border-slate-200" : ""
+                }`}
             >
               <div className="proj-ic">{x[1]}</div>
               <div>
@@ -871,19 +885,23 @@ function LecturerProjectsContent() {
 
   return (
     <div className="max-w-[1100px] mx-auto py-2 px-1 sm:px-4">
-      {view === "reports"
-        ? renderReports()
-        : view === "evaluate"
-        ? renderEvaluate()
-        : tgt
-        ? renderWorkspace()
-        : proj
-        ? renderTargets()
-        : course
-        ? renderProjects()
-        : batch
-        ? renderCourses()
-        : renderBatches()}
+      {view === "create" ? (
+        <CreateProjectPrototypeForm onBackToProjects={() => go({ view: "list" })} />
+      ) : view === "reports" ? (
+        renderReports()
+      ) : view === "evaluate" ? (
+        renderEvaluate()
+      ) : tgt ? (
+        renderWorkspace()
+      ) : proj ? (
+        renderTargets()
+      ) : course ? (
+        renderProjects()
+      ) : batch ? (
+        renderCourses()
+      ) : (
+        renderBatches()
+      )}
     </div>
   );
 }
