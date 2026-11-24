@@ -31,7 +31,6 @@ import {
   ChevronLeft,
   Terminal,
   ExternalLink,
-  Repeat,
   Sliders,
   Building2,
   ChevronDown,
@@ -61,7 +60,6 @@ export default function ProjectsDirectoryPage() {
     archiveProject,
     deleteProject,
     activeRole,
-    setActiveRole,
     activeLecturerEmail,
     activeStudentEmail,
     setActiveStudentEmail,
@@ -359,56 +357,6 @@ export default function ProjectsDirectoryPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Persona Role Switcher Bar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-xs border border-teal-200">
-            <Repeat className="w-4 h-4" />
-          </div>
-          <div>
-            <span className="text-xs font-bold text-slate-900 block">Active Persona Preview</span>
-            <span className="text-[11px] text-slate-500">
-              Switch role view to preview student workspace or faculty grading consoles.
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveRole("lecturer")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              activeRole === "lecturer"
-                ? "bg-slate-900 text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            Lecturer View ({currentLecturer?.name?.split(" ")[1] || "Reed"})
-          </button>
-
-          <button
-            onClick={() => setActiveRole("student")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              activeRole === "student"
-                ? "bg-teal-600 text-white shadow-xs shadow-teal-600/20"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            Student View (Alex Chen)
-          </button>
-
-          <button
-            onClick={() => setActiveRole("admin")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              activeRole === "admin"
-                ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/20"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            Admin View
-          </button>
-        </div>
-      </div>
-
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>

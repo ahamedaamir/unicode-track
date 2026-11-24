@@ -21,7 +21,6 @@ import {
   FilePlus2,
   User,
   CheckSquare,
-  Repeat,
   Inbox,
   FileText
 } from "lucide-react";
@@ -50,7 +49,6 @@ export function AdminSidebar({
     projects,
     groups,
     activeRole,
-    setActiveRole,
     activeLecturerEmail,
     activeStudentEmail,
     getProjectsForStudent,
@@ -332,47 +330,6 @@ export function AdminSidebar({
             </div>
           )}
         </div>
-
-        {/* Persona Switcher */}
-        {(!collapsed || mobileOpen) && (
-          <div className="space-y-1">
-            <div className="text-[9px] text-slate-500 font-bold uppercase tracking-wider px-1">
-              Workspace Persona
-            </div>
-            <div className="grid grid-cols-3 gap-1 p-1 bg-slate-900/90 rounded-lg border border-slate-800 text-[10px] font-semibold text-center">
-              <button
-                type="button"
-                onClick={() => setActiveRole("admin")}
-                className={`py-1 rounded transition-colors ${activeRole === "admin"
-                  ? "bg-teal-600 text-white font-bold"
-                  : "text-slate-400 hover:text-white"
-                  }`}
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveRole("lecturer")}
-                className={`py-1 rounded transition-colors ${activeRole === "lecturer"
-                  ? "bg-teal-600 text-white font-bold"
-                  : "text-slate-400 hover:text-white"
-                  }`}
-              >
-                Lecturer
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveRole("student")}
-                className={`py-1 rounded transition-colors ${activeRole === "student"
-                  ? "bg-teal-600 text-white font-bold"
-                  : "text-slate-400 hover:text-white"
-                  }`}
-              >
-                Student
-              </button>
-            </div>
-          </div>
-        )}
 
         <button
           onClick={handleLogout}

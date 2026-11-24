@@ -43,7 +43,6 @@ export default function DashboardOverviewPage() {
     projects,
     groups,
     activeRole,
-    setActiveRole,
     activeLecturerEmail,
     activeStudentEmail,
     getProjectsForStudent,
