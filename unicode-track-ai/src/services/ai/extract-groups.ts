@@ -250,7 +250,19 @@ Return ONLY valid JSON.`;
           cleanJson = cleanJson.replace(/^```/, "").replace(/```$/, "").trim();
         }
 
-        const rawParsed = JSON.parse(cleanJson);
+        let rawParsed: any;
+        try {
+          rawParsed = JSON.parse(cleanJson);
+        } catch {
+          // Robust JSON substring extraction in case of leading/trailing commentary
+          const startIdx = cleanJson.indexOf("{");
+          const endIdx = cleanJson.lastIndexOf("}");
+          if (startIdx !== -1 && endIdx > startIdx) {
+            rawParsed = JSON.parse(cleanJson.substring(startIdx, endIdx + 1));
+          } else {
+            throw new Error("Gemini returned invalid or unparseable JSON format.");
+          }
+        }
 
         // Map any camelCase keys to snake_case if Gemini varied casing
         const normalizedData = {
@@ -265,6 +277,12 @@ Return ONLY valid JSON.`;
           })),
           warnings: Array.isArray(rawParsed.warnings) ? rawParsed.warnings : [],
         };
+
+        if (normalizedData.groups.length === 0) {
+          normalizedData.warnings.push(
+            "No student groups could be extracted from the document. Please verify the content format."
+          );
+        }
 
         // Validate strictly through Zod
         const validated = GeminiGroupExtractionResponseSchema.parse(normalizedData);
@@ -675,20 +693,28 @@ export function fallbackDeterministicGroupExtractor(
     groups.push(currentGroup);
   }
 
-  // If no explicit groups found, generate a baseline group
+  // If no explicit groups found, parse lines into a default group without inventing IDs
   if (groups.length === 0) {
-    warnings.push("Could not detect standard group headers (e.g. 'Group 1'). Parsed entries into a default group.");
-    const members: GeminiRawMember[] = lines.slice(0, 4).map((line, idx) => ({
-      student_id: `IT23000${idx + 1}`,
-      full_name: line.replace(/^[-*•\d.]+\s*/, "").trim() || `Student ${idx + 1}`,
-      email: null,
-    }));
+    if (lines.length > 0) {
+      warnings.push("Could not detect standard group headers (e.g. 'Group 1'). Parsed entries into a default group.");
+      const members: GeminiRawMember[] = lines.slice(0, 4).map((line) => {
+        const cleaned = line.replace(/^[-*•\d.]+\s*/, "").trim();
+        return {
+          student_id: null, // Strictly do NOT invent student IDs
+          full_name: cleaned || "Unidentified Student",
+          email: null,
+        };
+      });
 
-    groups.push({
-      group_number: 1,
-      group_name: "Group 1",
-      members,
-    });
+      groups.push({
+        group_number: 1,
+        group_name: "Group 1",
+        members,
+      });
+      warnings.push("Student IDs were not detected for some entries. Returned null without fabrication.");
+    } else {
+      warnings.push("No student group allocations could be detected in the provided content.");
+    }
   }
 
   return {

@@ -42,3 +42,10 @@ export async function generateProjectRequirements(
     source: "fallback",
   };
 }
+
+// Re-export Gemini group extraction utilities
+export {
+  extractGroupsWithGemini,
+  GeminiGroupExtractionResponseSchema,
+  type GeminiGroupExtractionResponse,
+} from "./extract-groups";

@@ -182,6 +182,10 @@ export async function POST(req: NextRequest) {
       rawText
     );
 
+    if (extractionResult.groups.length === 0 && extractionResult.warnings.length === 0) {
+      extractionResult.warnings.push("No student group allocations could be identified in the provided content.");
+    }
+
     return NextResponse.json({
       success: true,
       data: extractionResult,

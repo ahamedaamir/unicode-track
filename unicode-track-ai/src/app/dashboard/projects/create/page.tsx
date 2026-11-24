@@ -363,14 +363,14 @@ function CreateProjectContent() {
         assignmentProcessingStatus: groupAssignmentData.status,
         databaseDesignConfig: data.databaseRequired
           ? {
-              enabled: true,
-              isRequired: data.erDiagramRequired,
-              deadline: data.erDiagramDeadline || data.deadline,
-              expectedDesignDescription: data.databaseRequirements || data.description,
-              expectedEntities: ["entities", "tables", "relationships"],
-              expectedRelationships: ["1-to-N relationships", "foreign key constraints"],
-              rubricCriteria: DEFAULT_ER_DIAGRAM_RUBRIC,
-            }
+            enabled: true,
+            isRequired: data.erDiagramRequired,
+            deadline: data.erDiagramDeadline || data.deadline,
+            expectedDesignDescription: data.databaseRequirements || data.description,
+            expectedEntities: ["entities", "tables", "relationships"],
+            expectedRelationships: ["1-to-N relationships", "foreign key constraints"],
+            rubricCriteria: DEFAULT_ER_DIAGRAM_RUBRIC,
+          }
           : undefined,
       };
 
@@ -463,22 +463,20 @@ function CreateProjectContent() {
                 key={item.step}
                 type="button"
                 onClick={() => setActiveStep(item.step as 1 | 2 | 3 | 4)}
-                className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all text-xs font-bold ${
-                  isCurrent
-                    ? "bg-[#0B1220] text-white border-slate-900 shadow-xs"
-                    : isCompleted
+                className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all text-xs font-bold ${isCurrent
+                  ? "bg-[#0B1220] text-white border-slate-900 shadow-xs"
+                  : isCompleted
                     ? "bg-teal-50/70 border-teal-200 text-teal-900 hover:bg-teal-100/60"
                     : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100/60"
-                }`}
+                  }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
-                    isCurrent
-                      ? "bg-teal-500 text-slate-950 font-extrabold"
-                      : isCompleted
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${isCurrent
+                    ? "bg-teal-500 text-slate-950 font-extrabold"
+                    : isCompleted
                       ? "bg-teal-600 text-white"
                       : "bg-slate-200 text-slate-600"
-                  }`}
+                    }`}
                 >
                   {isCompleted ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
                 </div>
@@ -545,9 +543,8 @@ function CreateProjectContent() {
                   type="text"
                   placeholder="e.g. University Event & Symposium Management System"
                   {...register("title")}
-                  className={`w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${
-                    errors.title ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
-                  }`}
+                  className={`w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${errors.title ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
+                    }`}
                 />
                 {errors.title && (
                   <p className="text-xs text-rose-600 font-medium flex items-center gap-1 mt-1">
@@ -565,9 +562,8 @@ function CreateProjectContent() {
                   rows={4}
                   placeholder="Provide an executive summary, problem statement, core system objectives, and key deliverables expected from students..."
                   {...register("description")}
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${
-                    errors.description ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
-                  }`}
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${errors.description ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
+                    }`}
                 />
                 {errors.description && (
                   <p className="text-xs text-rose-600 font-medium flex items-center gap-1 mt-1">
@@ -670,9 +666,8 @@ function CreateProjectContent() {
                   <input
                     type="datetime-local"
                     {...register("deadline")}
-                    className={`w-full px-3 py-2.5 bg-slate-50 border rounded-xl text-xs font-mono text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${
-                      errors.deadline ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
-                    }`}
+                    className={`w-full px-3 py-2.5 bg-slate-50 border rounded-xl text-xs font-mono text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${errors.deadline ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
+                      }`}
                   />
                   {errors.deadline && (
                     <p className="text-xs text-rose-600 font-medium flex items-center gap-1 mt-1">
@@ -739,11 +734,10 @@ function CreateProjectContent() {
                   {/* Option A: Individual / Personal Project */}
                   <div
                     onClick={() => field.onChange("Individual Project")}
-                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-4 relative ${
-                      field.value === "Individual Project"
-                        ? "border-teal-500 bg-teal-50/20 shadow-md ring-2 ring-teal-500/10"
-                        : "border-slate-200 bg-slate-50/40 hover:border-slate-300 hover:bg-slate-50"
-                    }`}
+                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-4 relative ${field.value === "Individual Project"
+                      ? "border-teal-500 bg-teal-50/20 shadow-md ring-2 ring-teal-500/10"
+                      : "border-slate-200 bg-slate-50/40 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
                   >
                     {field.value === "Individual Project" && (
                       <span className="absolute top-4 right-4 w-6 h-6 rounded-full bg-teal-600 text-white flex items-center justify-center shadow-xs">
@@ -799,11 +793,10 @@ function CreateProjectContent() {
                   {/* Option B: Group Project */}
                   <div
                     onClick={() => field.onChange("Group Project")}
-                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-4 relative ${
-                      field.value === "Group Project"
-                        ? "border-teal-500 bg-teal-50/20 shadow-md ring-2 ring-teal-500/10"
-                        : "border-slate-200 bg-slate-50/40 hover:border-slate-300 hover:bg-slate-50"
-                    }`}
+                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-4 relative ${field.value === "Group Project"
+                      ? "border-teal-500 bg-teal-50/20 shadow-md ring-2 ring-teal-500/10"
+                      : "border-slate-200 bg-slate-50/40 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
                   >
                     {field.value === "Group Project" && (
                       <span className="absolute top-4 right-4 w-6 h-6 rounded-full bg-teal-600 text-white flex items-center justify-center shadow-xs">
@@ -1031,9 +1024,8 @@ function CreateProjectContent() {
                 rows={6}
                 placeholder="Enter complete technical requirements: system components, architecture layers, algorithmic logic, data structures, and compliance rules..."
                 {...register("requirements")}
-                className={`w-full px-4 py-3 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 leading-relaxed font-mono focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${
-                  errors.requirements ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
-                }`}
+                className={`w-full px-4 py-3 bg-slate-50 border rounded-2xl text-xs sm:text-sm text-slate-800 leading-relaxed font-mono focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all ${errors.requirements ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
+                  }`}
               />
               {errors.requirements && (
                 <p className="text-xs text-rose-600 font-medium flex items-center gap-1 mt-1">
@@ -1074,18 +1066,16 @@ function CreateProjectContent() {
                           <button
                             type="button"
                             onClick={() => field.onChange(true)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                              field.value ? "bg-purple-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                            }`}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${field.value ? "bg-purple-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                              }`}
                           >
                             Yes
                           </button>
                           <button
                             type="button"
                             onClick={() => field.onChange(false)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                              !field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                            }`}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${!field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                              }`}
                           >
                             No
                           </button>
@@ -1103,9 +1093,8 @@ function CreateProjectContent() {
                       <input
                         type="datetime-local"
                         {...register("erDiagramDeadline")}
-                        className={`w-full px-3 py-1.5 bg-white border rounded-xl text-xs font-mono text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-purple-500 ${
-                          errors.erDiagramDeadline ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
-                        }`}
+                        className={`w-full px-3 py-1.5 bg-white border rounded-xl text-xs font-mono text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-purple-500 ${errors.erDiagramDeadline ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
+                          }`}
                       />
                       {errors.erDiagramDeadline && (
                         <p className="text-xs text-rose-600 font-medium">{errors.erDiagramDeadline.message}</p>
@@ -1142,18 +1131,16 @@ function CreateProjectContent() {
                           <button
                             type="button"
                             onClick={() => field.onChange(true)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                              field.value ? "bg-teal-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                            }`}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${field.value ? "bg-teal-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                              }`}
                           >
                             Yes
                           </button>
                           <button
                             type="button"
                             onClick={() => field.onChange(false)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                              !field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                            }`}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${!field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                              }`}
                           >
                             No
                           </button>
@@ -1202,18 +1189,16 @@ function CreateProjectContent() {
                         <button
                           type="button"
                           onClick={() => field.onChange(true)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                            field.value ? "bg-slate-900 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                          }`}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${field.value ? "bg-slate-900 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
                         >
                           Yes
                         </button>
                         <button
                           type="button"
                           onClick={() => field.onChange(false)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                            !field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                          }`}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${!field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
                         >
                           No
                         </button>
@@ -1246,18 +1231,16 @@ function CreateProjectContent() {
                         <button
                           type="button"
                           onClick={() => field.onChange(true)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                            field.value ? "bg-amber-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                          }`}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${field.value ? "bg-amber-600 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
                         >
                           Yes
                         </button>
                         <button
                           type="button"
                           onClick={() => field.onChange(false)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                            !field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
-                          }`}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${!field.value ? "bg-slate-800 text-white shadow-2xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
                         >
                           No
                         </button>
