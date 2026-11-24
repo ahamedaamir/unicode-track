@@ -147,3 +147,33 @@ export interface ExtractedProjectData {
   courseCode?: string;
   groups: ExtractedGroupData[];
 }
+
+export interface ProjectStudentAssignment {
+  id: string;
+  projectId: string;
+  studentId: string;
+  studentEmail: string;
+  studentName: string;
+  departmentId?: string;
+  academicYear: number;
+  semester: number;
+  workspaceId: string;
+  repoUrl?: string;
+  repoName?: string;
+  repoOwner?: string;
+  defaultBranch?: string;
+  repoStatus: "disconnected" | "connected" | "syncing" | "error";
+  lastSyncAt?: string;
+  totalCommits: number;
+  status: "active" | "archived" | "completed";
+  progress: number;
+  proposalStatus: "not_submitted" | "submitted" | "under_review" | "changes_requested" | "approved";
+  proposal?: ProposalSubmission;
+  evaluationStatus?: "not_evaluated" | "ai_completed" | "in_review" | "approved" | "published";
+  latestEvaluationId?: string;
+  evaluationScore?: number;
+  branches?: GitHubBranch[];
+  commits?: GitHubCommit[];
+  pullRequests?: GitHubPullRequest[];
+  createdAt: string;
+}

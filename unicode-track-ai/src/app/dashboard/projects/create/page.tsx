@@ -36,11 +36,13 @@ import {
   Save,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
-import { Project } from "@/types/admin";
+import { Project, Student } from "@/types/admin";
+import { ProjectStudentAssignment } from "@/types/project";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { DEFAULT_ER_DIAGRAM_RUBRIC } from "@/types/er-diagram";
 import { GroupAssignmentSection } from "@/components/projects/GroupAssignmentSection";
+import { IndividualAssignmentSection } from "@/components/projects/IndividualAssignmentSection";
 
 // ==============================================================================
 // 1. Zod Validation Schema
@@ -130,9 +132,11 @@ function CreateProjectContent() {
     departments,
     courses,
     lecturers,
+    students,
     activeLecturerEmail,
     activeRole,
     addProject,
+    setProjectStudentAssignments,
   } = useAdminData();
 
   // Resolve current active lecturer
@@ -167,6 +171,9 @@ function CreateProjectContent() {
     sourceType: "none",
     status: "not_uploaded",
   });
+
+  // Individual Student Assignment State
+  const [individualAssignedStudentIds, setIndividualAssignedStudentIds] = useState<string[]>([]);
 
   // Gemini AI Requirements Generator state
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
@@ -233,6 +240,8 @@ function CreateProjectContent() {
   const watchedDatabaseRequired = watch("databaseRequired");
   const watchedDepartmentId = watch("departmentId");
   const watchedCourseCode = watch("courseCode");
+  const watchedAcademicYear = watch("academicYear");
+  const watchedSemester = watch("semester");
   const watchedTitle = watch("title");
   const watchedDeadline = watch("deadline");
 
@@ -375,11 +384,61 @@ function CreateProjectContent() {
       };
 
       // 2. Call context addProject (creates project in store and background syncs to Supabase)
-      // Note: As specified, we do NOT create groups or student workspaces yet.
       const result = addProject(projectPayload);
 
       if (!result.success || !result.project) {
         throw new Error(result.error || "Failed to create project record.");
+      }
+
+      // 3. If Individual Project and students were assigned, confirm individual assignments & personal workspaces
+      if (data.projectType === "Individual Project" && individualAssignedStudentIds.length > 0) {
+        const selectedStudentRecords = students
+          .filter((s: Student) => individualAssignedStudentIds.includes(s.id))
+          .map((s: Student) => ({
+            studentId: s.studentId || s.id,
+            fullName: s.fullName,
+            email: s.email,
+            departmentId: s.departmentId,
+            academicYear: s.academicYear,
+            semester: s.semester,
+          }));
+
+        try {
+          const indRes = await fetch("/api/projects/confirm-individual", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              projectId: result.project.id,
+              assignedStudents: selectedStudentRecords,
+            }),
+          });
+          const indData = await indRes.json();
+          if (indData.success && indData.createdAssignments && setProjectStudentAssignments) {
+            setProjectStudentAssignments(result.project.id, indData.createdAssignments);
+          }
+        } catch (e) {
+          console.warn("Could not confirm individual assignments via API, using fallback store:", e);
+          const fallbackAssignments: ProjectStudentAssignment[] = selectedStudentRecords.map((s) => ({
+            id: `asgn-${result.project!.id}-${s.studentId}`,
+            projectId: result.project!.id,
+            studentId: s.studentId,
+            studentEmail: s.email,
+            studentName: s.fullName,
+            departmentId: s.departmentId,
+            academicYear: s.academicYear,
+            semester: s.semester,
+            workspaceId: `ws-ind-${result.project!.id}-${s.studentId}`,
+            repoStatus: "disconnected",
+            totalCommits: 0,
+            status: "active",
+            progress: 0,
+            proposalStatus: "not_submitted",
+            createdAt: new Date().toISOString().split("T")[0],
+          }));
+          if (setProjectStudentAssignments) {
+            setProjectStudentAssignments(result.project.id, fallbackAssignments);
+          }
+        }
       }
 
       setCreatedProject(result.project);
@@ -873,6 +932,20 @@ function CreateProjectContent() {
                   onAssignmentChange={(data) => {
                     setGroupAssignmentData(data);
                   }}
+                />
+              </div>
+            )}
+
+            {/* Individual Student Assignment Section */}
+            {watchedProjectType === "Individual Project" && (
+              <div className="pt-2">
+                <IndividualAssignmentSection
+                  academicYear={watchedAcademicYear}
+                  semester={watchedSemester}
+                  departmentId={watchedDepartmentId}
+                  courseCode={watchedCourseCode}
+                  selectedStudentIds={individualAssignedStudentIds}
+                  onChange={setIndividualAssignedStudentIds}
                 />
               </div>
             )}
@@ -1456,10 +1529,10 @@ function CreateProjectContent() {
                 Back to Projects
               </Link>
               <Link
-                href={`/dashboard/projects/${createdProject.id}`}
+                href={`/dashboard/projects/${createdProject.id}/workspace`}
                 className="flex-1 py-2.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-xs flex items-center justify-center gap-1.5"
               >
-                <span>Open Project</span>
+                <span>Open Workspace</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Department, Course, Lecturer, Student, ActivityLog, Project } from "@/types/admin";
-import { ProjectGroup, ProjectTimelineActivity, ProposalSubmission, LecturerFeedback, GitHubCommit, GitHubBranch } from "@/types/project";
+import { ProjectGroup, ProjectTimelineActivity, ProposalSubmission, LecturerFeedback, GitHubCommit, GitHubBranch, ProjectStudentAssignment } from "@/types/project";
 import { EvaluationRubric, ProjectEvaluation, DEFAULT_ACADEMIC_RUBRIC_CRITERIA } from "@/types/evaluation";
 import {
   ERDiagramSubmission,
@@ -73,6 +73,12 @@ interface AdminDataContextType {
   addGroup: (data: Omit<ProjectGroup, "id" | "createdAt">) => { success: boolean; group?: ProjectGroup };
   setProjectGroups: (projectId: string, newGroups: ProjectGroup[]) => void;
   updateGroup: (id: string, updates: Partial<ProjectGroup>) => { success: boolean };
+
+  // Individual Student Personal Workspaces
+  studentAssignments: ProjectStudentAssignment[];
+  setProjectStudentAssignments: (projectId: string, assignments: ProjectStudentAssignment[]) => void;
+  getStudentAssignment: (projectId: string, studentEmail?: string) => ProjectStudentAssignment | undefined;
+  getAssignmentsForProject: (projectId: string) => ProjectStudentAssignment[];
   connectRepoToGroup: (groupId: string, repoUrl: string) => Promise<{ success: boolean; error?: string }>;
   syncGroupRepo: (groupId: string) => Promise<{ success: boolean; error?: string }>;
   submitProposal: (
@@ -1446,6 +1452,16 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return initialGroups;
   });
 
+  const [studentAssignments, setStudentAssignments] = useState<ProjectStudentAssignment[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem("unicodetrack_student_assignments_v1");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [timelineActivities, setTimelineActivities] = useState<ProjectTimelineActivity[]>(() => {
     if (typeof window === "undefined") return initialTimelineActivities;
     try {
@@ -2172,6 +2188,56 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     showToast(`${newGroups.length} group workspaces confirmed and initialized!`, "success");
   };
 
+  const setProjectStudentAssignments = (projectId: string, newAssignments: ProjectStudentAssignment[]) => {
+    const otherAssignments = studentAssignments.filter((a) => a.projectId !== projectId);
+    const updated = [...otherAssignments, ...newAssignments];
+    setStudentAssignments(updated);
+    try {
+      localStorage.setItem("unicodetrack_student_assignments_v1", JSON.stringify(updated));
+    } catch {}
+
+    // Mirror to personal ProjectGroup workspaces (1 student per group)
+    const personalGroups: ProjectGroup[] = newAssignments.map((a, idx) => ({
+      id: `grp-ind-${projectId}-${a.studentId}`,
+      projectId,
+      groupNumber: idx + 1,
+      groupName: `${a.studentName} Personal Workspace`,
+      workspaceId: a.workspaceId,
+      members: [
+        {
+          studentId: a.studentId,
+          fullName: a.studentName,
+          email: a.studentEmail,
+          department: a.departmentId || "Faculty of Computing",
+          academicYear: a.academicYear || 4,
+          semester: a.semester || 1,
+          role: "Team Lead",
+          commitsCount: a.totalCommits || 0,
+        },
+      ],
+      repoStatus: a.repoStatus,
+      totalCommits: a.totalCommits,
+      status: a.status,
+      progress: a.progress,
+      proposalStatus: a.proposalStatus,
+      createdAt: a.createdAt,
+    }));
+
+    setProjectGroups(projectId, personalGroups);
+    showToast(`${newAssignments.length} personal student workspaces initialized!`, "success");
+  };
+
+  const getStudentAssignment = (projectId: string, studentEmail?: string): ProjectStudentAssignment | undefined => {
+    const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
+    return studentAssignments.find(
+      (a) => a.projectId === projectId && a.studentEmail.toLowerCase() === email
+    );
+  };
+
+  const getAssignmentsForProject = (projectId: string): ProjectStudentAssignment[] => {
+    return studentAssignments.filter((a) => a.projectId === projectId);
+  };
+
   const updateGroup = (id: string, updates: Partial<ProjectGroup>) => {
     const grp = groups.find((g) => g.id === id);
     if (!grp) return { success: false };
@@ -2734,6 +2800,10 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         addGroup,
         setProjectGroups,
         updateGroup,
+        studentAssignments,
+        setProjectStudentAssignments,
+        getStudentAssignment,
+        getAssignmentsForProject,
         connectRepoToGroup,
         syncGroupRepo,
         submitProposal,

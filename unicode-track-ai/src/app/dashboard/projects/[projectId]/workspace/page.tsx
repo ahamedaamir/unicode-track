@@ -63,6 +63,7 @@ function GroupWorkspaceContent() {
   const project = projects.find((p) => p.id === projectId);
   const course = project ? courses.find((c) => c.code === project.courseCode) : null;
   const lecturer = project ? lecturers.find((l) => l.id === project.lecturerId || l.name === project.lecturerName) : null;
+  const isIndividual = project?.projectType === "individual" || project?.type === "Individual Project";
 
   // All groups for this project
   const projectGroups = groups.filter((g) => g.projectId === projectId);
@@ -329,7 +330,7 @@ function GroupWorkspaceContent() {
 
       {/* Hero Workspace Header Card */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
-        {/* Supervisor Group Switcher (Lecturer & Admin) */}
+        {/* Supervisor Switcher (Lecturer & Admin) */}
         {activeRole !== "student" && projectGroups.length > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-slate-900 text-white rounded-xl border border-slate-800 shadow-xs">
             <div className="flex items-center gap-2.5">
@@ -337,9 +338,13 @@ function GroupWorkspaceContent() {
                 <Layers className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-white block">Supervisor Workspace Switcher</span>
+                <span className="text-xs font-bold text-white block">
+                  {isIndividual ? "Supervisor Student Switcher" : "Supervisor Workspace Switcher"}
+                </span>
                 <span className="text-[11px] text-slate-400">
-                  Select group to supervise and evaluate ({projectGroups.length} total groups)
+                  {isIndividual
+                    ? `Select student to evaluate (${projectGroups.length} assigned students)`
+                    : `Select group to supervise and evaluate (${projectGroups.length} total groups)`}
                 </span>
               </div>
             </div>
@@ -351,7 +356,9 @@ function GroupWorkspaceContent() {
               >
                 {projectGroups.map((g) => (
                   <option key={g.id} value={g.id}>
-                    {g.groupName} ({g.members.length} members) • {g.workspaceId}
+                    {isIndividual && g.members[0]
+                      ? `${g.members[0].fullName} (${g.members[0].studentId}) • ${g.workspaceId}`
+                      : `${g.groupName} (${g.members.length} members) • ${g.workspaceId}`}
                   </option>
                 ))}
               </select>
@@ -365,7 +372,9 @@ function GroupWorkspaceContent() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#0B1220] text-white">
                 <Users className="w-3.5 h-3.5 text-teal-400" />
-                {group?.groupName || "Academic Group Workspace"}
+                {isIndividual
+                  ? (group.members[0]?.fullName ? `${group.members[0].fullName}'s Personal Workspace` : "Personal Project Workspace")
+                  : (group?.groupName || "Academic Group Workspace")}
               </span>
 
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -411,11 +420,20 @@ function GroupWorkspaceContent() {
               {project.description}
             </p>
 
-            {/* Shared Workspace Indicator Notice */}
+            {/* Workspace Access Notice */}
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex items-start gap-2.5">
               <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
               <p className="leading-relaxed">
-                <strong>Shared Group Workspace:</strong> All {group?.members.length || 4} assigned students collaborate in this single shared environment. Repository commits, proposal revisions, and faculty evaluations are synchronized live for the team.
+                {isIndividual ? (
+                  <>
+                    <strong>Personal Workspace Isolation:</strong> This workspace is dedicated exclusively to{" "}
+                    <strong>{group.members[0]?.fullName || "the assigned student"}</strong> (<code>{group.workspaceId}</code>). Students cannot view or access other students&apos; personal workspaces. Faculty supervisors evaluate each student independently.
+                  </>
+                ) : (
+                  <>
+                    <strong>Shared Group Workspace:</strong> All {group?.members.length || 4} assigned students collaborate in this single shared environment. Repository commits, proposal revisions, and faculty evaluations are synchronized live for the team.
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -473,8 +491,8 @@ function GroupWorkspaceContent() {
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            Group Members ({group?.members.length || 0})
+            <User className="w-3.5 h-3.5" />
+            {isIndividual ? "Student Information" : `Group Members (${group?.members.length || 0})`}
           </button>
 
           <button
@@ -720,21 +738,23 @@ function GroupWorkspaceContent() {
       )}
 
       {/* ============================================================== */}
-      {/* TAB B: GROUP MEMBERS                                           */}
+      {/* TAB B: STUDENT INFORMATION / GROUP MEMBERS                     */}
       {/* ============================================================== */}
       {activeTab === "members" && (
         <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
             <div>
               <h3 className="text-base font-bold text-slate-900">
-                Assigned Team Members ({group?.members.length || 0})
+                {isIndividual ? "Assigned Student Profile" : `Assigned Team Members (${group?.members.length || 0})`}
               </h3>
               <p className="text-xs text-slate-500">
-                Official students enrolled in {group?.groupName}. All members access this single shared workspace.
+                {isIndividual
+                  ? "Assigned student for this personal workspace. Repository telemetry, proposals, and grades are linked directly to this student."
+                  : `Official students enrolled in ${group?.groupName}. All members access this single shared workspace.`}
               </p>
             </div>
             <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
-              Assigned by Faculty Supervisor
+              {isIndividual ? "Individual Personal Assignment" : "Assigned by Faculty Supervisor"}
             </span>
           </div>
 
