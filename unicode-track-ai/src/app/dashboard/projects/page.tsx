@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Project } from "@/types/admin";
 import { SAMPLE_C_PROJECT_FILES } from "@/services/github/repositories";
@@ -11,7 +11,6 @@ const BATCHES = ["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"] as cons
 
 function LecturerProjectsContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const {
     projects: contextProjects,
