@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   UploadCloud,
   FileText,
@@ -17,9 +17,19 @@ import {
   ShieldCheck,
   Eye,
   Lock,
+  RotateCcw,
+  AlertTriangle,
+  ArrowRight,
+  UserCheck,
+  UserX,
+  FileCode2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { useAdminData } from "@/context/AdminDataContext";
+import { ExtractionResult, ProcessedGroup } from "@/services/ai/extract-groups";
 
 export interface GroupAssignmentData {
   sourceType: "pdf" | "text" | "none";
@@ -39,6 +49,7 @@ interface GroupAssignmentSectionProps {
   initialText?: string;
   initialStatus?: "pending" | "processing" | "completed" | "error" | "not_uploaded";
   onAssignmentChange?: (data: GroupAssignmentData) => void;
+  onExtractedGroupsChange?: (data: ExtractionResult) => void;
   className?: string;
 }
 
@@ -51,8 +62,11 @@ export function GroupAssignmentSection({
   initialText = "",
   initialStatus = "not_uploaded",
   onAssignmentChange,
+  onExtractedGroupsChange,
   className = "",
 }: GroupAssignmentSectionProps) {
+  const { students } = useAdminData();
+
   // Input method: Option 1 (PDF) vs Option 2 (Text)
   const [activeMethod, setActiveMethod] = useState<"pdf" | "text">(
     initialSourceType === "text" ? "text" : "pdf"
@@ -78,6 +92,14 @@ export function GroupAssignmentSection({
   const [processingStatus, setProcessingStatus] = useState<
     "pending" | "processing" | "completed" | "error" | "not_uploaded"
   >(initialStatus);
+
+  // Gemini AI Extraction State
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionStep, setExtractionStep] = useState("");
+  const [extractionError, setExtractionError] = useState("");
+  const [isOcrRequired, setIsOcrRequired] = useState(false);
+  const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null);
+  const [expandedGroupIdx, setExpandedGroupIdx] = useState<number | null>(null);
 
   // Sync to parent when values change
   const notifyChange = (newData: Partial<GroupAssignmentData>) => {
@@ -111,6 +133,9 @@ export function GroupAssignmentSection({
   // ---------------------------------------------------------------------------
   const handleFileSelect = async (file: File) => {
     setFileError("");
+    setExtractionError("");
+    setIsOcrRequired(false);
+    setExtractionResult(null);
 
     // 1. Accept PDF files only
     const isPdf =
@@ -169,26 +194,15 @@ export function GroupAssignmentSection({
       } else {
         setFileError(data.error || "Failed to upload PDF. Please try again.");
       }
-    } catch {
-      // Offline fallback: store file reference locally
-      setUploadedFileName(file.name);
-      setUploadedFileSize(formattedSize);
-      setUploadedFilePath(`local-temp/${file.name}`);
-      setProcessingStatus("pending");
-
-      notifyChange({
-        sourceType: "pdf",
-        fileName: file.name,
-        fileSize: formattedSize,
-        status: "pending",
-      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Network error during upload";
+      setFileError(msg);
     } finally {
       setIsUploading(false);
-      setTimeout(() => setUploadProgress(0), 1000);
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileSelect(e.dataTransfer.files[0]);
@@ -196,24 +210,28 @@ export function GroupAssignmentSection({
   };
 
   const handleRemoveFile = async () => {
-    if (uploadedFilePath && projectId) {
-      try {
-        await fetch(
-          `/api/projects/upload-assignment?filePath=${encodeURIComponent(
-            uploadedFilePath
-          )}&projectId=${encodeURIComponent(projectId)}`,
-          { method: "DELETE" }
-        );
-      } catch {
-        // Continue clearing state
-      }
+    if (!uploadedFilePath && !uploadedFileName) return;
+
+    try {
+      await fetch(
+        `/api/projects/upload-assignment?filePath=${encodeURIComponent(uploadedFilePath)}&projectId=${projectId || ""}`,
+        { method: "DELETE" }
+      );
+    } catch {
+      // Proceed with local reset
     }
 
     setPdfFile(null);
     setUploadedFilePath("");
     setUploadedFileName("");
     setUploadedFileSize("");
+    setUploadProgress(0);
+    setFileError("");
+    setExtractionError("");
+    setIsOcrRequired(false);
+    setExtractionResult(null);
     setProcessingStatus("not_uploaded");
+
     if (fileInputRef.current) fileInputRef.current.value = "";
 
     notifyChange({
@@ -226,18 +244,19 @@ export function GroupAssignmentSection({
   };
 
   // ---------------------------------------------------------------------------
-  // OPTION 2: Text Input Handlers
+  // OPTION 2: Text Handlers
   // ---------------------------------------------------------------------------
   const handleSaveText = async () => {
     setTextError("");
     setTextSuccess(false);
 
     if (!assignmentText.trim()) {
-      setTextError("Please paste group assignment text before saving.");
+      setTextError("Please enter or paste group allocation text before saving.");
       return;
     }
 
     setIsSavingText(true);
+
     try {
       if (projectId) {
         const res = await fetch("/api/projects/upload-assignment", {
@@ -275,6 +294,9 @@ export function GroupAssignmentSection({
   // Switch between input methods explicitly
   const handleSwitchMethod = (method: "pdf" | "text") => {
     setActiveMethod(method);
+    setExtractionError("");
+    setIsOcrRequired(false);
+
     if (method === "pdf") {
       notifyChange({
         sourceType: uploadedFileName ? "pdf" : "none",
@@ -302,13 +324,109 @@ export function GroupAssignmentSection({
 
   // Load standard template example
   const handleLoadExampleFormat = () => {
-    const example = `Group 1\nIT230001 - Student One (one@university.edu)\nIT230002 - Student Two (two@university.edu)\nIT230003 - Student Three (three@university.edu)\n\nGroup 2\nIT230004 - Student Four (four@university.edu)\nIT230005 - Student Five (five@university.edu)\nIT230006 - Student Six (six@university.edu)`;
+    const example = `Group 1\nIT230001 - Student One (alex.chen@university.edu)\nIT230002 - Student Two (sarah.lin@university.edu)\nIT230003 - Student Three (marcus.doe@university.edu)\n\nGroup 2\nIT230004 - Student Four (priya.patel@university.edu)\nIT230005 - Student Five (liam.davis@university.edu)\nIT230006 - Student Six (maya.wang@university.edu)`;
     setAssignmentText(example);
     notifyChange({
       sourceType: "text",
       text: example,
       status: "pending",
     });
+  };
+
+  // ---------------------------------------------------------------------------
+  // GEMINI AI EXTRACTION HANDLER
+  // ---------------------------------------------------------------------------
+  const handleExtractGroups = async () => {
+    setIsExtracting(true);
+    setExtractionError("");
+    setIsOcrRequired(false);
+    setExtractionStep("Preparing document for AI analysis...");
+
+    try {
+      let res: Response;
+
+      if (activeMethod === "pdf") {
+        if (!pdfFile && !uploadedFilePath) {
+          throw new Error("Please upload a PDF file first before extracting groups.");
+        }
+
+        setExtractionStep("Extracting text layers from PDF document...");
+
+        if (pdfFile) {
+          // Direct file upload to extractor
+          const formData = new FormData();
+          formData.append("file", pdfFile);
+          if (students && students.length > 0) {
+            formData.append("registeredStudents", JSON.stringify(students));
+          }
+
+          setExtractionStep("Analyzing document text with Google Gemini 2.5 Flash...");
+          res = await fetch("/api/ai/extract-groups", {
+            method: "POST",
+            body: formData,
+          });
+        } else {
+          // Send stored filePath
+          setExtractionStep("Downloading stored PDF from storage & analyzing with Gemini AI...");
+          res = await fetch("/api/ai/extract-groups", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              filePath: uploadedFilePath,
+              registeredStudents: students,
+            }),
+          });
+        }
+      } else {
+        // Text mode
+        if (!assignmentText.trim()) {
+          throw new Error("Please enter or paste group assignment text first.");
+        }
+
+        setExtractionStep("Analyzing group roster with Google Gemini 2.5 Flash...");
+        res = await fetch("/api/ai/extract-groups", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: assignmentText.trim(),
+            registeredStudents: students,
+          }),
+        });
+      }
+
+      setExtractionStep("Validating structured JSON schema with Zod & matching against university database...");
+      const data = await res.json();
+
+      if (!data.success) {
+        if (data.ocrRequired) {
+          setIsOcrRequired(true);
+          setExtractionError(data.error);
+          return;
+        }
+        throw new Error(data.error || "Failed to extract student groups.");
+      }
+
+      setExtractionResult(data.data);
+      setProcessingStatus("completed");
+
+      if (onExtractedGroupsChange) {
+        onExtractedGroupsChange(data.data);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An error occurred during AI extraction.";
+      setExtractionError(msg);
+      setProcessingStatus("error");
+    } finally {
+      setIsExtracting(false);
+      setExtractionStep("");
+    }
+  };
+
+  const handleClearExtraction = () => {
+    setExtractionResult(null);
+    setExtractionError("");
+    setIsOcrRequired(false);
+    setProcessingStatus("pending");
   };
 
   return (
@@ -338,15 +456,25 @@ export function GroupAssignmentSection({
 
         {/* Status Pill */}
         <div className="flex items-center gap-2">
-          {processingStatus === "pending" ? (
+          {isExtracting ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">
+              <RefreshCw className="w-3.5 h-3.5 text-teal-600 animate-spin" />
+              Gemini AI Extracting...
+            </span>
+          ) : extractionResult ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              Extracted: {extractionResult.totalGroups} Groups & {extractionResult.totalMembers} Students
+            </span>
+          ) : processingStatus === "pending" ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200">
               <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
-              Source Saved: Pending Processing
+              Source Ready for AI Extraction
             </span>
-          ) : processingStatus === "completed" ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              Groups Processed
+          ) : processingStatus === "error" ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+              <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+              Extraction Error
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
@@ -512,26 +640,42 @@ export function GroupAssignmentSection({
                 </div>
               </div>
 
-              {/* Action Buttons: Replace or Remove */}
-              <div className="flex items-center gap-2 shrink-0">
+              {/* Action Buttons: Extract with Gemini, Replace, Remove */}
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleExtractGroups}
+                  disabled={isExtracting || isUploading}
+                  icon={
+                    isExtracting ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )
+                  }
+                >
+                  {isExtracting ? "Extracting..." : "Extract Groups with Gemini"}
+                </Button>
+
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  disabled={isUploading || isExtracting}
+                  className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-medium transition-colors"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Replace PDF</span>
+                  Replace
                 </button>
 
                 <button
                   type="button"
                   onClick={handleRemoveFile}
-                  disabled={isUploading}
-                  className="px-3 py-1.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  disabled={isUploading || isExtracting}
+                  className="p-1.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl transition-colors"
+                  title="Remove uploaded document"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Remove</span>
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -539,12 +683,15 @@ export function GroupAssignmentSection({
 
           {/* Upload Progress Bar */}
           {isUploading && (
-            <div className="space-y-1.5 animate-in fade-in-50">
-              <div className="flex justify-between text-xs font-semibold text-teal-800">
-                <span>Uploading PDF to private storage...</span>
-                <span>{uploadProgress}%</span>
+            <div className="space-y-1.5 p-4 rounded-2xl bg-teal-50/50 border border-teal-100 animate-in fade-in-50">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold text-teal-900 flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-600" />
+                  Uploading PDF to private bucket...
+                </span>
+                <span className="font-mono text-teal-700 font-semibold">{uploadProgress}%</span>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-teal-100 h-2 rounded-full overflow-hidden">
                 <div
                   className="bg-teal-600 h-full rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
@@ -588,6 +735,7 @@ export function GroupAssignmentSection({
                   type="button"
                   onClick={() => {
                     setAssignmentText("");
+                    setExtractionResult(null);
                     notifyChange({ sourceType: "none", text: undefined });
                   }}
                   className="text-slate-400 hover:text-rose-600 text-[11px] font-medium"
@@ -598,11 +746,11 @@ export function GroupAssignmentSection({
             </div>
           </div>
 
-          {/* Large Textarea */}
+          {/* Large Monospace Textarea */}
           <div className="relative">
             <textarea
               rows={8}
-              placeholder={`Group 1\nIT230001 - Student One\nIT230002 - Student Two\nIT230003 - Student Three\n\nGroup 2\nIT230004 - Student Four\nIT230005 - Student Five`}
+              placeholder={`Group 1\nIT230001 - Student One (alex.chen@university.edu)\nIT230002 - Student Two (sarah.lin@university.edu)\nIT230003 - Student Three (marcus.doe@university.edu)\n\nGroup 2\nIT230004 - Student Four (priya.patel@university.edu)\nIT230005 - Student Five (liam.davis@university.edu)`}
               value={assignmentText}
               onChange={(e) => {
                 setAssignmentText(e.target.value);
@@ -616,7 +764,7 @@ export function GroupAssignmentSection({
             />
           </div>
 
-          {/* Format Helper & Counter Bar */}
+          {/* Format Helper, Counter & Action Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-1">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-[11px]">
@@ -625,35 +773,44 @@ export function GroupAssignmentSection({
               <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-[11px]">
                 {detected.studentCount} Students Detected
               </span>
+              <span className="text-[11px] text-slate-400 font-mono">
+                {assignmentText.length} chars
+              </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] text-slate-400 font-mono">
-                {assignmentText.length} characters
-              </span>
-
+            <div className="flex flex-wrap items-center gap-2">
               {projectId && (
-                <Button
+                <button
                   type="button"
-                  variant="primary"
-                  size="sm"
                   disabled={isSavingText || !assignmentText.trim()}
                   onClick={handleSaveText}
-                  icon={
-                    isSavingText ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Check className="w-3.5 h-3.5" />
-                    )
-                  }
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
                 >
-                  {isSavingText ? "Saving..." : "Save Assignment Text"}
-                </Button>
+                  {isSavingText ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <span>{isSavingText ? "Saving..." : "Save Text"}</span>
+                </button>
               )}
+
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={isExtracting || !assignmentText.trim()}
+                onClick={handleExtractGroups}
+                icon={
+                  isExtracting ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )
+                }
+              >
+                {isExtracting ? "Extracting..." : "Extract Groups with Gemini"}
+              </Button>
             </div>
           </div>
 
-          {/* Success message */}
+          {/* Text Success message */}
           {textSuccess && (
             <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 animate-in fade-in-50">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -661,7 +818,7 @@ export function GroupAssignmentSection({
             </div>
           )}
 
-          {/* Error message */}
+          {/* Text Error message */}
           {textError && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2 animate-in fade-in-50">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -671,11 +828,302 @@ export function GroupAssignmentSection({
         </div>
       )}
 
-      {/* Security & Access Notice */}
+      {/* ======================================================================= */}
+      {/* EXTRACTION LOADING STATE                                                */}
+      {/* ======================================================================= */}
+      {isExtracting && (
+        <div className="p-6 rounded-2xl bg-teal-50/60 border border-teal-200 shadow-2xs space-y-3 animate-in fade-in-50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <RefreshCw className="w-5 h-5 animate-spin" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <span>Gemini AI Group Extraction in Progress</span>
+                <span className="text-[10px] font-mono bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
+                  gemini-2.5-flash
+                </span>
+              </h4>
+              <p className="text-xs text-slate-600 mt-0.5">{extractionStep}</p>
+            </div>
+          </div>
+
+          <div className="w-full bg-teal-100 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-teal-600 h-full rounded-full animate-pulse w-3/4" />
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* OCR REQUIRED WARNING BANNER (When PDF has no text layer)                */}
+      {/* ======================================================================= */}
+      {isOcrRequired && (
+        <div className="p-5 rounded-2xl bg-amber-50 border border-amber-300 shadow-2xs space-y-3 animate-in fade-in-50">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-bold text-sm text-amber-900">
+                OCR Required: Scanned Image PDF Detected
+              </h4>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                The uploaded PDF contains scanned pages or non-selectable raster images with no embedded text layer.
+                UniCodeTrack AI enforces strict academic integrity and will not silently guess student allocations.
+                Optical Character Recognition (OCR) is required to process scanned documents.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-amber-200/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <span className="text-amber-800 font-medium">
+              Recommended Alternative: Paste the group assignment roster directly into text input.
+            </span>
+
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => handleSwitchMethod("text")}
+              icon={<Type className="w-3.5 h-3.5" />}
+            >
+              Switch to Paste Text
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* EXTRACTION GENERAL ERROR & RETRY OPTION                                 */}
+      {/* ======================================================================= */}
+      {extractionError && !isOcrRequired && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50">
+          <div className="flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-bold text-rose-900">AI Extraction Failed</p>
+              <p className="text-rose-700">{extractionError}</p>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleExtractGroups}
+            icon={<RotateCcw className="w-3.5 h-3.5" />}
+          >
+            Retry Extraction
+          </Button>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* EXTRACTION PREVIEW: STRUCTURED REVIEW FOR LECTURER                     */}
+      {/* ======================================================================= */}
+      {extractionResult && (
+        <div className="space-y-4 pt-2 border-t border-slate-200 animate-in fade-in-50">
+          {/* Header & Metrics Strip */}
+          <div className="p-5 rounded-2xl bg-[#0B1220] text-white shadow-md space-y-4 border border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h4 className="font-extrabold text-sm sm:text-base text-white tracking-tight">
+                    Gemini AI Extraction Preview
+                  </h4>
+                  <span className="text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/20">
+                    Zod Validated
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Review the extracted group roster and database match statuses below.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExtractGroups}
+                  disabled={isExtracting}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 border border-slate-700"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Re-extract</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearExtraction}
+                  className="px-3 py-1.5 bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-semibold transition-colors"
+                >
+                  Clear Preview
+                </button>
+              </div>
+            </div>
+
+            {/* Metrics Pills */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 border-t border-slate-800 text-xs">
+              <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Groups</span>
+                <span className="text-base font-bold text-white mt-0.5 block">{extractionResult.totalGroups} Teams</span>
+              </div>
+              <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Students</span>
+                <span className="text-base font-bold text-teal-400 mt-0.5 block">{extractionResult.totalMembers} Enrolled</span>
+              </div>
+              <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">DB Matched</span>
+                <span className="text-base font-bold text-emerald-400 mt-0.5 block">{extractionResult.matchedCount} Verified</span>
+              </div>
+              <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unresolved</span>
+                <span className="text-base font-bold text-amber-400 mt-0.5 block">{extractionResult.unresolvedCount} Pending</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Warnings Banner (If any) */}
+          {extractionResult.warnings && extractionResult.warnings.length > 0 && (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
+              <div className="flex items-center gap-2 font-bold text-amber-950">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Extraction & Database Matching Warnings ({extractionResult.warnings.length})</span>
+              </div>
+              <ul className="list-disc list-inside space-y-0.5 text-amber-800 pl-1 text-[11px]">
+                {extractionResult.warnings.map((w, idx) => (
+                  <li key={idx}>{w}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Group Roster Cards */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between">
+              <span>Extracted Groups Roster</span>
+              <span className="text-[11px] text-slate-500 font-normal">
+                Click any group to expand/collapse member details
+              </span>
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {extractionResult.groups.map((grp: ProcessedGroup, gIdx: number) => {
+                const isExpanded = expandedGroupIdx === null || expandedGroupIdx === gIdx;
+
+                return (
+                  <div
+                    key={grp.group_number || gIdx}
+                    className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-3 shadow-2xs"
+                  >
+                    {/* Group Header */}
+                    <div
+                      className="flex items-center justify-between cursor-pointer select-none"
+                      onClick={() => setExpandedGroupIdx(isExpanded && expandedGroupIdx === gIdx ? -1 : gIdx)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                          #{grp.group_number}
+                        </span>
+                        <div>
+                          <h5 className="font-bold text-xs sm:text-sm text-slate-900">
+                            {grp.group_name || `Group ${grp.group_number}`}
+                          </h5>
+                          <span className="text-[11px] text-slate-500">
+                            {grp.members.length} student members
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          {grp.members.filter((m) => m.matched).length} / {grp.members.length} matched
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-4 h-4 text-slate-400" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Member List */}
+                    {isExpanded && (
+                      <div className="pt-2 border-t border-slate-100 space-y-2 text-xs">
+                        {grp.members.map((member, mIdx) => (
+                          <div
+                            key={mIdx}
+                            className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                              member.matched
+                                ? "bg-slate-50/70 border-slate-200/80"
+                                : "bg-amber-50/50 border-amber-200/80"
+                            }`}
+                          >
+                            <div className="space-y-0.5 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-900 truncate">
+                                  {member.full_name}
+                                </span>
+                                {mIdx === 0 && (
+                                  <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-1.5 py-0.2 rounded border border-teal-200">
+                                    Lead
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-mono">
+                                <span>
+                                  ID: <strong className="text-slate-800">{member.student_id || "None"}</strong>
+                                </span>
+                                {member.email && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="truncate max-w-[180px]">{member.email}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Database Match Status Pill */}
+                            <div className="shrink-0 self-start sm:self-center">
+                              {member.matched ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <UserCheck className="w-3 h-3 text-emerald-600" />
+                                  <span>Matched ({member.matchType})</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                  <UserX className="w-3 h-3 text-amber-600" />
+                                  <span>Unmatched</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Institutional Integrity Notice */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              <strong>Architectural Notice:</strong> Gemini AI operates in read-only analysis mode and has not created or modified database groups.
+              Review the extracted student allocations above. Group records and isolated workspaces will only be instantiated upon your final project confirmation.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Security & Access Policy Footer */}
       <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-slate-600">
-        <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+        <Lock className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
         <p>
-          <strong>Security Policy:</strong> Uploaded assignment files are stored in a private Supabase Storage bucket with strict Row Level Security. Only course lecturers can access student allocations. File parsing with Gemini will take place in the next step.
+          <strong>Security Policy:</strong> Uploaded assignment files are stored in a private Supabase Storage bucket with strict Row Level Security. Only course lecturers can access student allocations.
         </p>
       </div>
     </div>
