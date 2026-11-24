@@ -35,8 +35,44 @@ export async function POST(req: NextRequest) {
         const supabase = createClient();
 
         // 1. Upsert project in Supabase
-        const { error: projectError } = await supabase.from("projects").upsert(
-          {
+        const fullPayload: Record<string, unknown> = {
+          id: projectId,
+          title: projectWithId.title,
+          description: projectWithId.description || "",
+          type: projectWithId.type || "Group Project",
+          project_type: projectWithId.type === "Individual Project" ? "individual" : "group",
+          department_id: projectWithId.departmentId,
+          course_code: projectWithId.courseCode,
+          course_id: projectWithId.courseId || projectWithId.courseCode,
+          academic_year: projectWithId.academicYear,
+          semester: projectWithId.semester,
+          deadline: projectWithId.deadline ? new Date(projectWithId.deadline).toISOString() : null,
+          requirements: projectWithId.requirements || projectWithId.requirementsContent || null,
+          instructions: projectWithId.instructions || null,
+          er_diagram_required: projectWithId.erDiagramRequired ?? true,
+          er_diagram_deadline: projectWithId.erDiagramDeadline ? new Date(projectWithId.erDiagramDeadline).toISOString() : null,
+          database_required: projectWithId.databaseRequired ?? true,
+          database_requirements: projectWithId.databaseRequirements || null,
+          github_required: projectWithId.githubRequired ?? true,
+          final_report_required: projectWithId.finalReportRequired ?? true,
+          additional_requirements: projectWithId.additionalRequirements || null,
+          requirements_source: projectWithId.requirementsSource || "manual",
+          requirements_content: projectWithId.requirementsContent || projectWithId.requirements || null,
+          requirements_pdf_name: projectWithId.requirementsPdfName || null,
+          requirements_pdf_size: projectWithId.requirementsPdfSize || null,
+          status: projectWithId.status || "Draft",
+          lecturer_id: projectWithId.lecturerId || null,
+          lecturer_name: projectWithId.lecturerName || null,
+          database_design_config: projectWithId.databaseDesignConfig || null,
+          updated_at: new Date().toISOString(),
+        };
+
+        let { error: projectError } = await supabase.from("projects").upsert(fullPayload, { onConflict: "id" });
+
+        // Safe fallback if some new columns are not yet executed in database
+        if (projectError && (projectError.message?.includes("column") || projectError.message?.includes("does not exist"))) {
+          console.warn("Supabase schema columns pending migration, falling back to core project payload:", projectError.message);
+          const corePayload = {
             id: projectId,
             title: projectWithId.title,
             description: projectWithId.description || "",
@@ -46,8 +82,8 @@ export async function POST(req: NextRequest) {
             academic_year: projectWithId.academicYear,
             semester: projectWithId.semester,
             deadline: projectWithId.deadline ? new Date(projectWithId.deadline).toISOString() : null,
-            requirements_source: projectWithId.requirementsSource || "ai",
-            requirements_content: projectWithId.requirementsContent || null,
+            requirements_source: projectWithId.requirementsSource || "manual",
+            requirements_content: projectWithId.requirementsContent || projectWithId.requirements || null,
             requirements_pdf_name: projectWithId.requirementsPdfName || null,
             requirements_pdf_size: projectWithId.requirementsPdfSize || null,
             status: projectWithId.status || "Draft",
@@ -55,9 +91,10 @@ export async function POST(req: NextRequest) {
             lecturer_name: projectWithId.lecturerName || null,
             database_design_config: projectWithId.databaseDesignConfig || null,
             updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
+          };
+          const fallbackRes = await supabase.from("projects").upsert(corePayload, { onConflict: "id" });
+          projectError = fallbackRes.error;
+        }
 
         if (projectError) {
           console.warn("Supabase project insert warning:", projectError);
@@ -155,14 +192,25 @@ export async function GET(req: NextRequest) {
           id: p.id,
           title: p.title,
           description: p.description,
-          type: p.type,
+          type: p.type || (p.project_type === "individual" ? "Individual Project" : "Group Project"),
+          projectType: p.project_type || (p.type === "Individual Project" ? "individual" : "group"),
           departmentId: p.department_id,
           courseCode: p.course_code,
+          courseId: p.course_id || p.course_code,
           academicYear: p.academic_year,
           semester: p.semester,
           deadline: p.deadline,
-          requirementsSource: p.requirements_source,
-          requirementsContent: p.requirements_content,
+          instructions: p.instructions,
+          requirements: p.requirements || p.requirements_content,
+          erDiagramRequired: p.er_diagram_required ?? true,
+          erDiagramDeadline: p.er_diagram_deadline,
+          databaseRequired: p.database_required ?? true,
+          databaseRequirements: p.database_requirements,
+          githubRequired: p.github_required ?? true,
+          finalReportRequired: p.final_report_required ?? true,
+          additionalRequirements: p.additional_requirements,
+          requirementsSource: p.requirements_source || "manual",
+          requirementsContent: p.requirements_content || p.requirements,
           requirementsPdfName: p.requirements_pdf_name,
           requirementsPdfSize: p.requirements_pdf_size,
           status: p.status,
