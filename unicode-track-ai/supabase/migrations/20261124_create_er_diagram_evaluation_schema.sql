@@ -135,3 +135,4 @@ CREATE POLICY "Students can view permitted ER analysis"
             SELECT group_id::text FROM group_members WHERE student_id = auth.uid()
         )
     );
+
