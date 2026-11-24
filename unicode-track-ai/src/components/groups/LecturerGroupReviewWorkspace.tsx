@@ -61,7 +61,7 @@ export function LecturerGroupReviewWorkspace({
   onCancel,
   className = "",
 }: LecturerGroupReviewWorkspaceProps) {
-  const { students, addGroup } = useAdminData();
+  const { students, addGroup, setProjectGroups } = useAdminData();
 
   // Review editable state
   const [groups, setGroups] = useState<ProcessedGroup[]>(initialGroups);
@@ -348,22 +348,26 @@ export function LecturerGroupReviewWorkspace({
         throw new Error(data.error || "Failed to confirm group assignments on the server.");
       }
 
-      // 2. Synchronize created groups into local AdminDataContext store
+      // 2. Synchronize created groups into local AdminDataContext store (atomic idempotent replacement)
       const confirmedGroups: ProjectGroup[] = data.createdGroups || [];
-      confirmedGroups.forEach((grp) => {
-        addGroup({
-          projectId: grp.projectId,
-          groupNumber: grp.groupNumber,
-          groupName: grp.groupName,
-          members: grp.members,
-          workspaceId: grp.workspaceId,
-          repoStatus: "disconnected",
-          totalCommits: 0,
-          status: "active",
-          progress: 0,
-          proposalStatus: "not_submitted",
+      if (setProjectGroups) {
+        setProjectGroups(projectId, confirmedGroups);
+      } else {
+        confirmedGroups.forEach((grp) => {
+          addGroup({
+            projectId: grp.projectId,
+            groupNumber: grp.groupNumber,
+            groupName: grp.groupName,
+            members: grp.members,
+            workspaceId: grp.workspaceId,
+            repoStatus: "disconnected",
+            totalCommits: 0,
+            status: "active",
+            progress: 0,
+            proposalStatus: "not_submitted",
+          });
         });
-      });
+      }
 
       setConfirmedSuccessGroups(confirmedGroups);
 

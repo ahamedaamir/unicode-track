@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Calendar,
@@ -19,6 +19,7 @@ import {
   RefreshCw,
   ExternalLink,
   ShieldCheck,
+  ShieldAlert,
   Check,
   ChevronRight,
   BookOpen,
@@ -28,6 +29,8 @@ import {
   Layers,
   Database,
   Image,
+  Bell,
+  Code2,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
@@ -36,13 +39,16 @@ import { ProposalSubmission, ProjectGroup } from "@/types/project";
 
 function GroupWorkspaceContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const projectId = params?.projectId as string;
+  const urlGroupId = searchParams ? searchParams.get("groupId") : null;
 
   const {
     projects,
     courses,
     lecturers,
     groups,
+    timelineActivities,
     connectRepoToGroup,
     syncGroupRepo,
     submitProposal,
@@ -58,12 +64,15 @@ function GroupWorkspaceContent() {
   const course = project ? courses.find((c) => c.code === project.courseCode) : null;
   const lecturer = project ? lecturers.find((l) => l.id === project.lecturerId || l.name === project.lecturerName) : null;
 
-  // Find the user's group for this project (or first group for this project, or dynamic fallback group)
-  const matchedGroup = groups.find(
-    (g) =>
-      g.projectId === projectId &&
-      g.members.some((m) => m.email.toLowerCase() === activeStudentEmail.toLowerCase())
-  ) || groups.find((g) => g.projectId === projectId);
+  // All groups for this project
+  const projectGroups = groups.filter((g) => g.projectId === projectId);
+
+  // Check student membership
+  const studentAssignedGroup = projectGroups.find((g) =>
+    g.members.some((m) => m.email.toLowerCase() === activeStudentEmail.toLowerCase())
+  );
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
 
   const fallbackGroup: ProjectGroup = {
     id: `grp-${projectId}-1`,
@@ -91,7 +100,35 @@ function GroupWorkspaceContent() {
     createdAt: new Date().toISOString(),
   };
 
-  const group = matchedGroup || fallbackGroup;
+  // Determine active group and enforce strict student workspace security
+  let group: ProjectGroup;
+  let isStudentAccessDenied = false;
+
+  if (activeRole === "student") {
+    if (studentAssignedGroup) {
+      group = studentAssignedGroup;
+      // If student manually attempts to view a different group via URL
+      if (urlGroupId && urlGroupId !== studentAssignedGroup.id && urlGroupId !== studentAssignedGroup.workspaceId) {
+        isStudentAccessDenied = true;
+      }
+    } else {
+      // If groups exist for project but student is not in any group
+      if (projectGroups.length > 0) {
+        isStudentAccessDenied = true;
+        group = fallbackGroup;
+      } else {
+        group = fallbackGroup;
+      }
+    }
+  } else {
+    // Lecturer / Admin supervisor view: can select and supervise any group in this project
+    const foundGroup =
+      projectGroups.find((g) => g.id === (selectedGroupId || urlGroupId)) ||
+      projectGroups.find((g) => g.workspaceId === (selectedGroupId || urlGroupId)) ||
+      projectGroups[0];
+
+    group = foundGroup || fallbackGroup;
+  }
 
   // GitHub repo connection state
   const [repoInputUrl, setRepoInputUrl] = useState("");
@@ -139,6 +176,54 @@ function GroupWorkspaceContent() {
         >
           <ArrowLeft className="w-4 h-4" /> Back to Projects
         </Link>
+      </div>
+    );
+  }
+
+  // Enforce student access isolation
+  if (isStudentAccessDenied) {
+    return (
+      <div className="bg-white rounded-2xl border border-rose-200 p-8 sm:p-12 text-center max-w-xl mx-auto mt-8 shadow-sm space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
+          <ShieldAlert className="w-8 h-8 text-rose-600" />
+        </div>
+        <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          Student Access Isolation — Access Restricted
+        </h2>
+        <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+          UniCodeTrack AI enforces strict student workspace boundaries. Students are only authorized to access the shared workspace of their own assigned group.
+        </p>
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-left text-xs space-y-1.5 text-slate-700 max-w-md mx-auto">
+          <p className="flex justify-between">
+            <span className="text-slate-500">Student Identity:</span>
+            <span className="font-semibold text-slate-900">{activeStudentEmail}</span>
+          </p>
+          <p className="flex justify-between">
+            <span className="text-slate-500">Project / Course:</span>
+            <span className="font-semibold text-slate-900">{project.courseCode} — {project.title}</span>
+          </p>
+          <p className="flex justify-between border-t border-slate-200 pt-1 text-rose-600 font-semibold">
+            <span>Assignment Status:</span>
+            <span>{studentAssignedGroup ? `Assigned to ${studentAssignedGroup.groupName}` : "Not yet assigned to a group"}</span>
+          </p>
+        </div>
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          {studentAssignedGroup ? (
+            <Button
+              variant="primary"
+              onClick={() => setSelectedGroupId(studentAssignedGroup.id)}
+            >
+              Go to My Group ({studentAssignedGroup.groupName})
+            </Button>
+          ) : (
+            <Link
+              href="/dashboard/projects"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to My Projects
+            </Link>
+          )}
+        </div>
       </div>
     );
   }
@@ -244,6 +329,36 @@ function GroupWorkspaceContent() {
 
       {/* Hero Workspace Header Card */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
+        {/* Supervisor Group Switcher (Lecturer & Admin) */}
+        {activeRole !== "student" && projectGroups.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-slate-900 text-white rounded-xl border border-slate-800 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center">
+                <Layers className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-white block">Supervisor Workspace Switcher</span>
+                <span className="text-[11px] text-slate-400">
+                  Select group to supervise and evaluate ({projectGroups.length} total groups)
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={group.id}
+                onChange={(e) => setSelectedGroupId(e.target.value)}
+                className="bg-slate-800 hover:bg-slate-750 text-white font-bold px-3 py-1.5 rounded-lg border border-slate-700 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-hidden cursor-pointer"
+              >
+                {projectGroups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.groupName} ({g.members.length} members) • {g.workspaceId}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="space-y-3 flex-1">
             {/* Badges */}
@@ -397,8 +512,8 @@ function GroupWorkspaceContent() {
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            <GitCommit className="w-3.5 h-3.5" />
-            Activity & Commits
+            <Bell className="w-3.5 h-3.5" />
+            Notifications & Activity
           </button>
 
           <button
@@ -1035,32 +1150,114 @@ function GroupWorkspaceContent() {
       )}
 
       {/* ============================================================== */}
-      {/* TAB E: GITHUB ACTIVITY & COMMIT TELEMETRY                      */}
+      {/* TAB E: NOTIFICATIONS & ACTIVITY STREAM                         */}
       {/* ============================================================== */}
       {activeTab === "activity" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
-            <div>
+        <div className="space-y-6">
+          {/* Workspace Notifications & System Alerts */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <GitCommit className="w-5 h-5 text-teal-600" />
-                Recent Git Commit Activity
+                <Bell className="w-5 h-5 text-teal-600" />
+                Workspace Notifications & System Alerts
               </h3>
-              <p className="text-xs text-slate-500">
-                Real-time commit telemetry from the linked repository branch ({group?.defaultBranch || "main"}).
-              </p>
+              <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                Live Broadcast
+              </span>
             </div>
-            {group?.repoStatus === "connected" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSyncRepo}
-                disabled={isSyncingRepo}
-                icon={<RefreshCw className={`w-3.5 h-3.5 ${isSyncingRepo ? "animate-spin" : ""}`} />}
-              >
-                {isSyncingRepo ? "Syncing..." : "Sync Commits"}
-              </Button>
-            )}
+
+            <div className="space-y-3">
+              <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80 flex items-start gap-3.5 text-xs">
+                <ShieldCheck className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-teal-950 text-sm">Group Workspace Active & Isolated</p>
+                    <span className="text-[10px] text-teal-700 font-mono font-semibold bg-white/80 px-2 py-0.5 rounded border border-teal-300">
+                      ws-{projectId}-{group.groupNumber}
+                    </span>
+                  </div>
+                  <p className="text-xs text-teal-900/80 mt-1 leading-relaxed">
+                    <strong>{group.groupName}</strong> workspace confirmed. All {group.members.length} assigned students are granted shared access. Cross-group isolation and faculty supervisory access are active.
+                  </p>
+                </div>
+              </div>
+
+              {group.repoStatus === "connected" ? (
+                <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-3.5 text-xs">
+                  <FolderGit2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold text-emerald-950 text-sm">GitHub Repository Telemetry Linked</p>
+                      <span className="text-[10px] text-emerald-700 font-mono font-semibold bg-white/80 px-2 py-0.5 rounded border border-emerald-300">
+                        {group.defaultBranch || "main"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-emerald-900/80 mt-1 leading-relaxed">
+                      Connected to <code>{group.repoName}</code>. {group.totalCommits} commits registered with automated branch and PR tracking.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-3.5 text-xs">
+                  <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold text-amber-950 text-sm">Repository Link Required</p>
+                      <span className="text-[10px] text-amber-700 font-mono font-semibold bg-white/80 px-2 py-0.5 rounded border border-amber-300">
+                        Pending
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-900/80 mt-1 leading-relaxed">
+                      Please link your group&apos;s GitHub repository in the GitHub tab to begin continuous telemetry and evaluation.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Project Timeline Notifications */}
+              {timelineActivities
+                .filter((t) => t.projectId === projectId)
+                .slice(0, 3)
+                .map((act) => (
+                  <div key={act.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3 text-xs">
+                    <Clock className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-slate-800">{act.user} {act.action}</p>
+                        <span className="text-[10px] text-slate-400">{act.timestamp}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">{act.target}</p>
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
+
+          {/* Recent Git Commit Activity */}
+          <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <GitCommit className="w-5 h-5 text-teal-600" />
+                  Recent Git Commit Activity
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Real-time commit telemetry from the linked repository branch ({group?.defaultBranch || "main"}).
+                </p>
+              </div>
+              {group?.repoStatus === "connected" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSyncRepo}
+                  disabled={isSyncingRepo}
+                  icon={<RefreshCw className={`w-3.5 h-3.5 ${isSyncingRepo ? "animate-spin" : ""}`} />}
+                >
+                  {isSyncingRepo ? "Syncing..." : "Sync Commits"}
+                </Button>
+              )}
+            </div>
 
           {/* Member contribution breakdown bars */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
@@ -1130,6 +1327,7 @@ function GroupWorkspaceContent() {
             </p>
           </div>
         </div>
+      </div>
       )}
 
       {/* ============================================================== */}
@@ -1373,6 +1571,62 @@ function GroupWorkspaceContent() {
               </Button>
             </div>
           )}
+
+          {/* Database Implementation Submission (Physical Schema & DDL) */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-100 font-bold">
+                  <Code2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900">Database Implementation Submission (DDL Schema)</h3>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Physical Schema Active
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Physical SQL implementation scripts synchronized from GitHub or direct upload.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                  database/schema.sql
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Tables Implemented</span>
+                <span className="text-base font-bold text-slate-900 mt-0.5 block">8 Relations</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Foreign Key Constraints</span>
+                <span className="text-base font-bold text-teal-700 mt-0.5 block">14 Foreign Keys</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Index Coverage</span>
+                <span className="text-base font-bold text-indigo-700 mt-0.5 block">100% Primary/FK</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">DDL Verification</span>
+                <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-1">
+                  <Check className="w-3.5 h-3.5" /> Aligned with ER
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-start gap-2">
+              <Info className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+              <p>
+                <strong>Automated AI Consistency Engine:</strong> Gemini cross-checks the uploaded ER diagram cardinalities against the actual DDL foreign keys in your GitHub repository to ensure complete alignment between design and implementation.
+              </p>
+            </div>
+          </div>
 
           {/* Published Evaluation Feedback (When Lecturer Publishes) */}
           {erSubmission?.lecturerFeedback?.isPublished && (

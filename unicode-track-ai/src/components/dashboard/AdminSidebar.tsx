@@ -3,24 +3,24 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { 
-  Code2, 
-  Sparkles, 
-  LayoutDashboard, 
-  Building2, 
-  BookOpen, 
-  Users, 
-  GraduationCap, 
-  Settings, 
-  LogOut, 
-  ChevronLeft, 
-  ChevronRight, 
-  ShieldCheck, 
-  X, 
-  FolderGit2, 
-  FilePlus2, 
-  User, 
-  CheckSquare, 
+import {
+  Code2,
+  Sparkles,
+  LayoutDashboard,
+  Building2,
+  BookOpen,
+  Users,
+  GraduationCap,
+  Settings,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  X,
+  FolderGit2,
+  FilePlus2,
+  User,
+  CheckSquare,
   Repeat,
   Inbox,
   FileText
@@ -42,11 +42,11 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { 
-    departments, 
-    courses, 
-    lecturers, 
-    students, 
+  const {
+    departments,
+    courses,
+    lecturers,
+    students,
     projects,
     groups,
     activeRole,
@@ -59,7 +59,7 @@ export function AdminSidebar({
   const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
   const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || students[0];
   const lecturerCourseCount = currentLecturer ? currentLecturer.assignedCourses.length : 2;
-  const lecturerProjectsCount = projects.filter((p) => 
+  const lecturerProjectsCount = projects.filter((p) =>
     !currentLecturer || currentLecturer.assignedCourses.includes(p.courseCode)
   ).length;
   const studentProjects = getProjectsForStudent(activeStudentEmail);
@@ -273,28 +273,25 @@ export function AdminSidebar({
               key={item.name}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group relative ${
-                isActive
-                  ? "bg-[#14B8A6] text-white shadow-xs font-semibold"
-                  : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-              }`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group relative ${isActive
+                ? "bg-[#14B8A6] text-white shadow-xs font-semibold"
+                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
               title={collapsed ? item.name : undefined}
             >
               <item.icon
-                className={`w-4 h-4 shrink-0 transition-transform ${
-                  isActive ? "text-white" : "text-slate-400 group-hover:text-teal-400"
-                }`}
+                className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white" : "text-slate-400 group-hover:text-teal-400"
+                  }`}
               />
               {(!collapsed || mobileOpen) && (
                 <span className="flex-1 truncate">{item.name}</span>
               )}
               {(!collapsed || mobileOpen) && item.count !== undefined && (
                 <span
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    isActive
-                      ? "bg-teal-700/80 text-white"
-                      : "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
-                  }`}
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isActive
+                    ? "bg-teal-700/80 text-white"
+                    : "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
+                    }`}
                 >
                   {item.count}
                 </span>
@@ -307,9 +304,8 @@ export function AdminSidebar({
       {/* Bottom Profile & Role Switcher */}
       <div className="p-3 border-t border-slate-800/80 space-y-2">
         <div
-          className={`flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/80 border border-slate-800 ${
-            collapsed && !mobileOpen ? "justify-center" : ""
-          }`}
+          className={`flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/80 border border-slate-800 ${collapsed && !mobileOpen ? "justify-center" : ""
+            }`}
         >
           <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center shrink-0">
             {isStudent ? "AC" : isLecturer ? "ER" : "AV"}
@@ -318,11 +314,11 @@ export function AdminSidebar({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1">
                 <p className="text-xs font-bold text-white truncate">
-                  {isStudent 
+                  {isStudent
                     ? (currentStudent?.fullName || "Alex Chen")
-                    : isLecturer 
-                    ? (currentLecturer?.name || "Dr. Evelyn Reed") 
-                    : "Dr. Arthur Vance"}
+                    : isLecturer
+                      ? (currentLecturer?.name || "Dr. Evelyn Reed")
+                      : "Dr. Arthur Vance"}
                 </p>
                 <ShieldCheck className="w-3 h-3 text-teal-400 shrink-0" />
               </div>
@@ -330,8 +326,8 @@ export function AdminSidebar({
                 {isStudent
                   ? "Student • Software Engineering"
                   : isLecturer
-                  ? "Senior Lecturer • Faculty"
-                  : "University Administrator"}
+                    ? "Senior Lecturer • Faculty"
+                    : "University Administrator"}
               </p>
             </div>
           )}
@@ -347,33 +343,30 @@ export function AdminSidebar({
               <button
                 type="button"
                 onClick={() => setActiveRole("admin")}
-                className={`py-1 rounded transition-colors ${
-                  activeRole === "admin"
-                    ? "bg-teal-600 text-white font-bold"
-                    : "text-slate-400 hover:text-white"
-                }`}
+                className={`py-1 rounded transition-colors ${activeRole === "admin"
+                  ? "bg-teal-600 text-white font-bold"
+                  : "text-slate-400 hover:text-white"
+                  }`}
               >
                 Admin
               </button>
               <button
                 type="button"
                 onClick={() => setActiveRole("lecturer")}
-                className={`py-1 rounded transition-colors ${
-                  activeRole === "lecturer"
-                    ? "bg-teal-600 text-white font-bold"
-                    : "text-slate-400 hover:text-white"
-                }`}
+                className={`py-1 rounded transition-colors ${activeRole === "lecturer"
+                  ? "bg-teal-600 text-white font-bold"
+                  : "text-slate-400 hover:text-white"
+                  }`}
               >
                 Lecturer
               </button>
               <button
                 type="button"
                 onClick={() => setActiveRole("student")}
-                className={`py-1 rounded transition-colors ${
-                  activeRole === "student"
-                    ? "bg-teal-600 text-white font-bold"
-                    : "text-slate-400 hover:text-white"
-                }`}
+                className={`py-1 rounded transition-colors ${activeRole === "student"
+                  ? "bg-teal-600 text-white font-bold"
+                  : "text-slate-400 hover:text-white"
+                  }`}
               >
                 Student
               </button>
@@ -383,9 +376,8 @@ export function AdminSidebar({
 
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-colors ${
-            collapsed && !mobileOpen ? "justify-center" : ""
-          }`}
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-colors ${collapsed && !mobileOpen ? "justify-center" : ""
+            }`}
           title="Sign Out"
         >
           <LogOut className="w-4 h-4 shrink-0" />
@@ -399,9 +391,8 @@ export function AdminSidebar({
     <>
       {/* Desktop Persistent Sidebar */}
       <aside
-        className={`hidden md:block shrink-0 transition-all duration-200 z-30 ${
-          collapsed ? "w-16" : "w-64"
-        }`}
+        className={`hidden md:block shrink-0 transition-all duration-200 z-30 ${collapsed ? "w-16" : "w-64"
+          }`}
       >
         <div className="fixed top-0 bottom-0 left-0 transition-all duration-200 z-30" style={{ width: collapsed ? "4rem" : "16rem" }}>
           {navContent}

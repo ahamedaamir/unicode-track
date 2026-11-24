@@ -71,6 +71,7 @@ interface AdminDataContextType {
   // Academic Group Workspaces & GitHub Integration
   groups: ProjectGroup[];
   addGroup: (data: Omit<ProjectGroup, "id" | "createdAt">) => { success: boolean; group?: ProjectGroup };
+  setProjectGroups: (projectId: string, newGroups: ProjectGroup[]) => void;
   updateGroup: (id: string, updates: Partial<ProjectGroup>) => { success: boolean };
   connectRepoToGroup: (groupId: string, repoUrl: string) => Promise<{ success: boolean; error?: string }>;
   syncGroupRepo: (groupId: string) => Promise<{ success: boolean; error?: string }>;
@@ -2147,6 +2148,30 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return { success: true, group: newGroup };
   };
 
+  const setProjectGroups = (projectId: string, newGroups: ProjectGroup[]) => {
+    // Filter out existing groups for this project (safe idempotent replacement)
+    const otherGroups = groups.filter((g) => g.projectId !== projectId);
+    const updatedGroups = [...otherGroups, ...newGroups];
+    setGroups(updatedGroups);
+
+    // Add timeline event
+    const newTl: ProjectTimelineActivity = {
+      id: `tl-${Date.now()}`,
+      projectId,
+      type: "group_created",
+      user: "Course Coordinator",
+      userRole: "lecturer",
+      action: `confirmed and initialized ${newGroups.length} shared group workspaces`,
+      target: `${newGroups.length} academic groups`,
+      timestamp: "Just now",
+    };
+    const updatedTimeline = [newTl, ...timelineActivities];
+    setTimelineActivities(updatedTimeline);
+
+    persist(departments, courses, lecturers, students, activities, projects, updatedGroups, updatedTimeline);
+    showToast(`${newGroups.length} group workspaces confirmed and initialized!`, "success");
+  };
+
   const updateGroup = (id: string, updates: Partial<ProjectGroup>) => {
     const grp = groups.find((g) => g.id === id);
     if (!grp) return { success: false };
@@ -2707,6 +2732,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         getStudentAssignedGroup,
         groups,
         addGroup,
+        setProjectGroups,
         updateGroup,
         connectRepoToGroup,
         syncGroupRepo,

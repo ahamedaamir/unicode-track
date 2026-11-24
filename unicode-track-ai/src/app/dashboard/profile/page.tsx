@@ -3,18 +3,18 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  User, 
-  Mail, 
-  Building2, 
-  BookOpen, 
-  KeyRound, 
-  ShieldCheck, 
-  Camera, 
-  Check, 
-  LogOut, 
-  AlertCircle, 
-  Lock, 
+import {
+  User,
+  Mail,
+  Building2,
+  BookOpen,
+  KeyRound,
+  ShieldCheck,
+  Camera,
+  Check,
+  LogOut,
+  AlertCircle,
+  Lock,
   Calendar,
   Phone,
   MapPin,
@@ -28,15 +28,15 @@ import { Badge } from "@/components/ui/Badge";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { 
-    lecturers, 
-    students, 
-    courses, 
-    activeRole, 
-    activeLecturerEmail, 
+  const {
+    lecturers,
+    students,
+    courses,
+    activeRole,
+    activeLecturerEmail,
     activeStudentEmail,
     changeLecturerPassword,
-    changeStudentPassword 
+    changeStudentPassword
   } = useAdminData();
 
   const isLecturer = activeRole === "lecturer";
