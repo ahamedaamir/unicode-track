@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { 
   Sparkles, 
@@ -150,6 +150,42 @@ export default function EvaluationsPage() {
       status: "not_evaluated",
     },
   ]);
+
+  // Dynamic merge of past/archived projects into cohort evaluations
+  const allEvaluations = useMemo<GroupEvaluationSummary[]>(() => {
+    const list = [...cohortEvaluations];
+    const existingGroupIds = new Set(list.map((c) => c.groupId));
+
+    projects
+      .filter((p) => p.status === "Archived" || (p as any).isPast)
+      .forEach((pastProj) => {
+        const projGroups = groups.filter((g) => g.projectId === pastProj.id);
+        if (projGroups.length > 0) {
+          projGroups.forEach((g) => {
+            if (!existingGroupIds.has(g.id)) {
+              list.push({
+                groupId: g.id,
+                groupName: g.groupName,
+                projectId: pastProj.id,
+                projectTitle: pastProj.title,
+                courseCode: pastProj.courseCode,
+                repoUrl: g.repoUrl,
+                totalCommits: g.totalCommits || 24,
+                proposalStatus: g.proposalStatus || "approved",
+                erDiagramStatus: "analyzed",
+                aiSuggestedScore: g.evaluationScore || 91,
+                lecturerScore: g.evaluationScore,
+                status: g.evaluationScore ? "published" : "ai_completed",
+                reviewedAt: "Duration Concluded",
+              });
+              existingGroupIds.add(g.id);
+            }
+          });
+        }
+      });
+
+    return list;
+  }, [cohortEvaluations, projects, groups]);
 
   // Edit Marks Modal
   const [editingGroup, setEditingGroup] = useState<GroupEvaluationSummary | null>(null);
@@ -310,7 +346,7 @@ export default function EvaluationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {cohortEvaluations.map((item) => (
+                {allEvaluations.map((item) => (
                   <tr key={item.groupId} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-3.5 px-4 sm:px-6">
                       <div className="space-y-0.5">
@@ -364,11 +400,12 @@ export default function EvaluationsPage() {
                     <td className="py-3.5 px-4 sm:px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
-                          href={`/dashboard/projects/${item.projectId}/groups/${item.groupId}/evaluation`}
-                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
+                          href={`/dashboard/projects/${item.projectId}/groups/${item.groupId}/reports`}
+                          className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
+                          title="Inspect uploaded reports, run C project and view AI marks"
                         >
-                          <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                          <span>AI Report</span>
+                          <FileText className="w-3.5 h-3.5 text-purple-600" />
+                          <span>Reports & C Runner</span>
                         </Link>
 
                         <button

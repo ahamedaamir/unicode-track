@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   FolderKanban,
   Plus,
@@ -49,11 +50,13 @@ import { LecturerGroupCard } from "@/components/groups/LecturerGroupCard";
 const ITEMS_PER_PAGE = 6;
 
 export default function ProjectsDirectoryPage() {
+  const router = useRouter();
   const {
     projects: contextProjects,
     courses,
     departments,
     lecturers,
+    students,
     groups,
     studentAssignments,
     publishProject,
@@ -67,7 +70,14 @@ export default function ProjectsDirectoryPage() {
     getStudentAssignedGroup,
   } = useAdminData();
 
-  // Navigation Hierarchy State
+  // Navigation Hierarchy State — Current vs Past & Batch Cascade (1.1 - 4.2)
+  const [temporalMode, setTemporalMode] = useState<"current" | "past">("current");
+  const [selectedBatch, setSelectedBatch] = useState<string>("all");
+  const [selectedHierarchyCourse, setSelectedHierarchyCourse] = useState<string>("all");
+  const [selectedHierarchyProjectId, setSelectedHierarchyProjectId] = useState<string>("");
+  const [selectedHierarchyTargetId, setSelectedHierarchyTargetId] = useState<string>("");
+
+  // Legacy/General filters
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("all");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
@@ -154,6 +164,112 @@ export default function ProjectsDirectoryPage() {
   const baseProjects = useMemo(() => {
     return supabaseProjects !== null ? supabaseProjects : contextProjects;
   }, [supabaseProjects, contextProjects]);
+
+  // Helper to identify past projects
+  const isPastProject = (p: Project) => {
+    if (p.status === "Archived") return true;
+    if ((p as any).isPast) return true;
+    if (p.deadline) {
+      const d = new Date(p.deadline).getTime();
+      if (!isNaN(d) && d < Date.now()) return true;
+    }
+    return false;
+  };
+
+  // Projects filtered by Current vs Past mode
+  const temporalProjects = useMemo(() => {
+    return baseProjects.filter((p) => {
+      const isPast = isPastProject(p);
+      return temporalMode === "past" ? isPast : !isPast;
+    });
+  }, [baseProjects, temporalMode]);
+
+  // Projects matching selected Batch (1.1 - 4.2)
+  const batchProjects = useMemo(() => {
+    if (selectedBatch === "all") return temporalProjects;
+    const [y, s] = selectedBatch.split(".").map(Number);
+    return temporalProjects.filter((p) => p.academicYear === y && p.semester === s);
+  }, [temporalProjects, selectedBatch]);
+
+  // Available Courses for the selected Batch & Temporal mode
+  const cascadeAvailableCourses = useMemo(() => {
+    const matchingCodes = new Set(batchProjects.map((p) => p.courseCode));
+    return courses.filter((c) => matchingCodes.has(c.code));
+  }, [batchProjects, courses]);
+
+  // Projects matching selected Course
+  const courseProjects = useMemo(() => {
+    if (selectedHierarchyCourse === "all") return batchProjects;
+    return batchProjects.filter((p) => p.courseCode === selectedHierarchyCourse);
+  }, [batchProjects, selectedHierarchyCourse]);
+
+  // Active selected Project object for the cascade
+  const activeSelectedProject = useMemo(() => {
+    if (!selectedHierarchyProjectId) return null;
+    return baseProjects.find((p) => p.id === selectedHierarchyProjectId) || null;
+  }, [baseProjects, selectedHierarchyProjectId]);
+
+  // Groups or Student Assignments for activeSelectedProject
+  const activeProjectGroups = useMemo(() => {
+    if (!activeSelectedProject) return [];
+    const directGroups = groups.filter((g) => g.projectId === activeSelectedProject.id);
+    if (directGroups.length > 0) return directGroups;
+    // Fallback simulated groups so user always has group 1, group 2 etc.
+    return [
+      {
+        id: `grp-${activeSelectedProject.id}-1`,
+        projectId: activeSelectedProject.id,
+        groupNumber: 1,
+        groupName: "Group 1",
+        members: [],
+        workspaceId: `ws-${activeSelectedProject.id}-1`,
+        totalCommits: 28,
+        status: "active" as const,
+        progress: 75,
+        proposalStatus: "approved" as const,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: `grp-${activeSelectedProject.id}-2`,
+        projectId: activeSelectedProject.id,
+        groupNumber: 2,
+        groupName: "Group 2",
+        members: [],
+        workspaceId: `ws-${activeSelectedProject.id}-2`,
+        totalCommits: 19,
+        status: "active" as const,
+        progress: 60,
+        proposalStatus: "submitted" as const,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+  }, [activeSelectedProject, groups]);
+
+  const activeProjectStudents = useMemo(() => {
+    if (!activeSelectedProject) return [];
+    const assignments = studentAssignments.filter((a) => a.projectId === activeSelectedProject.id);
+    if (assignments.length > 0) {
+      return assignments.map((a) => ({
+        id: a.id || a.workspaceId,
+        studentId: a.studentId || "tg/2004/2004",
+        name: a.studentName,
+        workspaceId: a.workspaceId,
+      }));
+    }
+    // Matching cohort students with student index format like tg/2004/2004
+    const cohort = students.filter(
+      (s) =>
+        s.academicYear === activeSelectedProject.academicYear &&
+        s.semester === activeSelectedProject.semester
+    );
+    const pool = cohort.length > 0 ? cohort : students;
+    return pool.slice(0, 6).map((s, idx) => ({
+      id: s.id,
+      studentId: s.studentId || `tg/2004/${2004 + idx}`,
+      name: s.fullName,
+      workspaceId: `ws-ind-${activeSelectedProject.id}-${s.id}`,
+    }));
+  }, [activeSelectedProject, studentAssignments, students]);
 
   // Cascading courses for the Hierarchy bar based on selected Department & Academic Year
   const availableCourses = useMemo(() => {
@@ -434,143 +550,312 @@ export default function ProjectsDirectoryPage() {
 
       {/* ============================================================== */}
       {/* ACADEMIC NAVIGATION HIERARCHY BAR                              */}
-      {/* Hierarchy: Academic Year -> Department -> Course -> Projects   */}
+      {/* Hierarchy: Current/Past -> Batch -> Course -> Title -> Target  */}
       {/* ============================================================== */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 rounded-2xl shadow-md border border-slate-700/60 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs border border-teal-500/30">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 sm:p-6 rounded-2xl shadow-md border border-slate-700/60 space-y-5">
+        {/* Top Switcher: Current Projects vs Past Projects */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs border border-teal-500/30">
               <Layers className="w-4 h-4" />
             </span>
             <div>
               <h2 className="text-sm font-bold tracking-wide uppercase text-teal-300">
-                Academic Navigation Hierarchy
+                Academic Project Navigation Hierarchy
               </h2>
               <p className="text-xs text-slate-300">
-                Drill down through institutional tiers to filter assigned cohort projects and deliverables.
+                Select between active cohort projects or past concluded academic archives.
               </p>
             </div>
           </div>
 
-          {isHierarchyFiltered && (
+          {/* Current vs Past Projects Switcher */}
+          <div className="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-700/80 text-xs">
             <button
-              onClick={handleResetFilters}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-600 transition-colors"
+              type="button"
+              onClick={() => {
+                setTemporalMode("current");
+                setSelectedHierarchyProjectId("");
+                setSelectedHierarchyTargetId("");
+              }}
+              className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
+                temporalMode === "current"
+                  ? "bg-teal-600 text-white shadow-xs"
+                  : "text-slate-400 hover:text-white"
+              }`}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Hierarchy</span>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Current Projects</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-teal-900/60 text-[10px] font-mono border border-teal-500/30">
+                {baseProjects.filter((p) => !isPastProject(p)).length}
+              </span>
             </button>
-          )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setTemporalMode("past");
+                setSelectedHierarchyProjectId("");
+                setSelectedHierarchyTargetId("");
+              }}
+              className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
+                temporalMode === "past"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Archive className="w-3.5 h-3.5" />
+              <span>Past Projects</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-indigo-900/60 text-[10px] font-mono border border-indigo-500/30">
+                {baseProjects.filter((p) => isPastProject(p)).length}
+              </span>
+            </button>
+          </div>
         </div>
 
-        {/* Cascading Hierarchy Selector Grids */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Level 1: Academic Year */}
-          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-teal-400 flex items-center gap-1.5 uppercase tracking-wider">
-                <GraduationCap className="w-3.5 h-3.5" />
-                1. Academic Year
-              </span>
-              {selectedAcademicYear !== "all" && (
-                <span className="text-[10px] font-mono font-bold text-teal-300 bg-teal-950/70 px-2 py-0.5 rounded border border-teal-800">
-                  Year {selectedAcademicYear}
-                </span>
-              )}
-            </div>
-            <select
-              value={selectedAcademicYear}
-              onChange={(e) => {
-                setSelectedAcademicYear(e.target.value);
-                setSelectedCourse("all");
-              }}
-              className="w-full bg-slate-900 border border-slate-700 text-white text-xs font-medium rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="all">All Academic Years (1 - 4)</option>
-              <option value="1">Year 1 (Freshman Cohort)</option>
-              <option value="2">Year 2 (Sophomore Cohort)</option>
-              <option value="3">Year 3 (Junior Cohort)</option>
-              <option value="4">Year 4 (Senior / Capstone)</option>
-            </select>
+        {/* STEP 1: SELECT BATCH (1.1 / 1.2 / 2.1 / 2.2 / 3.1 / 3.2 / 4.1 / 4.2) */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+              <GraduationCap className="w-3.5 h-3.5" />
+              1. Select Batch (Year.Semester)
+            </span>
+            <span className="text-[10px] text-slate-400">
+              {selectedBatch === "all" ? "All Batches Active" : `Filtered: Batch ${selectedBatch}`}
+            </span>
           </div>
 
-          {/* Level 2: Department / Program */}
-          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
-                <Building2 className="w-3.5 h-3.5" />
-                2. Department / Program
-              </span>
-              {selectedDepartment !== "all" && (
-                <span className="text-[10px] font-semibold text-indigo-300 bg-indigo-950/70 px-2 py-0.5 rounded border border-indigo-800 truncate max-w-[120px]">
-                  {departments.find((d) => d.id === selectedDepartment)?.name || selectedDepartment}
-                </span>
-              )}
-            </div>
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            {[
+              { val: "1.1", label: "1.1", labelFull: "Y1 Sem 1" },
+              { val: "1.2", label: "1.2", labelFull: "Y1 Sem 2" },
+              { val: "2.1", label: "2.1", labelFull: "Y2 Sem 1" },
+              { val: "2.2", label: "2.2", labelFull: "Y2 Sem 2" },
+              { val: "3.1", label: "3.1", labelFull: "Y3 Sem 1" },
+              { val: "3.2", label: "3.2", labelFull: "Y3 Sem 2" },
+              { val: "4.1", label: "4.1", labelFull: "Y4 Sem 1" },
+              { val: "4.2", label: "4.2", labelFull: "Y4 Sem 2" },
+            ].map((batch) => {
+              const isSelected = selectedBatch === batch.val;
+              return (
+                <button
+                  key={batch.val}
+                  type="button"
+                  onClick={() => {
+                    setSelectedBatch(isSelected ? "all" : batch.val);
+                    setSelectedHierarchyCourse("all");
+                    setSelectedHierarchyProjectId("");
+                    setSelectedHierarchyTargetId("");
+                  }}
+                  className={`p-2.5 rounded-xl border text-center transition-all ${
+                    isSelected
+                      ? "bg-teal-500 text-slate-950 font-extrabold border-teal-300 shadow-xs scale-102"
+                      : "bg-slate-800/90 hover:bg-slate-700/80 text-slate-200 border-slate-700 font-semibold"
+                  }`}
+                >
+                  <span className="block text-sm font-mono">{batch.label}</span>
+                  <span className={`block text-[9px] mt-0.5 ${isSelected ? "text-slate-900 font-bold" : "text-slate-400"}`}>
+                    {batch.labelFull}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* STEP 2 & STEP 3: COURSE SELECT -> PROJECT TITLE */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          {/* STEP 2: COURSE SELECT */}
+          <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2">
+            <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5" />
+              2. Select Course
+            </span>
             <select
-              value={selectedDepartment}
+              value={selectedHierarchyCourse}
               onChange={(e) => {
-                setSelectedDepartment(e.target.value);
-                setSelectedCourse("all");
+                setSelectedHierarchyCourse(e.target.value);
+                setSelectedHierarchyProjectId("");
+                setSelectedHierarchyTargetId("");
               }}
-              className="w-full bg-slate-900 border border-slate-700 text-white text-xs font-medium rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+              className="w-full bg-slate-900 border border-slate-700 text-white text-xs font-medium rounded-lg px-3 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
             >
-              <option value="all">All Academic Departments</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
+              <option value="all">
+                All Available Courses ({cascadeAvailableCourses.length} in this view)
+              </option>
+              {cascadeAvailableCourses.map((c) => (
+                <option key={c.id} value={c.code}>
+                  {c.code} — {c.name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Level 3: Course */}
-          <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold text-purple-400 flex items-center gap-1.5 uppercase tracking-wider">
-                <BookOpen className="w-3.5 h-3.5" />
-                3. Course Module
-              </span>
-              {selectedCourse !== "all" && (
-                <span className="text-[10px] font-mono font-bold text-purple-300 bg-purple-950/70 px-2 py-0.5 rounded border border-purple-800">
-                  {selectedCourse}
-                </span>
-              )}
-            </div>
+          {/* STEP 3: PROJECT TITLE */}
+          <div className="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2">
+            <span className="text-[11px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+              <FolderKanban className="w-3.5 h-3.5" />
+              3. Select Project Title
+            </span>
             <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 text-white text-xs font-medium rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+              value={selectedHierarchyProjectId}
+              onChange={(e) => {
+                setSelectedHierarchyProjectId(e.target.value);
+                setSelectedHierarchyTargetId("");
+              }}
+              className="w-full bg-slate-900 border border-slate-700 text-white text-xs font-medium rounded-lg px-3 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
             >
-              <option value="all">All Assigned Courses</option>
-              {availableCourses.map((crs) => (
-                <option key={crs.id} value={crs.code}>
-                  {crs.code} — {crs.name}
+              <option value="">
+                {courseProjects.length === 0
+                  ? "No projects matching active filters"
+                  : "-- Choose Project Title --"}
+              </option>
+              {courseProjects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  [{p.courseCode}] {p.title} ({p.projectType === "individual" || p.type === "Individual Project" ? "Personal" : "Group"})
                 </option>
               ))}
             </select>
           </div>
         </div>
+
+        {/* STEP 4: GROUP PROJECT VS PERSONAL PROJECT SELECTOR */}
+        {activeSelectedProject && (
+          <div className="bg-slate-950/90 p-4 sm:p-5 rounded-xl border border-slate-700/90 space-y-3.5 animate-in fade-in-50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-teal-900/60 text-teal-300 border border-teal-700/50">
+                  {activeSelectedProject.projectType === "individual" || activeSelectedProject.type === "Individual Project"
+                    ? "Personal Project Workflow"
+                    : "Group Project Workflow"}
+                </span>
+                <h4 className="text-xs font-bold text-white truncate max-w-md">
+                  {activeSelectedProject.title}
+                </h4>
+              </div>
+
+              {temporalMode === "past" && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 flex items-center gap-1">
+                  <Archive className="w-3 h-3" />
+                  Past Project (Duration Finished)
+                </span>
+              )}
+            </div>
+
+            {/* IF GROUP PROJECT -> GROUP NAMES AVAILABLE */}
+            {activeSelectedProject.projectType !== "individual" && activeSelectedProject.type !== "Individual Project" ? (
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-slate-300 block">
+                  Available Groups (Select a group to proceed):
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {activeProjectGroups.map((grp) => {
+                    const isSelected = selectedHierarchyTargetId === grp.id || selectedHierarchyTargetId === grp.workspaceId;
+                    return (
+                      <button
+                        key={grp.id}
+                        type="button"
+                        onClick={() => setSelectedHierarchyTargetId(grp.id)}
+                        className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                          isSelected
+                            ? "bg-teal-600/30 border-teal-400 text-white shadow-xs"
+                            : "bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700"
+                        }`}
+                      >
+                        <div>
+                          <p className="text-xs font-bold text-white">{grp.groupName || `Group ${grp.groupNumber}`}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            {grp.members?.length || 4} members • {grp.totalCommits || 0} commits
+                          </p>
+                        </div>
+                        {isSelected && <Check className="w-4 h-4 text-teal-400" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              /* ELSE PERSONAL PROJECT -> STUDENTS INDEX AVAILABLE (e.g. tg/2004/2004) */
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-slate-300 block">
+                  Enrolled Students Index (Select student to proceed):
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {activeProjectStudents.map((std) => {
+                    const isSelected = selectedHierarchyTargetId === std.id || selectedHierarchyTargetId === std.workspaceId;
+                    return (
+                      <button
+                        key={std.id}
+                        type="button"
+                        onClick={() => setSelectedHierarchyTargetId(std.id)}
+                        className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${
+                          isSelected
+                            ? "bg-teal-600/30 border-teal-400 text-white shadow-xs"
+                            : "bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700"
+                        }`}
+                      >
+                        <div>
+                          <p className="text-xs font-mono font-bold text-teal-300">{std.studentId}</p>
+                          <p className="text-[11px] text-slate-300 font-semibold mt-0.5 truncate max-w-[160px]">
+                            {std.name}
+                          </p>
+                        </div>
+                        {isSelected && <Check className="w-4 h-4 text-teal-400" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ACTION BUTTONS: CONTINUE TO WORKSPACE & GITHUB CONSOLE */}
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-slate-800/80">
+              {temporalMode === "past" && (
+                <Link
+                  href={`/dashboard/projects/${activeSelectedProject.id}/groups/${selectedHierarchyTargetId || activeProjectGroups[0]?.id || "grp-1"}/reports`}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-all flex items-center gap-1.5 shadow-xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Open Evaluation, C Runner & Final Marks &rarr;</span>
+                </Link>
+              )}
+
+              <Button
+                variant="primary"
+                size="md"
+                disabled={!selectedHierarchyTargetId}
+                onClick={() => {
+                  router.push(
+                    `/dashboard/projects/${activeSelectedProject.id}/workspace?groupId=${selectedHierarchyTargetId}`
+                  );
+                }}
+                icon={<ArrowUpRight className="w-4 h-4" />}
+              >
+                Continue to Workspace & GitHub Console &rarr;
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Breadcrumb Trail Indicator */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800 text-xs">
-          <span className="text-slate-400 font-medium">Current Scope:</span>
-          <span className="font-semibold text-slate-200">
-            {selectedAcademicYear === "all" ? "All Academic Years" : `Year ${selectedAcademicYear}`}
+          <span className="text-slate-400 font-medium">Timeline Mode:</span>
+          <span className="font-semibold text-teal-400 capitalize">
+            {temporalMode === "past" ? "Past Projects (Archives)" : "Current Projects (Active)"}
           </span>
           <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-slate-400 font-medium">Batch:</span>
           <span className="font-semibold text-slate-200">
-            {selectedDepartment === "all"
-              ? "All Departments"
-              : departments.find((d) => d.id === selectedDepartment)?.name || selectedDepartment}
+            {selectedBatch === "all" ? "All Batches (1.1 - 4.2)" : `Batch ${selectedBatch}`}
           </span>
           <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-slate-400 font-medium">Course:</span>
           <span className="font-semibold text-slate-200">
-            {selectedCourse === "all" ? "All Courses" : selectedCourse}
+            {selectedHierarchyCourse === "all" ? "All Courses" : selectedHierarchyCourse}
           </span>
           <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
           <span className="font-bold text-teal-400">
-            {filteredProjects.length} Projects Available
+            {courseProjects.length} Projects in Hierarchy
           </span>
         </div>
       </div>

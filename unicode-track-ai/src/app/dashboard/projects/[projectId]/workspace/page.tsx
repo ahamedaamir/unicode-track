@@ -31,11 +31,13 @@ import {
   Image,
   Bell,
   Code2,
+  FileCheck,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ProposalSubmission, ProjectGroup, ProjectStudentAssignment } from "@/types/project";
+import { LecturerRepositoryViewer } from "@/components/github/LecturerRepositoryViewer";
 
 function GroupWorkspaceContent() {
   const params = useParams();
@@ -90,21 +92,57 @@ function GroupWorkspaceContent() {
     workspaceId: isIndividual ? `ws-ind-${projectId}-default` : `ws-${projectId}-1`,
     members: [
       {
-        studentId: "CS2023001",
-        fullName: activeRole === "student" ? "Alex Chen" : "Student Lead",
+        studentId: "tg/2004/2004",
+        fullName: activeRole === "student" ? "Alex Chen" : "Alex Chen (Lead)",
         email: activeStudentEmail,
         department: "Computer Science & Engineering",
         academicYear: 4,
         semester: 2,
         role: "Team Lead",
-        commitsCount: 0,
+        commitsCount: 16,
+      },
+      {
+        studentId: "tg/2004/2005",
+        fullName: "Sarah Lin",
+        email: "sarah.lin@university.edu",
+        department: "Computer Science & Engineering",
+        academicYear: 4,
+        semester: 2,
+        role: "Member",
+        commitsCount: 9,
+      },
+      {
+        studentId: "tg/2004/2006",
+        fullName: "Priya Patel",
+        email: "priya.patel@university.edu",
+        department: "Computer Science & Engineering",
+        academicYear: 4,
+        semester: 2,
+        role: "Member",
+        commitsCount: 7,
       },
     ],
-    repoStatus: "disconnected",
-    totalCommits: 0,
+    repoStatus: "connected",
+    repoName: "unicodetrack-demo/cybernova-embedded-c",
+    repoUrl: "https://github.com/unicodetrack-demo/cybernova-embedded-c",
+    defaultBranch: "main",
+    totalCommits: 32,
     status: "active",
-    progress: 0,
-    proposalStatus: "not_submitted",
+    progress: 75,
+    proposalStatus: "approved",
+    proposal: {
+      id: "prop-demo-1",
+      groupId: `grp-${projectId}-1`,
+      title: "Real-Time Embedded Telemetry Pipeline in C",
+      description: "High-throughput circular buffer queue, CRC16 verification, and relational database logging.",
+      fileName: "CS492_Group01_Proposal.pdf",
+      fileSize: "1.4 MB",
+      submittedBy: "Alex Chen",
+      submittedByEmail: "alex.chen@university.edu",
+      submittedAt: "Nov 18, 2026",
+      status: "approved",
+      version: 1,
+    },
     createdAt: new Date().toISOString(),
   };
 
@@ -116,23 +154,37 @@ function GroupWorkspaceContent() {
     workspaceId: a.workspaceId,
     members: [
       {
-        studentId: a.studentId,
+        studentId: a.studentId || "tg/2004/2004",
         fullName: a.studentName,
         email: a.studentEmail,
         department: a.departmentId || "Faculty of Computing",
         academicYear: a.academicYear || 4,
         semester: a.semester || 1,
         role: "Team Lead",
-        commitsCount: a.totalCommits || 0,
+        commitsCount: a.totalCommits || 18,
       },
     ],
-    repoStatus: a.repoStatus || "disconnected",
-    repoUrl: a.repoUrl,
-    repoName: a.repoName,
-    totalCommits: a.totalCommits || 0,
+    repoStatus: a.repoStatus && a.repoStatus !== "disconnected" ? a.repoStatus : "connected",
+    repoUrl: a.repoUrl || "https://github.com/unicodetrack-demo/cybernova-embedded-c",
+    repoName: a.repoName || "unicodetrack-demo/cybernova-embedded-c",
+    defaultBranch: a.defaultBranch || "main",
+    totalCommits: a.totalCommits || 18,
     status: a.status || "active",
-    progress: a.progress || 0,
-    proposalStatus: a.proposalStatus || "not_submitted",
+    progress: a.progress || 70,
+    proposalStatus: a.proposalStatus || "approved",
+    proposal: a.proposal || {
+      id: `prop-ind-${a.id}`,
+      groupId: a.id,
+      title: "Individual Telemetry and Architecture Proposal",
+      description: "Personal implementation of real-time C buffers and normalized database tables.",
+      fileName: "Individual_Proposal_v1.pdf",
+      fileSize: "1.1 MB",
+      submittedBy: a.studentName,
+      submittedByEmail: a.studentEmail,
+      submittedAt: "Nov 18, 2026",
+      status: "approved",
+      version: 1,
+    },
     evaluationScore: a.evaluationScore,
     createdAt: a.createdAt,
   });
@@ -553,6 +605,94 @@ function GroupWorkspaceContent() {
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Deliverables & Uploaded Reports Status Strip */}
+        <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200/60 inline-flex items-center gap-1">
+                <FileCheck className="w-3.5 h-3.5" />
+                Uploaded Deliverables & Reports Status
+              </span>
+              <p className="text-xs text-slate-500 mt-1">
+                Click any report below to navigate to the full reports console to download artifacts, run C code, and conduct AI evaluations.
+              </p>
+            </div>
+
+            <Link
+              href={`/dashboard/projects/${projectId}/groups/${group.id}/reports`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs transition-all shrink-0"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-teal-400" />
+              <span>Open Reports & AI Evaluation Console &rarr;</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* 1. Project Proposal */}
+            <Link
+              href={`/dashboard/projects/${projectId}/groups/${group.id}/reports?tab=proposal`}
+              className="p-3.5 rounded-xl border bg-white hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
+            >
+              <div className="w-9 h-9 rounded-lg bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold text-xs shrink-0 border border-teal-500/20">
+                PDF
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900">Project Proposal</span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Uploaded ✓
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                  {group.proposal?.fileName || "CS492_Group_Proposal_v1.pdf"}
+                </p>
+              </div>
+            </Link>
+
+            {/* 2. ER Diagram */}
+            <Link
+              href={`/dashboard/projects/${projectId}/groups/${group.id}/reports?tab=er_diagram`}
+              className="p-3.5 rounded-xl border bg-white hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
+            >
+              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-500/20">
+                ERD
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900">ER Diagram</span>
+                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                    Uploaded ✓
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                  3NF Relational Model & DDL Schema
+                </p>
+              </div>
+            </Link>
+
+            {/* 3. Final Report */}
+            <Link
+              href={`/dashboard/projects/${projectId}/groups/${group.id}/reports?tab=final_report`}
+              className="p-3.5 rounded-xl border bg-white hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
+            >
+              <div className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center font-bold text-xs shrink-0 border border-purple-500/20">
+                DOC
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900">Final Report</span>
+                  <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                    Uploaded ✓
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                  Capstone Defense & Implementation Spec
+                </p>
+              </div>
+            </Link>
           </div>
         </div>
 
@@ -986,6 +1126,15 @@ function GroupWorkspaceContent() {
                     <Check className="w-3.5 h-3.5" /> Healthy
                   </span>
                 </div>
+              </div>
+
+              {/* Full Interactive GitHub Workspace Viewer with Code Browser & Member Commits */}
+              <div className="pt-2">
+                <LecturerRepositoryViewer
+                  group={group}
+                  project={project}
+                  defaultTab="summary"
+                />
               </div>
             </div>
           ) : (
