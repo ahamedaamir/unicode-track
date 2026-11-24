@@ -40,6 +40,7 @@ import { Project } from "@/types/admin";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { DEFAULT_ER_DIAGRAM_RUBRIC } from "@/types/er-diagram";
+import { GroupAssignmentSection } from "@/components/projects/GroupAssignmentSection";
 
 // ==============================================================================
 // 1. Zod Validation Schema
@@ -153,6 +154,19 @@ function CreateProjectContent() {
   const [submitError, setSubmitError] = useState("");
   const [createdProject, setCreatedProject] = useState<Project | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Group Assignment State (Upload PDF vs Paste Text)
+  const [groupAssignmentData, setGroupAssignmentData] = useState<{
+    sourceType: "pdf" | "text" | "none";
+    filePath?: string;
+    fileName?: string;
+    fileSize?: string;
+    text?: string;
+    status: "pending" | "processing" | "completed" | "error" | "not_uploaded";
+  }>({
+    sourceType: "none",
+    status: "not_uploaded",
+  });
 
   // Gemini AI Requirements Generator state
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
@@ -341,6 +355,12 @@ function CreateProjectContent() {
         status,
         lecturerId: currentLecturer?.id || "lec-1",
         lecturerName: currentLecturer?.name || "Dr. Evelyn Reed",
+        assignmentSourceType: groupAssignmentData.sourceType,
+        assignmentFilePath: groupAssignmentData.filePath,
+        assignmentFileName: groupAssignmentData.fileName,
+        assignmentFileSize: groupAssignmentData.fileSize,
+        assignmentText: groupAssignmentData.text,
+        assignmentProcessingStatus: groupAssignmentData.status,
         databaseDesignConfig: data.databaseRequired
           ? {
               enabled: true,
@@ -850,6 +870,17 @@ function CreateProjectContent() {
               </span>
               <span className="text-teal-700 font-semibold font-mono">Access isolation enforced</span>
             </div>
+
+            {/* Optional Group Assignment: PDF Upload or Paste Text */}
+            {watchedProjectType === "Group Project" && (
+              <div className="pt-2">
+                <GroupAssignmentSection
+                  onAssignmentChange={(data) => {
+                    setGroupAssignmentData(data);
+                  }}
+                />
+              </div>
+            )}
 
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
               <Button type="button" variant="outline" size="md" onClick={handlePrevStep}>

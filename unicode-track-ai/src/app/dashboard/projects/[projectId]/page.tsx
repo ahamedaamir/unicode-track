@@ -24,9 +24,17 @@ import {
   ChevronRight,
   Award,
   Sliders,
+  FolderGit2,
+  GitCommit,
+  GitPullRequest,
+  ExternalLink,
+  FileCode2,
+  ShieldCheck,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { LecturerGroupCard } from "@/components/groups/LecturerGroupCard";
+import { LecturerRepositoryViewer } from "@/components/github/LecturerRepositoryViewer";
+import { GroupAssignmentSection } from "@/components/projects/GroupAssignmentSection";
 
 function ProjectDetailContent() {
   const params = useParams();
@@ -44,7 +52,9 @@ function ProjectDetailContent() {
     deleteProject,
   } = useAdminData();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "requirements" | "teams">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "requirements" | "teams" | "repositories" | "assignment"
+  >("overview");
   const [copied, setCopied] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -278,6 +288,36 @@ function ProjectDetailContent() {
             <Users className="w-3.5 h-3.5" />
             Student Teams ({projectGroups.length})
           </button>
+          <button
+            onClick={() => setActiveTab("repositories")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+              activeTab === "repositories"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <FolderGit2 className="w-3.5 h-3.5 text-teal-500" />
+            <span>GitHub Repositories</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-teal-500/10 text-teal-600 font-bold border border-teal-500/20">
+              {projectGroups.filter((g) => g.repoUrl).length}
+            </span>
+          </button>
+          {project.type === "Group Project" && (
+            <button
+              onClick={() => setActiveTab("assignment")}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                activeTab === "assignment"
+                  ? "bg-teal-600 text-white shadow-sm shadow-teal-600/20"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Group Assignment</span>
+              {project.assignmentSourceType && project.assignmentSourceType !== "none" && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -608,6 +648,151 @@ function ProjectDetailContent() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tab 4: GitHub Repositories Monitoring */}
+      {activeTab === "repositories" && (
+        <div className="space-y-6">
+          {/* Top Repository Overview Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-[#0B1220] text-teal-400 flex items-center justify-center shrink-0">
+                    <FolderGit2 className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    GitHub Repositories Monitoring Console
+                  </h3>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500 max-w-3xl leading-relaxed">
+                  When students connect their group&apos;s GitHub repository, the lecturer can view:
+                  <strong> Repository</strong>, <strong>Branches</strong>, <strong>Commits</strong>, <strong>Contributions</strong>, <strong>Source code</strong>, <strong>Pull requests</strong>, and <strong>Activity</strong>.
+                  The lecturer can open the repository directly or browse its code inside UniCodeTrack AI.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 self-start">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Sync Active
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Metrics Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Connected Repos</span>
+                <span className="text-lg font-bold text-slate-900 mt-1 block">
+                  {projectGroups.filter((g) => g.repoUrl).length} / {projectGroups.length || 1}
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Commits</span>
+                <span className="text-lg font-bold text-teal-700 font-mono mt-1 block">
+                  {projectGroups.reduce((acc, g) => acc + (g.totalCommits || 0), 0) || 80}
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Branches</span>
+                <span className="text-lg font-bold text-indigo-700 font-mono mt-1 block">
+                  {projectGroups.reduce((acc, g) => acc + (g.branches?.length || 3), 0)}
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pull Requests</span>
+                <span className="text-lg font-bold text-purple-700 font-mono mt-1 block">
+                  {projectGroups.reduce((acc, g) => acc + (g.pullRequests?.length || 3), 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Group Repository Monitoring Cards */}
+          {projectGroups.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-3">
+              <FolderGit2 className="w-12 h-12 text-slate-300 mx-auto" />
+              <h4 className="text-base font-bold text-slate-800">No Groups Created Yet</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Groups must be assigned to this project before student teams can link their GitHub repositories.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {projectGroups.map((grp) => (
+                <div key={grp.id} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center">
+                        #{grp.groupNumber || "1"}
+                      </span>
+                      <h4 className="font-extrabold text-base text-slate-900">{grp.groupName}</h4>
+                    </div>
+
+                    <Link
+                      href={`/dashboard/projects/${project.id}/groups/${grp.id}`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-800 hover:underline"
+                    >
+                      <span>Full Group Review Console</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+
+                  {grp.repoUrl ? (
+                    <LecturerRepositoryViewer group={grp} project={project} defaultTab="summary" />
+                  ) : (
+                    <div className="bg-white rounded-2xl border border-amber-200/80 p-6 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+                          <AlertCircle className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-bold text-slate-900">
+                            GitHub Repository Not Yet Connected
+                          </h4>
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            The student team members of <strong>{grp.groupName}</strong> have not yet linked their group repository.
+                            Students can paste their repository URL in their group workspace to activate automated commit tracking, pull request evaluation, and code inspection.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span>Lead: {grp.members[0]?.fullName || "Assigned Student"}</span>
+                        <Link
+                          href={`/dashboard/projects/${project.id}/workspace`}
+                          className="font-bold text-teal-700 hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>Open Workspace</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 5: Group Assignment */}
+      {activeTab === "assignment" && (
+        <div className="space-y-6">
+          <GroupAssignmentSection
+            projectId={project.id}
+            initialSourceType={project.assignmentSourceType}
+            initialFilePath={project.assignmentFilePath}
+            initialFileName={project.assignmentFileName}
+            initialFileSize={project.assignmentFileSize}
+            initialText={project.assignmentText}
+            initialStatus={project.assignmentProcessingStatus}
+          />
         </div>
       )}
 

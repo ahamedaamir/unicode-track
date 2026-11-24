@@ -61,6 +61,12 @@ export interface Project {
   githubRequired?: boolean;
   finalReportRequired?: boolean;
   additionalRequirements?: string;
+  assignmentSourceType?: "pdf" | "text" | "none";
+  assignmentFilePath?: string;
+  assignmentFileName?: string;
+  assignmentFileSize?: string;
+  assignmentText?: string;
+  assignmentProcessingStatus?: "pending" | "processing" | "completed" | "error" | "not_uploaded";
   requirementsSource?: "pdf" | "ai" | "manual";
   requirementsContent?: string;
   requirementsPdfName?: string;

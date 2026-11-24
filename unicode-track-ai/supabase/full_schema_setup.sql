@@ -88,6 +88,12 @@ CREATE TABLE IF NOT EXISTS public.projects (
     github_required BOOLEAN DEFAULT true,
     final_report_required BOOLEAN DEFAULT true,
     additional_requirements TEXT,
+    assignment_source_type VARCHAR(20) DEFAULT 'none',
+    assignment_file_path TEXT,
+    assignment_file_name VARCHAR(255),
+    assignment_file_size VARCHAR(50),
+    assignment_text TEXT,
+    assignment_processing_status VARCHAR(50) DEFAULT 'not_uploaded',
     requirements_source VARCHAR(20) DEFAULT 'ai' CHECK (requirements_source IN ('ai', 'pdf', 'manual')),
     requirements_content TEXT,
     requirements_pdf_name VARCHAR(255),
@@ -360,7 +366,8 @@ VALUES
     ('project-requirements', 'project-requirements', true),
     ('proposals', 'proposals', false),
     ('er-diagrams', 'er-diagrams', false),
-    ('profile-photos', 'profile-photos', true)
+    ('profile-photos', 'profile-photos', true),
+    ('group-assignments', 'group-assignments', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage Security Policies:
@@ -373,14 +380,14 @@ CREATE POLICY "Public can view requirements" ON storage.objects
 DROP POLICY IF EXISTS "Authenticated users can upload files" ON storage.objects;
 CREATE POLICY "Authenticated users can upload files" ON storage.objects
     FOR INSERT WITH CHECK (
-        bucket_id IN ('project-requirements', 'proposals', 'er-diagrams', 'profile-photos')
+        bucket_id IN ('project-requirements', 'proposals', 'er-diagrams', 'profile-photos', 'group-assignments')
     );
 
 -- Allow authenticated users to download proposal & ER diagram documents
 DROP POLICY IF EXISTS "Authenticated users can download documents" ON storage.objects;
 CREATE POLICY "Authenticated users can download documents" ON storage.objects
     FOR SELECT USING (
-        bucket_id IN ('proposals', 'er-diagrams')
+        bucket_id IN ('proposals', 'er-diagrams', 'group-assignments')
     );
 
 -- ==============================================================================
