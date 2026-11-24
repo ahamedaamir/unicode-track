@@ -786,12 +786,17 @@ function ProjectDetailContent() {
         <div className="space-y-6">
           <GroupAssignmentSection
             projectId={project.id}
+            projectTitle={project.title}
+            targetDepartmentId={project.departmentId}
             initialSourceType={project.assignmentSourceType}
             initialFilePath={project.assignmentFilePath}
             initialFileName={project.assignmentFileName}
             initialFileSize={project.assignmentFileSize}
             initialText={project.assignmentText}
             initialStatus={project.assignmentProcessingStatus}
+            onConfirmedGroups={() => {
+              setActiveTab("teams");
+            }}
           />
         </div>
       )}

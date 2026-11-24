@@ -875,6 +875,8 @@ function CreateProjectContent() {
             {watchedProjectType === "Group Project" && (
               <div className="pt-2">
                 <GroupAssignmentSection
+                  projectTitle={watchedTitle || "Draft Project"}
+                  targetDepartmentId={watchedDepartmentId}
                   onAssignmentChange={(data) => {
                     setGroupAssignmentData(data);
                   }}

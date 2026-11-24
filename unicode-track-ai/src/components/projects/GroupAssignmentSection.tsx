@@ -25,11 +25,14 @@ import {
   FileCode2,
   ChevronDown,
   ChevronUp,
+  Sliders,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useAdminData } from "@/context/AdminDataContext";
 import { ExtractionResult, ProcessedGroup } from "@/services/ai/extract-groups";
+import { LecturerGroupReviewWorkspace } from "@/components/groups/LecturerGroupReviewWorkspace";
+import { ProjectGroup } from "@/types/project";
 
 export interface GroupAssignmentData {
   sourceType: "pdf" | "text" | "none";
@@ -42,6 +45,8 @@ export interface GroupAssignmentData {
 
 interface GroupAssignmentSectionProps {
   projectId?: string;
+  projectTitle?: string;
+  targetDepartmentId?: string;
   initialSourceType?: "pdf" | "text" | "none";
   initialFilePath?: string;
   initialFileName?: string;
@@ -50,11 +55,14 @@ interface GroupAssignmentSectionProps {
   initialStatus?: "pending" | "processing" | "completed" | "error" | "not_uploaded";
   onAssignmentChange?: (data: GroupAssignmentData) => void;
   onExtractedGroupsChange?: (data: ExtractionResult) => void;
+  onConfirmedGroups?: (groups: ProjectGroup[]) => void;
   className?: string;
 }
 
 export function GroupAssignmentSection({
   projectId,
+  projectTitle = "Academic Project",
+  targetDepartmentId,
   initialSourceType = "none",
   initialFilePath = "",
   initialFileName = "",
@@ -63,9 +71,14 @@ export function GroupAssignmentSection({
   initialStatus = "not_uploaded",
   onAssignmentChange,
   onExtractedGroupsChange,
+  onConfirmedGroups,
   className = "",
 }: GroupAssignmentSectionProps) {
   const { students } = useAdminData();
+
+  // Review Workspace display toggle
+  const [showReviewWorkspace, setShowReviewWorkspace] = useState(false);
+  const [confirmedGroups, setConfirmedGroups] = useState<ProjectGroup[] | null>(null);
 
   // Input method: Option 1 (PDF) vs Option 2 (Text)
   const [activeMethod, setActiveMethod] = useState<"pdf" | "text">(
@@ -408,6 +421,7 @@ export function GroupAssignmentSection({
 
       setExtractionResult(data.data);
       setProcessingStatus("completed");
+      setShowReviewWorkspace(true);
 
       if (onExtractedGroupsChange) {
         onExtractedGroupsChange(data.data);
@@ -426,6 +440,7 @@ export function GroupAssignmentSection({
     setExtractionResult(null);
     setExtractionError("");
     setIsOcrRequired(false);
+    setShowReviewWorkspace(false);
     setProcessingStatus("pending");
   };
 
@@ -919,7 +934,7 @@ export function GroupAssignmentSection({
       )}
 
       {/* ======================================================================= */}
-      {/* EXTRACTION PREVIEW: STRUCTURED REVIEW FOR LECTURER                     */}
+      {/* EXTRACTION PREVIEW & LECTURER REVIEW WORKSPACE                          */}
       {/* ======================================================================= */}
       {extractionResult && (
         <div className="space-y-4 pt-2 border-t border-slate-200 animate-in fade-in-50">
@@ -932,18 +947,27 @@ export function GroupAssignmentSection({
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <h4 className="font-extrabold text-sm sm:text-base text-white tracking-tight">
-                    Gemini AI Extraction Preview
+                    Gemini AI Extraction & Student Matching
                   </h4>
                   <span className="text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/20">
                     Zod Validated
                   </span>
                 </div>
                 <p className="text-xs text-slate-300">
-                  Review the extracted group roster and database match statuses below.
+                  Students matched against database using strict priority (Exact ID &gt; Exact Email &gt; Unique Name).
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setShowReviewWorkspace(!showReviewWorkspace)}
+                  icon={<Sliders className="w-3.5 h-3.5" />}
+                >
+                  {showReviewWorkspace ? "Hide Review Workspace" : "Open Lecturer Review Screen"}
+                </Button>
                 <button
                   type="button"
                   onClick={handleExtractGroups}
@@ -958,34 +982,64 @@ export function GroupAssignmentSection({
                   onClick={handleClearExtraction}
                   className="px-3 py-1.5 bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-semibold transition-colors"
                 >
-                  Clear Preview
+                  Clear
                 </button>
               </div>
             </div>
 
-            {/* Metrics Pills */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 border-t border-slate-800 text-xs">
+            {/* Metrics Pills: 5 Matching Categories */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-3 border-t border-slate-800 text-xs">
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Groups</span>
                 <span className="text-base font-bold text-white mt-0.5 block">{extractionResult.totalGroups} Teams</span>
               </div>
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Students</span>
-                <span className="text-base font-bold text-teal-400 mt-0.5 block">{extractionResult.totalMembers} Enrolled</span>
+                <span className="text-base font-bold text-teal-400 mt-0.5 block">{extractionResult.totalMembers} Total</span>
               </div>
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">DB Matched</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Matched</span>
                 <span className="text-base font-bold text-emerald-400 mt-0.5 block">{extractionResult.matchedCount} Verified</span>
               </div>
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unresolved</span>
-                <span className="text-base font-bold text-amber-400 mt-0.5 block">{extractionResult.unresolvedCount} Pending</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unmatched / Ambiguous</span>
+                <span className="text-base font-bold text-amber-400 mt-0.5 block">
+                  {extractionResult.unmatchedCount + (extractionResult.ambiguousCount || 0)} Pending
+                </span>
+              </div>
+              <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Conflicts</span>
+                <span className={`text-base font-bold mt-0.5 block ${
+                  (extractionResult.duplicateCount || 0) + (extractionResult.invalidCount || 0) > 0 ? "text-rose-400" : "text-slate-400"
+                }`}>
+                  {(extractionResult.duplicateCount || 0) + (extractionResult.invalidCount || 0)} Blocking
+                </span>
               </div>
             </div>
           </div>
 
+          {/* Success Banner if Groups Already Confirmed */}
+          {confirmedGroups && confirmedGroups.length > 0 && (
+            <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2 animate-in fade-in-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <h4 className="font-bold text-sm text-emerald-950">
+                    Group Assignments Confirmed & Workspaces Created
+                  </h4>
+                </div>
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  {confirmedGroups.length} Groups • {confirmedGroups.reduce((acc, g) => acc + g.members.length, 0)} Students
+                </span>
+              </div>
+              <p className="text-xs text-emerald-800 leading-relaxed">
+                All project groups have been instantiated with isolated workspace identifiers. Members can now collaborate and connect their repositories.
+              </p>
+            </div>
+          )}
+
           {/* Warnings Banner (If any) */}
-          {extractionResult.warnings && extractionResult.warnings.length > 0 && (
+          {extractionResult.warnings && extractionResult.warnings.length > 0 && !showReviewWorkspace && (
             <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
               <div className="flex items-center gap-2 font-bold text-amber-950">
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
@@ -999,123 +1053,173 @@ export function GroupAssignmentSection({
             </div>
           )}
 
-          {/* Group Roster Cards */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between">
-              <span>Extracted Groups Roster</span>
-              <span className="text-[11px] text-slate-500 font-normal">
-                Click any group to expand/collapse member details
-              </span>
-            </h4>
+          {/* RENDER MODE A: FULL INTERACTIVE LECTURER REVIEW WORKSPACE */}
+          {showReviewWorkspace ? (
+            <div className="space-y-4 pt-2">
+              <LecturerGroupReviewWorkspace
+                projectId={projectId || "draft-project"}
+                projectTitle={projectTitle}
+                initialGroups={extractionResult.groups}
+                initialWarnings={extractionResult.warnings}
+                targetDepartmentId={targetDepartmentId}
+                onConfirmed={(created) => {
+                  setConfirmedGroups(created);
+                  setShowReviewWorkspace(false);
+                  setProcessingStatus("completed");
+                  if (onConfirmedGroups) {
+                    onConfirmedGroups(created);
+                  }
+                }}
+                onCancel={() => setShowReviewWorkspace(false)}
+              />
+            </div>
+          ) : (
+            /* RENDER MODE B: COLLAPSED PREVIEW ROSTER */
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  <span>Extracted Groups Roster</span>
+                  <span className="text-[11px] text-slate-500 font-normal">
+                    (Click &quot;Open Lecturer Review Screen&quot; above to resolve unmatched students or edit assignments)
+                  </span>
+                </h4>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {extractionResult.groups.map((grp: ProcessedGroup, gIdx: number) => {
-                const isExpanded = expandedGroupIdx === null || expandedGroupIdx === gIdx;
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {extractionResult.groups.map((grp: ProcessedGroup, gIdx: number) => {
+                  const isExpanded = expandedGroupIdx === null || expandedGroupIdx === gIdx;
+                  const matchedInGroup = grp.members.filter((m) => m.status === "Matched").length;
 
-                return (
-                  <div
-                    key={grp.group_number || gIdx}
-                    className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-3 shadow-2xs"
-                  >
-                    {/* Group Header */}
+                  return (
                     <div
-                      className="flex items-center justify-between cursor-pointer select-none"
-                      onClick={() => setExpandedGroupIdx(isExpanded && expandedGroupIdx === gIdx ? -1 : gIdx)}
+                      key={grp.group_number || gIdx}
+                      className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-3 shadow-2xs"
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
-                          #{grp.group_number}
-                        </span>
-                        <div>
-                          <h5 className="font-bold text-xs sm:text-sm text-slate-900">
-                            {grp.group_name || `Group ${grp.group_number}`}
-                          </h5>
-                          <span className="text-[11px] text-slate-500">
-                            {grp.members.length} student members
+                      {/* Group Header */}
+                      <div
+                        className="flex items-center justify-between cursor-pointer select-none"
+                        onClick={() => setExpandedGroupIdx(isExpanded && expandedGroupIdx === gIdx ? -1 : gIdx)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                            #{grp.group_number}
                           </span>
+                          <div>
+                            <h5 className="font-bold text-xs sm:text-sm text-slate-900">
+                              {grp.group_name || `Group ${grp.group_number}`}
+                            </h5>
+                            <span className="text-[11px] text-slate-500">
+                              {grp.members.length} student members
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            {matchedInGroup} / {grp.members.length} matched
+                          </span>
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-slate-400" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-slate-400" />
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          {grp.members.filter((m) => m.matched).length} / {grp.members.length} matched
-                        </span>
-                        {isExpanded ? (
-                          <ChevronUp className="w-4 h-4 text-slate-400" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
-                        )}
-                      </div>
-                    </div>
+                      {/* Member List with 5 Status Badges */}
+                      {isExpanded && (
+                        <div className="pt-2 border-t border-slate-100 space-y-2 text-xs">
+                          {grp.members.map((member, mIdx) => (
+                            <div
+                              key={mIdx}
+                              className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                                member.status === "Matched"
+                                  ? "bg-slate-50/70 border-slate-200/80"
+                                  : member.status === "Ambiguous"
+                                  ? "bg-purple-50/50 border-purple-200"
+                                  : member.status === "Duplicate" || member.status === "Invalid student"
+                                  ? "bg-rose-50/50 border-rose-200"
+                                  : "bg-amber-50/50 border-amber-200/80"
+                              }`}
+                            >
+                              <div className="space-y-0.5 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-slate-900 truncate">
+                                    {member.full_name}
+                                  </span>
+                                  {mIdx === 0 && (
+                                    <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-1.5 py-0.2 rounded border border-teal-200">
+                                      Lead
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-mono">
+                                  <span>
+                                    ID: <strong className="text-slate-800">{member.student_id || "None"}</strong>
+                                  </span>
+                                  {member.email && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="truncate max-w-[180px]">{member.email}</span>
+                                    </>
+                                  )}
+                                  {member.matchedStudent && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="text-teal-700 font-medium">DB: {member.matchedStudent.fullName}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
 
-                    {/* Member List */}
-                    {isExpanded && (
-                      <div className="pt-2 border-t border-slate-100 space-y-2 text-xs">
-                        {grp.members.map((member, mIdx) => (
-                          <div
-                            key={mIdx}
-                            className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
-                              member.matched
-                                ? "bg-slate-50/70 border-slate-200/80"
-                                : "bg-amber-50/50 border-amber-200/80"
-                            }`}
-                          >
-                            <div className="space-y-0.5 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-900 truncate">
-                                  {member.full_name}
-                                </span>
-                                {mIdx === 0 && (
-                                  <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-1.5 py-0.2 rounded border border-teal-200">
-                                    Lead
+                              {/* 5 Distinct Match Status Badges */}
+                              <div className="shrink-0 self-start sm:self-center">
+                                {member.status === "Matched" ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <UserCheck className="w-3 h-3 text-emerald-600" />
+                                    <span>Matched ({member.matchType})</span>
+                                  </span>
+                                ) : member.status === "Ambiguous" ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                    <AlertCircle className="w-3 h-3 text-purple-600" />
+                                    <span>Ambiguous</span>
+                                  </span>
+                                ) : member.status === "Duplicate" ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                    <AlertTriangle className="w-3 h-3 text-rose-600" />
+                                    <span>Duplicate</span>
+                                  </span>
+                                ) : member.status === "Invalid student" ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                    <AlertCircle className="w-3 h-3 text-rose-600" />
+                                    <span>Invalid student</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <UserX className="w-3 h-3 text-amber-600" />
+                                    <span>Unmatched</span>
                                   </span>
                                 )}
                               </div>
-                              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-mono">
-                                <span>
-                                  ID: <strong className="text-slate-800">{member.student_id || "None"}</strong>
-                                </span>
-                                {member.email && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="truncate max-w-[180px]">{member.email}</span>
-                                  </>
-                                )}
-                              </div>
                             </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
-                            {/* Database Match Status Pill */}
-                            <div className="shrink-0 self-start sm:self-center">
-                              {member.matched ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  <UserCheck className="w-3 h-3 text-emerald-600" />
-                                  <span>Matched ({member.matchType})</span>
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                  <UserX className="w-3 h-3 text-amber-600" />
-                                  <span>Unmatched</span>
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {/* Institutional Integrity Notice */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  <strong>Architectural Notice:</strong> Gemini AI operates strictly in read-only analysis mode and has not created database groups.
+                  Click <strong>&quot;Open Lecturer Review Screen&quot;</strong> to reconcile unmatched students, resolve conflicts, and explicitly click <strong>&quot;Confirm Group Assignments&quot;</strong>.
+                </p>
+              </div>
             </div>
-          </div>
-
-          {/* Institutional Integrity Notice */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-            <p className="leading-relaxed">
-              <strong>Architectural Notice:</strong> Gemini AI operates in read-only analysis mode and has not created or modified database groups.
-              Review the extracted student allocations above. Group records and isolated workspaces will only be instantiated upon your final project confirmation.
-            </p>
-          </div>
+          )}
         </div>
       )}
 

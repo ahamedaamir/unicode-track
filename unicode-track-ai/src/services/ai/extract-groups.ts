@@ -47,11 +47,19 @@ export type GeminiGroupExtractionResponse = z.infer<typeof GeminiGroupExtraction
 // 2. Types for Processed & Database-Matched Extraction Results
 // =============================================================================
 
+export type MatchStatus =
+  | "Matched"
+  | "Unmatched"
+  | "Ambiguous"
+  | "Duplicate"
+  | "Invalid student";
+
 export interface ProcessedMember {
+  id: string; // Unique key for UI manipulation
   student_id: string | null;
   full_name: string;
   email: string | null;
-  matched: boolean;
+  status: MatchStatus;
   matchType: "id" | "email" | "name" | null;
   matchedStudent?: {
     id: string;
@@ -59,16 +67,38 @@ export interface ProcessedMember {
     fullName: string;
     email: string;
     department?: string;
+    departmentId?: string;
     academicYear?: number;
     semester?: number;
+    profilePhotoUrl?: string | null;
   };
+  ambiguousMatches?: {
+    id: string;
+    studentId?: string;
+    fullName: string;
+    email: string;
+    department?: string;
+  }[];
+  duplicateGroupNumbers?: number[];
   warning?: string;
 }
 
 export interface ProcessedGroup {
+  id: string; // Unique group key for UI manipulation
   group_number: number;
   group_name: string;
   members: ProcessedMember[];
+}
+
+export interface AssignmentValidationStats {
+  totalGroups: number;
+  totalMembers: number;
+  matchedCount: number;
+  unmatchedCount: number;
+  ambiguousCount: number;
+  duplicateCount: number;
+  invalidCount: number;
+  hasBlockingErrors: boolean;
 }
 
 export interface ExtractionResult {
@@ -77,7 +107,11 @@ export interface ExtractionResult {
   totalGroups: number;
   totalMembers: number;
   matchedCount: number;
-  unresolvedCount: number;
+  unmatchedCount: number;
+  ambiguousCount: number;
+  duplicateCount: number;
+  invalidCount: number;
+  hasBlockingErrors: boolean;
   sourceType: "pdf" | "text";
   rawTextExcerpt?: string;
 }
@@ -105,7 +139,9 @@ export async function extractTextFromPdfBuffer(
     const uint8 = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
     const result = await extractText(uint8, { mergePages: true });
 
-    const rawText = (typeof result.text === "string" ? result.text : (result.text as string[])?.join("\n\n")) || "";
+    const rawText =
+      (typeof result.text === "string" ? result.text : (result.text as string[])?.join("\n\n")) ||
+      "";
     const cleanText = rawText.trim();
 
     // Check if extracted text is too sparse (typical of scanned image PDFs)
@@ -140,7 +176,7 @@ export async function extractTextFromPdfBuffer(
 /**
  * Normalizes string for fuzzy/case-insensitive matching
  */
-function normalizeStr(str: string): string {
+export function normalizeStr(str: string): string {
   return str.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
@@ -244,29 +280,40 @@ Return ONLY valid JSON.`;
 }
 
 // =============================================================================
-// 5. Database Matching & Student Cross-Referencing
+// 5. High-Precision Matching Engine (Exact Priority Order & Status Resolution)
 // =============================================================================
 
 /**
- * Attempts to match an extracted raw member against the registered student database
+ * Attempts to match an extracted member against registered student records.
+ * Matching priority:
+ * 1. Exact student ID
+ * 2. Exact email address
+ * 3. Carefully normalized full name, ONLY when reliable (exactly 1 match)
+ * If multiple records match the name -> Ambiguous.
  */
-export function matchStudentToDatabase(
+export function matchStudentWithPriority(
   rawName: string,
   rawId: string | null,
   rawEmail: string | null,
   registeredStudents: Student[] = []
-): { matchedStudent: Student | null; matchType: "email" | "id" | "name" | null } {
-  // 1. Try matching by email
-  if (rawEmail) {
-    const cleanEmail = rawEmail.toLowerCase().trim();
-    const byEmail = registeredStudents.find(
-      (s) => s.email && s.email.toLowerCase().trim() === cleanEmail
-    );
-    if (byEmail) return { matchedStudent: byEmail, matchType: "email" };
+): {
+  status: MatchStatus;
+  matchedStudent?: Student;
+  matchType: "id" | "email" | "name" | null;
+  ambiguousMatches?: Student[];
+  warning?: string;
+} {
+  // Validate basic student information
+  if (!rawName || !rawName.trim()) {
+    return {
+      status: "Invalid student",
+      matchType: null,
+      warning: "Student full name is missing or invalid.",
+    };
   }
 
-  // 2. Try matching by Student ID
-  if (rawId) {
+  // PRIORITY 1: Exact Student ID
+  if (rawId && rawId.trim()) {
     const normRawId = normalizeStr(rawId);
     const byId = registeredStudents.find((s) => {
       if (!s.studentId && !s.id) return false;
@@ -274,111 +321,282 @@ export function matchStudentToDatabase(
       const normId = normalizeStr(s.id || "");
       return normStudentId === normRawId || normId === normRawId;
     });
-    if (byId) return { matchedStudent: byId, matchType: "id" };
+
+    if (byId) {
+      return {
+        status: "Matched",
+        matchedStudent: byId,
+        matchType: "id",
+      };
+    }
   }
 
-  // 3. Try matching by Full Name
+  // PRIORITY 2: Exact Email Address
+  if (rawEmail && rawEmail.trim()) {
+    const cleanEmail = rawEmail.toLowerCase().trim();
+    const byEmail = registeredStudents.find(
+      (s) => s.email && s.email.toLowerCase().trim() === cleanEmail
+    );
+
+    if (byEmail) {
+      return {
+        status: "Matched",
+        matchedStudent: byEmail,
+        matchType: "email",
+      };
+    }
+  }
+
+  // PRIORITY 3: Carefully normalized full name, ONLY when reliable
   const normRawName = normalizeStr(rawName);
   if (normRawName.length >= 3) {
-    const byName = registeredStudents.find((s) => {
+    const matchingStudents = registeredStudents.filter((s) => {
       const normStudentName = normalizeStr(s.fullName);
-      return (
-        normStudentName === normRawName ||
-        normStudentName.includes(normRawName) ||
-        normRawName.includes(normStudentName)
-      );
+      return normStudentName === normRawName;
     });
-    if (byName) return { matchedStudent: byName, matchType: "name" };
+
+    // Exactly 1 unambiguous match
+    if (matchingStudents.length === 1) {
+      return {
+        status: "Matched",
+        matchedStudent: matchingStudents[0],
+        matchType: "name",
+      };
+    }
+
+    // Ambiguous: multiple students share the exact same normalized name
+    if (matchingStudents.length > 1) {
+      return {
+        status: "Ambiguous",
+        matchType: null,
+        ambiguousMatches: matchingStudents,
+        warning: `Ambiguous match: Found ${matchingStudents.length} students with name "${rawName}". Manual lecturer selection required.`,
+      };
+    }
+
+    // Try high-confidence prefix/suffix match (e.g. "Alex Chen" vs "Alex Chen Jr" or "Alexander Chen")
+    const partialMatches = registeredStudents.filter((s) => {
+      const norm = normalizeStr(s.fullName);
+      return norm.includes(normRawName) || normRawName.includes(norm);
+    });
+
+    if (partialMatches.length === 1 && partialMatches[0].fullName.toLowerCase().includes(rawName.toLowerCase())) {
+      return {
+        status: "Matched",
+        matchedStudent: partialMatches[0],
+        matchType: "name",
+      };
+    }
+
+    if (partialMatches.length > 1) {
+      return {
+        status: "Ambiguous",
+        matchType: null,
+        ambiguousMatches: partialMatches,
+        warning: `Multiple partial matches found for "${rawName}". Please select the correct student.`,
+      };
+    }
   }
 
-  return { matchedStudent: null, matchType: null };
+  // No match found
+  return {
+    status: "Unmatched",
+    matchType: null,
+    warning: `Student "${rawName}" (ID: ${rawId || "N/A"}) was not found in the registered student records.`,
+  };
+}
+
+/**
+ * Re-validates all groups and members:
+ * - Detects duplicate students across multiple groups within the project
+ * - Checks department/academic cohort alignment
+ * - Computes complete validation stats
+ */
+export function revalidateAssignmentGroups(
+  groups: ProcessedGroup[],
+  registeredStudents: Student[] = [],
+  targetDepartmentId?: string
+): {
+  groups: ProcessedGroup[];
+  warnings: string[];
+  stats: AssignmentValidationStats;
+} {
+  const warnings: string[] = [];
+
+  // Track student occurrences across groups: key -> array of group numbers
+  const studentOccurrences = new Map<string, number[]>();
+
+  groups.forEach((grp) => {
+    grp.members.forEach((m) => {
+      const studentKey = m.matchedStudent?.id || (m.student_id ? normalizeStr(m.student_id) : null);
+      if (studentKey) {
+        const existing = studentOccurrences.get(studentKey) || [];
+        existing.push(grp.group_number);
+        studentOccurrences.set(studentKey, existing);
+      }
+    });
+  });
+
+  let totalMembersCount = 0;
+  let matchedCount = 0;
+  let unmatchedCount = 0;
+  let ambiguousCount = 0;
+  let duplicateCount = 0;
+  let invalidCount = 0;
+
+  const revalidatedGroups: ProcessedGroup[] = groups.map((grp) => {
+    const updatedMembers: ProcessedMember[] = grp.members.map((m) => {
+      totalMembersCount++;
+
+      // Check if student is duplicate across multiple groups
+      const studentKey = m.matchedStudent?.id || (m.student_id ? normalizeStr(m.student_id) : null);
+      const appearances = studentKey ? studentOccurrences.get(studentKey) || [] : [];
+      const isDuplicate = appearances.length > 1;
+
+      let finalStatus: MatchStatus = m.status;
+      let finalWarning: string | undefined = m.warning;
+
+      if (!m.full_name || !m.full_name.trim()) {
+        finalStatus = "Invalid student";
+        finalWarning = "Student full name is blank or malformed.";
+      } else if (isDuplicate) {
+        finalStatus = "Duplicate";
+        const otherGroups = appearances.filter((gNum) => gNum !== grp.group_number);
+        finalWarning = `Duplicate student: "${m.full_name}" is assigned to multiple groups (Groups: ${Array.from(new Set(appearances)).join(", ")}).`;
+        warnings.push(finalWarning);
+      } else if (m.matchedStudent) {
+        finalStatus = "Matched";
+
+        // Department warning
+        if (
+          targetDepartmentId &&
+          m.matchedStudent.departmentId &&
+          m.matchedStudent.departmentId !== targetDepartmentId
+        ) {
+          warnings.push(
+            `Cohort Notice: Student "${m.full_name}" (Group ${grp.group_number}) belongs to department ${m.matchedStudent.departmentId}, which differs from the project department.`
+          );
+        }
+      }
+
+      // Count stats
+      if (finalStatus === "Matched") matchedCount++;
+      else if (finalStatus === "Unmatched") unmatchedCount++;
+      else if (finalStatus === "Ambiguous") ambiguousCount++;
+      else if (finalStatus === "Duplicate") duplicateCount++;
+      else if (finalStatus === "Invalid student") invalidCount++;
+
+      return {
+        ...m,
+        status: finalStatus,
+        duplicateGroupNumbers: isDuplicate ? Array.from(new Set(appearances)) : undefined,
+        warning: finalWarning,
+      };
+    });
+
+    return {
+      ...grp,
+      members: updatedMembers,
+    };
+  });
+
+  // Unique warnings
+  const uniqueWarnings = Array.from(new Set(warnings));
+
+  // Determine if there are blocking errors
+  // Duplicates and Invalid students block confirmation; Unmatched & Ambiguous produce warnings
+  const hasBlockingErrors = duplicateCount > 0 || invalidCount > 0;
+
+  return {
+    groups: revalidatedGroups,
+    warnings: uniqueWarnings,
+    stats: {
+      totalGroups: revalidatedGroups.length,
+      totalMembers: totalMembersCount,
+      matchedCount,
+      unmatchedCount,
+      ambiguousCount,
+      duplicateCount,
+      invalidCount,
+      hasBlockingErrors,
+    },
+  };
 }
 
 /**
  * Cross-references Gemini-extracted groups against registered university students.
- * Gemini does not modify database records. This prepares a clean reviewable model for the lecturer.
+ * Initializes the reviewable model for the lecturer review screen.
  */
 export function matchExtractedGroupsToDatabase(
   geminiResult: GeminiGroupExtractionResponse,
   registeredStudents: Student[] = [],
   sourceType: "pdf" | "text" = "text",
-  rawTextExcerpt?: string
+  rawTextExcerpt?: string,
+  targetDepartmentId?: string
 ): ExtractionResult {
-  const warnings: string[] = [...(geminiResult.warnings || [])];
-  let totalMembersCount = 0;
-  let matchedMembersCount = 0;
-  let unresolvedMembersCount = 0;
+  const initialGroups: ProcessedGroup[] = geminiResult.groups.map((grp, gIdx) => {
+    const groupNum = grp.group_number || gIdx + 1;
+    const groupName = grp.group_name || `Group ${groupNum < 10 ? `0${groupNum}` : groupNum}`;
+    const groupId = `grp-temp-${Date.now().toString(36)}-${gIdx + 1}`;
 
-  const processedGroups: ProcessedGroup[] = geminiResult.groups.map((grp) => {
-    const groupNum = grp.group_number;
-    const groupName =
-      grp.group_name || `Group ${groupNum < 10 ? `0${groupNum}` : groupNum}`;
-
-    const members: ProcessedMember[] = grp.members.map((m) => {
-      totalMembersCount++;
-
-      // Check for missing student ID warning
-      if (!m.student_id) {
-        warnings.push(
-          `Group ${groupNum}: Student "${m.full_name}" is missing a student ID.`
-        );
-      }
-
-      const { matchedStudent, matchType } = matchStudentToDatabase(
+    const members: ProcessedMember[] = grp.members.map((m, mIdx) => {
+      const matchResult = matchStudentWithPriority(
         m.full_name,
         m.student_id,
         m.email,
         registeredStudents
       );
 
-      if (matchedStudent) {
-        matchedMembersCount++;
-        return {
-          student_id: m.student_id || matchedStudent.studentId || matchedStudent.id,
-          full_name: matchedStudent.fullName || m.full_name,
-          email: m.email || matchedStudent.email,
-          matched: true,
-          matchType,
-          matchedStudent: {
-            id: matchedStudent.id,
-            studentId: matchedStudent.studentId,
-            fullName: matchedStudent.fullName,
-            email: matchedStudent.email,
-            department: matchedStudent.departmentId,
-            academicYear: matchedStudent.academicYear,
-            semester: matchedStudent.semester,
-          },
-        };
-      }
-
-      unresolvedMembersCount++;
-      const warningMsg = `Group ${groupNum}: Student "${m.full_name}" was not matched in the registered university database.`;
-      warnings.push(warningMsg);
-
       return {
-        student_id: m.student_id,
-        full_name: m.full_name,
-        email: m.email,
-        matched: false,
-        matchType: null,
-        warning: "Unregistered student record — requires lecturer verification.",
+        id: `mem-${groupId}-${mIdx + 1}`,
+        student_id: m.student_id || matchResult.matchedStudent?.studentId || matchResult.matchedStudent?.id || null,
+        full_name: matchResult.matchedStudent?.fullName || m.full_name,
+        email: m.email || matchResult.matchedStudent?.email || null,
+        status: matchResult.status,
+        matchType: matchResult.matchType,
+        matchedStudent: matchResult.matchedStudent
+          ? {
+              id: matchResult.matchedStudent.id,
+              studentId: matchResult.matchedStudent.studentId,
+              fullName: matchResult.matchedStudent.fullName,
+              email: matchResult.matchedStudent.email,
+              department: matchResult.matchedStudent.departmentId,
+              departmentId: matchResult.matchedStudent.departmentId,
+              academicYear: matchResult.matchedStudent.academicYear,
+              semester: matchResult.matchedStudent.semester,
+              profilePhotoUrl: matchResult.matchedStudent.profilePhotoUrl,
+            }
+          : undefined,
+        ambiguousMatches: matchResult.ambiguousMatches?.map((s) => ({
+          id: s.id,
+          studentId: s.studentId,
+          fullName: s.fullName,
+          email: s.email,
+          department: s.departmentId,
+        })),
+        warning: matchResult.warning,
       };
     });
 
     return {
+      id: groupId,
       group_number: groupNum,
       group_name: groupName,
       members,
     };
   });
 
+  // Revalidate to detect duplicates and build complete statistics
+  const { groups: validatedGroups, warnings, stats } = revalidateAssignmentGroups(
+    initialGroups,
+    registeredStudents,
+    targetDepartmentId
+  );
+
   return {
-    groups: processedGroups,
-    warnings: Array.from(new Set(warnings)),
-    totalGroups: processedGroups.length,
-    totalMembers: totalMembersCount,
-    matchedCount: matchedMembersCount,
-    unresolvedCount: unresolvedMembersCount,
+    groups: validatedGroups,
+    warnings,
+    ...stats,
     sourceType,
     rawTextExcerpt: rawTextExcerpt ? rawTextExcerpt.slice(0, 300) : undefined,
   };
@@ -415,11 +633,6 @@ export function fallbackDeterministicGroupExtractor(
     }
 
     // Match student member line:
-    // Formats:
-    // "IT230001 - Student One (one@university.edu)"
-    // "CS2023001: John Doe"
-    // "std-1 - Alex Chen"
-    // "1. Alex Chen - IT230001"
     if (currentGroup) {
       const cleanLine = line.replace(/^[-*•\d.]+\s*/, "").trim();
       if (!cleanLine) continue;
@@ -428,7 +641,7 @@ export function fallbackDeterministicGroupExtractor(
       let fullName: string = cleanLine;
       let email: string | null = null;
 
-      // Extract email if enclosed in parentheses or standalone
+      // Extract email
       const emailMatch = cleanLine.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
       if (emailMatch) {
         email = emailMatch[1].toLowerCase();
@@ -441,7 +654,6 @@ export function fallbackDeterministicGroupExtractor(
         studentId = idFirstMatch[1].trim();
         fullName = idFirstMatch[2].trim();
       } else {
-        // Check Name - ID pattern (e.g. "Student One - IT230001")
         const idLastMatch = fullName.match(/^(.+?)\s*[-:]\s*([A-Za-z]{2,4}\d{4,8}|std-\d+|CS\d{6,8}|IT\d{6,8})$/i);
         if (idLastMatch) {
           fullName = idLastMatch[1].trim();
