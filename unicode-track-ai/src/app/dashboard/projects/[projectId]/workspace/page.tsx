@@ -35,7 +35,7 @@ import {
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { ProposalSubmission, ProjectGroup } from "@/types/project";
+import { ProposalSubmission, ProjectGroup, ProjectStudentAssignment } from "@/types/project";
 
 function GroupWorkspaceContent() {
   const params = useParams();
@@ -48,6 +48,7 @@ function GroupWorkspaceContent() {
     courses,
     lecturers,
     groups,
+    studentAssignments,
     timelineActivities,
     connectRepoToGroup,
     syncGroupRepo,
@@ -65,12 +66,18 @@ function GroupWorkspaceContent() {
   const lecturer = project ? lecturers.find((l) => l.id === project.lecturerId || l.name === project.lecturerName) : null;
   const isIndividual = project?.projectType === "individual" || project?.type === "Individual Project";
 
-  // All groups for this project
+  // All groups and individual student assignments for this project
   const projectGroups = groups.filter((g) => g.projectId === projectId);
+  const projectAssignments = studentAssignments.filter((a) => a.projectId === projectId);
 
-  // Check student membership
+  // Check student membership in group project
   const studentAssignedGroup = projectGroups.find((g) =>
     g.members.some((m) => m.email.toLowerCase() === activeStudentEmail.toLowerCase())
+  );
+
+  // Check student assignment in individual project
+  const studentAssignedIndividual = projectAssignments.find(
+    (a) => a.studentEmail.toLowerCase() === activeStudentEmail.toLowerCase()
   );
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -79,8 +86,8 @@ function GroupWorkspaceContent() {
     id: `grp-${projectId}-1`,
     projectId: projectId,
     groupNumber: 1,
-    groupName: "Group 01 — Academic Workspace",
-    workspaceId: `ws-${projectId}-1`,
+    groupName: isIndividual ? "Personal Project Workspace" : "Group 01 — Academic Workspace",
+    workspaceId: isIndividual ? `ws-ind-${projectId}-default` : `ws-${projectId}-1`,
     members: [
       {
         studentId: "CS2023001",
@@ -101,34 +108,98 @@ function GroupWorkspaceContent() {
     createdAt: new Date().toISOString(),
   };
 
-  // Determine active group and enforce strict student workspace security
+  const mapAssignmentToGroup = (a: ProjectStudentAssignment): ProjectGroup => ({
+    id: a.id,
+    projectId: a.projectId,
+    groupNumber: 1,
+    groupName: `${a.studentName} — Personal Workspace`,
+    workspaceId: a.workspaceId,
+    members: [
+      {
+        studentId: a.studentId,
+        fullName: a.studentName,
+        email: a.studentEmail,
+        department: a.departmentId || "Faculty of Computing",
+        academicYear: a.academicYear || 4,
+        semester: a.semester || 1,
+        role: "Team Lead",
+        commitsCount: a.totalCommits || 0,
+      },
+    ],
+    repoStatus: a.repoStatus || "disconnected",
+    repoUrl: a.repoUrl,
+    repoName: a.repoName,
+    totalCommits: a.totalCommits || 0,
+    status: a.status || "active",
+    progress: a.progress || 0,
+    proposalStatus: a.proposalStatus || "not_submitted",
+    evaluationScore: a.evaluationScore,
+    createdAt: a.createdAt,
+  });
+
+  // Determine active group/workspace and enforce strict student workspace security
   let group: ProjectGroup;
   let isStudentAccessDenied = false;
 
   if (activeRole === "student") {
-    if (studentAssignedGroup) {
-      group = studentAssignedGroup;
-      // If student manually attempts to view a different group via URL
-      if (urlGroupId && urlGroupId !== studentAssignedGroup.id && urlGroupId !== studentAssignedGroup.workspaceId) {
-        isStudentAccessDenied = true;
+    if (isIndividual) {
+      // Individual Project Workflow: Student accesses ONLY their personal workspace
+      if (studentAssignedIndividual) {
+        group = mapAssignmentToGroup(studentAssignedIndividual);
+        // If student manually attempts to view a different student's workspace via URL
+        if (
+          urlGroupId &&
+          urlGroupId !== studentAssignedIndividual.id &&
+          urlGroupId !== studentAssignedIndividual.workspaceId
+        ) {
+          isStudentAccessDenied = true;
+        }
+      } else {
+        if (projectAssignments.length > 0) {
+          isStudentAccessDenied = true;
+          group = fallbackGroup;
+        } else {
+          group = fallbackGroup;
+        }
       }
     } else {
-      // If groups exist for project but student is not in any group
-      if (projectGroups.length > 0) {
-        isStudentAccessDenied = true;
-        group = fallbackGroup;
+      // Group Project Workflow: Student accesses ONLY their own group workspace
+      if (studentAssignedGroup) {
+        group = studentAssignedGroup;
+        // If student manually attempts to view a different group via URL
+        if (
+          urlGroupId &&
+          urlGroupId !== studentAssignedGroup.id &&
+          urlGroupId !== studentAssignedGroup.workspaceId
+        ) {
+          isStudentAccessDenied = true;
+        }
       } else {
-        group = fallbackGroup;
+        if (projectGroups.length > 0) {
+          isStudentAccessDenied = true;
+          group = fallbackGroup;
+        } else {
+          group = fallbackGroup;
+        }
       }
     }
   } else {
-    // Lecturer / Admin supervisor view: can select and supervise any group in this project
-    const foundGroup =
-      projectGroups.find((g) => g.id === (selectedGroupId || urlGroupId)) ||
-      projectGroups.find((g) => g.workspaceId === (selectedGroupId || urlGroupId)) ||
-      projectGroups[0];
+    // Lecturer / Admin supervisor view: can select and supervise any group/student workspace
+    if (isIndividual) {
+      const foundAssignment =
+        projectAssignments.find(
+          (a) => a.id === (selectedGroupId || urlGroupId) || a.workspaceId === (selectedGroupId || urlGroupId)
+        ) || projectAssignments[0];
 
-    group = foundGroup || fallbackGroup;
+      group = foundAssignment ? mapAssignmentToGroup(foundAssignment) : fallbackGroup;
+    } else {
+      const foundGroup =
+        projectGroups.find((g) => g.id === (selectedGroupId || urlGroupId)) ||
+        projectGroups.find((g) => g.workspaceId === (selectedGroupId || urlGroupId)) ||
+        projectGroups[0];
+
+      group = foundGroup || fallbackGroup;
+    }
   }
 
   // GitHub repo connection state
@@ -205,11 +276,26 @@ function GroupWorkspaceContent() {
           </p>
           <p className="flex justify-between border-t border-slate-200 pt-1 text-rose-600 font-semibold">
             <span>Assignment Status:</span>
-            <span>{studentAssignedGroup ? `Assigned to ${studentAssignedGroup.groupName}` : "Not yet assigned to a group"}</span>
+            <span>
+              {isIndividual
+                ? studentAssignedIndividual
+                  ? `Assigned personal workspace (${studentAssignedIndividual.workspaceId})`
+                  : "Not yet assigned to this individual project"
+                : studentAssignedGroup
+                ? `Assigned to ${studentAssignedGroup.groupName}`
+                : "Not yet assigned to a group"}
+            </span>
           </p>
         </div>
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-          {studentAssignedGroup ? (
+          {isIndividual && studentAssignedIndividual ? (
+            <Button
+              variant="primary"
+              onClick={() => setSelectedGroupId(studentAssignedIndividual.id)}
+            >
+              Go to My Personal Workspace
+            </Button>
+          ) : !isIndividual && studentAssignedGroup ? (
             <Button
               variant="primary"
               onClick={() => setSelectedGroupId(studentAssignedGroup.id)}
