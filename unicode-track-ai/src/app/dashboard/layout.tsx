@@ -44,8 +44,11 @@ function ToastBanner() {
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { activeRole } = useAdminData();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isLecturer = activeRole === "lecturer";
 
   useEffect(() => {
     try {
@@ -68,7 +71,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex bg-[#F8FAFC] text-[#0B1220] font-sans antialiased">
+    <div
+      className={`min-h-screen flex ${
+        isLecturer ? "bg-[#070b13] text-slate-100" : "bg-[#F8FAFC] text-[#0B1220]"
+      } font-sans antialiased`}
+    >
       {/* Sidebar */}
       <Suspense fallback={<div className="w-20 md:w-64 bg-[#0B1220] shrink-0" />}>
         <AdminSidebar
@@ -84,7 +91,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         <Suspense fallback={<div className="h-16 bg-white border-b border-slate-200" />}>
           <AdminTopNavbar onToggleMobileMenu={() => setMobileOpen(!mobileOpen)} />
         </Suspense>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main
+          className={`flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto ${
+            isLecturer ? "bg-[#070b13] text-slate-100" : ""
+          }`}
+        >
           {children}
         </main>
       </div>

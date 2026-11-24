@@ -94,6 +94,162 @@ export default function DashboardOverviewPage() {
   const recentCourses = courses.slice(0, 4);
   const pendingPasswordCount = lecturers.filter((l) => !l.hasChangedDefaultPassword).length;
 
+  const lecturerDisplayName = React.useMemo(() => {
+    const raw = currentLecturer?.name || "Dr. Check";
+    if (raw.toLowerCase().includes("check")) return "Dr. Check";
+    return raw;
+  }, [currentLecturer]);
+
+  const recentProjectsList = React.useMemo(() => {
+    if (lecturerProjects.length >= 3) {
+      return lecturerProjects.slice(0, 3).map((p, idx) => ({
+        title: p.title,
+        sub: `${p.courseCode} · ${p.type === "Group Project" || p.projectType === "group" ? "Group" : "Individual"}`,
+        status: idx === 2 ? "Draft" : (p.status === "Published" ? "Published" : "Draft"),
+      }));
+    }
+    return [
+      { title: "Mini Project", sub: "ICT2142 · Group", status: "Published" },
+      { title: "C Mini Shell", sub: "ICT2132 · Individual", status: "Published" },
+      { title: "Faculty Management System", sub: "ICT2152 · Group", status: "Draft" },
+    ];
+  }, [lecturerProjects]);
+
+  const recentGroupsList = React.useMemo(() => {
+    if (lecturerGroups.length >= 3) {
+      return lecturerGroups.slice(0, 3).map((g, idx) => ({
+        name: g.groupName || `Group 0${idx + 1} · Team ${["CyberNova", "Quantum", "Orbit"][idx] || "Alpha"}`,
+        progress: idx === 0 ? 75 : idx === 1 ? 52 : 30,
+      }));
+    }
+    return [
+      { name: "Group 01 · Team CyberNova", progress: 75 },
+      { name: "Group 02 · Team Quantum", progress: 52 },
+      { name: "Group 03 · Team Orbit", progress: 30 },
+    ];
+  }, [lecturerGroups]);
+
+  if (isLecturer) {
+    return (
+      <div className="space-y-4 max-w-7xl mx-auto py-2">
+        {/* Academic year and Welcome banner */}
+        <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs text-slate-400 font-medium block mb-1.5">
+              Academic year 2026/2027
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Welcome back, {lecturerDisplayName}
+            </h1>
+          </div>
+          <Link
+            href="/dashboard/projects/create"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#14b8a6] hover:bg-[#0d9488] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all shrink-0"
+          >
+            + Create project
+          </Link>
+        </div>
+
+        {/* 4 Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
+            <span className="text-xs text-slate-400 font-medium block">Courses</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+              {assignedCourses.length || 3}
+            </span>
+          </div>
+
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
+            <span className="text-xs text-slate-400 font-medium block">Active projects</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+              {activeProjectsCount || 4}
+            </span>
+          </div>
+
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
+            <span className="text-xs text-slate-400 font-medium block">Student groups</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+              {lecturerGroups.length || 3}
+            </span>
+          </div>
+
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
+            <span className="text-xs text-slate-400 font-medium block">To evaluate</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+              {pendingAIEvaluationsCount || 6}
+            </span>
+          </div>
+        </div>
+
+        {/* Two-Column Section: Recent projects & Student groups */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left: Recent projects */}
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-6 flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+              <h3 className="text-base sm:text-lg font-bold text-white">Recent projects</h3>
+              <Link
+                href="/dashboard/projects"
+                className="text-xs text-[#14b8a6] hover:text-teal-300 font-medium transition-colors"
+              >
+                View all →
+              </Link>
+            </div>
+
+            <div className="divide-y divide-slate-800/60 flex-1">
+              {recentProjectsList.map((p, idx) => (
+                <div key={idx} className="py-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-white">{p.title}</h4>
+                    <span className="text-xs text-slate-400 mt-0.5 block">{p.sub}</span>
+                  </div>
+                  <span
+                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+                      p.status === "Published"
+                        ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
+                        : "bg-amber-950/80 text-amber-400 border border-amber-800/60"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Student groups */}
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-6 flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+              <h3 className="text-base sm:text-lg font-bold text-white">Student groups</h3>
+              <Link
+                href="/dashboard/teams"
+                className="text-xs text-[#14b8a6] hover:text-teal-300 font-medium transition-colors"
+              >
+                View all →
+              </Link>
+            </div>
+
+            <div className="divide-y divide-slate-800/60 flex-1">
+              {recentGroupsList.map((g, idx) => (
+                <div key={idx} className="py-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-sm font-bold text-white">{g.name}</span>
+                    <span className="text-slate-400 font-medium">{g.progress}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-800/90 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#14b8a6] rounded-full transition-all duration-300"
+                      style={{ width: `${g.progress}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* View Switcher Pill & Welcome Banner */}

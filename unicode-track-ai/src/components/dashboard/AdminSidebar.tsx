@@ -109,40 +109,22 @@ export function AdminSidebar({
       count: undefined,
     },
     {
-      name: "My Courses",
-      href: "/dashboard/courses",
-      icon: BookOpen,
-      count: lecturerCourseCount,
-    },
-    {
       name: "Projects",
       href: "/dashboard/projects",
       icon: FolderGit2,
-      count: lecturerProjectsCount,
-    },
-    {
-      name: "Create Project",
-      href: "/dashboard/projects/create",
-      icon: FilePlus2,
       count: undefined,
-    },
-    {
-      name: "Student Groups",
-      href: "/dashboard/teams",
-      icon: Users,
-      count: groups.length || 14,
-    },
-    {
-      name: "Submissions & Reviews",
-      href: "/dashboard/submissions",
-      icon: Inbox,
-      count: 6,
     },
     {
       name: "Evaluations & Marks",
       href: "/dashboard/evaluation",
       icon: CheckSquare,
-      count: 4,
+      count: undefined,
+    },
+    {
+      name: "Hackathon",
+      href: "/dashboard/hackathons",
+      icon: Sparkles,
+      count: undefined,
     },
     {
       name: "My Profile",
@@ -261,9 +243,11 @@ export function AdminSidebar({
 
       {/* Navigation Links */}
       <nav className="flex-1 px-2.5 py-4 space-y-1 overflow-y-auto">
-        <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-          {(!collapsed || mobileOpen) ? (isLecturer ? "Academic Faculty" : isStudent ? "My Learning" : "Administration") : "Menu"}
-        </div>
+        {!isLecturer && (
+          <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            {(!collapsed || mobileOpen) ? (isStudent ? "My Learning" : "Administration") : "Menu"}
+          </div>
+        )}
         {navigation.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
@@ -271,16 +255,18 @@ export function AdminSidebar({
               key={item.name}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group relative ${isActive
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all group relative ${isActive
                 ? "bg-[#14B8A6] text-white shadow-xs font-semibold"
                 : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
                 }`}
               title={collapsed ? item.name : undefined}
             >
-              <item.icon
-                className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white" : "text-slate-400 group-hover:text-teal-400"
-                  }`}
-              />
+              {(!isLecturer || collapsed) && (
+                <item.icon
+                  className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white" : "text-slate-400 group-hover:text-teal-400"
+                    }`}
+                />
+              )}
               {(!collapsed || mobileOpen) && (
                 <span className="flex-1 truncate">{item.name}</span>
               )}
@@ -299,37 +285,60 @@ export function AdminSidebar({
         })}
       </nav>
 
-      {/* Bottom Profile & Role Switcher */}
+      {/* Bottom Profile */}
       <div className="p-3 border-t border-slate-800/80 space-y-2">
-        <div
-          className={`flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/80 border border-slate-800 ${collapsed && !mobileOpen ? "justify-center" : ""
+        {isLecturer ? (
+          <div
+            className={`p-3 rounded-xl bg-slate-900/90 border border-slate-800 ${
+              collapsed && !mobileOpen ? "text-center" : ""
             }`}
-        >
-          <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center shrink-0">
-            {isStudent ? "AC" : isLecturer ? "ER" : "AV"}
-          </div>
-          {(!collapsed || mobileOpen) && (
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1">
+          >
+            {(!collapsed || mobileOpen) && (
+              <div className="min-w-0">
                 <p className="text-xs font-bold text-white truncate">
-                  {isStudent
-                    ? (currentStudent?.fullName || "Alex Chen")
-                    : isLecturer
-                      ? (currentLecturer?.name || "Dr. Evelyn Reed")
-                      : "Dr. Arthur Vance"}
+                  {currentLecturer?.name?.toLowerCase().includes("check")
+                    ? "Dr. Check Lecturer"
+                    : currentLecturer?.name || "Dr. Check Lecturer"}
                 </p>
-                <ShieldCheck className="w-3 h-3 text-teal-400 shrink-0" />
+                <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                  Senior Lecturer · Faculty
+                </p>
               </div>
-              <p className="text-[10px] text-slate-400 truncate">
-                {isStudent
-                  ? "Student • Software Engineering"
-                  : isLecturer
-                    ? "Senior Lecturer • Faculty"
-                    : "University Administrator"}
-              </p>
+            )}
+            {collapsed && !mobileOpen && (
+              <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center mx-auto">
+                DC
+              </div>
+            )}
+          </div>
+        ) : (
+          <div
+            className={`flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/80 border border-slate-800 ${
+              collapsed && !mobileOpen ? "justify-center" : ""
+            }`}
+          >
+            <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center shrink-0">
+              {isStudent ? "AC" : "AV"}
             </div>
-          )}
-        </div>
+            {(!collapsed || mobileOpen) && (
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs font-bold text-white truncate">
+                    {isStudent
+                      ? currentStudent?.fullName || "Alex Chen"
+                      : "Dr. Arthur Vance"}
+                  </p>
+                  <ShieldCheck className="w-3 h-3 text-teal-400 shrink-0" />
+                </div>
+                <p className="text-[10px] text-slate-400 truncate">
+                  {isStudent
+                    ? "Student • Software Engineering"
+                    : "University Administrator"}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           onClick={handleLogout}

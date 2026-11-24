@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAdminData } from "@/context/AdminDataContext";
 import { 
   Menu, 
   Search, 
@@ -22,9 +23,14 @@ interface AdminTopNavbarProps {
 
 export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
   const pathname = usePathname();
+  const { activeRole } = useAdminData();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  if (activeRole === "lecturer" && pathname === "/dashboard") {
+    return null;
+  }
 
   const getPageTitle = (path: string) => {
     if (path === "/dashboard") return "Dashboard Overview";
