@@ -850,6 +850,65 @@ const initialGroups: ProjectGroup[] = [
   },
 ];
 
+const initialStudentAssignments: ProjectStudentAssignment[] = [
+  {
+    id: "assign-proj-2-1",
+    projectId: "proj-2",
+    studentId: "std-1",
+    studentName: "Alex Chen",
+    studentEmail: "alex.chen@university.edu",
+    departmentId: "dept-1",
+    academicYear: 4,
+    semester: 1,
+    workspaceId: "ws-proj-2-std-1",
+    status: "active",
+    progress: 75,
+    proposalStatus: "approved",
+    repoStatus: "connected",
+    repoUrl: "https://github.com/unicodetrack-demo/alexchen-biomed-iot",
+    repoName: "alexchen-biomed-iot",
+    totalCommits: 34,
+    evaluationScore: 88,
+    createdAt: "2026-11-15",
+  },
+  {
+    id: "assign-proj-2-2",
+    projectId: "proj-2",
+    studentId: "std-2",
+    studentName: "Sarah Lin",
+    studentEmail: "sarah.lin@university.edu",
+    departmentId: "dept-1",
+    academicYear: 4,
+    semester: 1,
+    workspaceId: "ws-proj-2-std-2",
+    status: "active",
+    progress: 40,
+    proposalStatus: "submitted",
+    repoStatus: "connected",
+    repoUrl: "https://github.com/unicodetrack-demo/sarahlin-biomed-signal",
+    repoName: "sarahlin-biomed-signal",
+    totalCommits: 18,
+    createdAt: "2026-11-15",
+  },
+  {
+    id: "assign-proj-2-3",
+    projectId: "proj-2",
+    studentId: "std-3",
+    studentName: "David Kim",
+    studentEmail: "david.kim@university.edu",
+    departmentId: "dept-1",
+    academicYear: 4,
+    semester: 1,
+    workspaceId: "ws-proj-2-std-3",
+    status: "active",
+    progress: 15,
+    proposalStatus: "not_submitted",
+    repoStatus: "disconnected",
+    totalCommits: 0,
+    createdAt: "2026-11-15",
+  },
+];
+
 const initialRubrics: Record<string, EvaluationRubric> = {
   "proj-1": {
     id: "rubric-proj-1",
@@ -1453,12 +1512,12 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [studentAssignments, setStudentAssignments] = useState<ProjectStudentAssignment[]>(() => {
-    if (typeof window === "undefined") return [];
+    if (typeof window === "undefined") return initialStudentAssignments;
     try {
       const saved = localStorage.getItem("unicodetrack_student_assignments_v1");
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : initialStudentAssignments;
     } catch {
-      return [];
+      return initialStudentAssignments;
     }
   });
 

@@ -179,14 +179,23 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const courseCode = searchParams.get("courseCode");
     const lecturerId = searchParams.get("lecturerId");
+    const lecturerEmail = searchParams.get("lecturerEmail")?.toLowerCase().trim();
     const studentEmail = searchParams.get("studentEmail");
+    const academicYear = searchParams.get("academicYear");
+    const departmentId = searchParams.get("departmentId");
 
     if (isSupabaseConfigured()) {
       const supabase = createClient();
       let query = supabase.from("projects").select("*");
 
-      if (courseCode) {
+      if (courseCode && courseCode !== "all") {
         query = query.eq("course_code", courseCode);
+      }
+      if (departmentId && departmentId !== "all") {
+        query = query.eq("department_id", departmentId);
+      }
+      if (academicYear && academicYear !== "all") {
+        query = query.eq("academic_year", parseInt(academicYear, 10));
       }
       if (lecturerId) {
         query = query.eq("lecturer_id", lecturerId);
@@ -194,7 +203,59 @@ export async function GET(req: NextRequest) {
 
       const { data: dbProjects, error } = await query;
       if (!error && dbProjects) {
-        const formattedProjects: Project[] = dbProjects.map((p: any) => ({
+        let filteredProjects = dbProjects;
+
+        // Security check for lecturer persona: only return projects assigned to this faculty
+        if (lecturerEmail) {
+          const { data: lec } = await supabase
+            .from("lecturers")
+            .select("id, name, email, assigned_courses")
+            .eq("email", lecturerEmail)
+            .single();
+
+          if (lec) {
+            filteredProjects = dbProjects.filter((p: any) => {
+              const matchesId = p.lecturer_id === lec.id;
+              const matchesName = p.lecturer_name && p.lecturer_name.toLowerCase() === lec.name.toLowerCase();
+              const matchesCourse =
+                Array.isArray(lec.assigned_courses) &&
+                lec.assigned_courses.includes(p.course_code);
+              return matchesId || matchesName || matchesCourse;
+            });
+          }
+        }
+
+        // Fetch group counts and student assignment counts for each project
+        const projectIds = filteredProjects.map((p: any) => p.id);
+        const groupCountsMap: Record<string, number> = {};
+        const assignmentCountsMap: Record<string, number> = {};
+
+        if (projectIds.length > 0) {
+          const [{ data: dbGroups }, { data: dbAssignments }] = await Promise.all([
+            supabase
+              .from("project_groups")
+              .select("id, project_id")
+              .in("project_id", projectIds),
+            supabase
+              .from("project_student_assignments")
+              .select("id, project_id")
+              .in("project_id", projectIds),
+          ]);
+
+          if (dbGroups) {
+            for (const g of dbGroups) {
+              groupCountsMap[g.project_id] = (groupCountsMap[g.project_id] || 0) + 1;
+            }
+          }
+
+          if (dbAssignments) {
+            for (const a of dbAssignments) {
+              assignmentCountsMap[a.project_id] = (assignmentCountsMap[a.project_id] || 0) + 1;
+            }
+          }
+        }
+
+        const formattedProjects: Project[] = filteredProjects.map((p: any) => ({
           id: p.id,
           title: p.title,
           description: p.description,
@@ -229,6 +290,8 @@ export async function GET(req: NextRequest) {
           lecturerId: p.lecturer_id,
           lecturerName: p.lecturer_name,
           databaseDesignConfig: p.database_design_config,
+          groupCount: groupCountsMap[p.id] || 0,
+          assignedStudentCount: assignmentCountsMap[p.id] || 0,
           createdAt: p.created_at?.split("T")[0] || new Date().toISOString().split("T")[0],
         }));
 

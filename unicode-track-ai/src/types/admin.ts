@@ -74,6 +74,8 @@ export interface Project {
   status: "Draft" | "Published" | "Archived";
   lecturerId?: string;
   lecturerName?: string;
+  groupCount?: number;
+  assignedStudentCount?: number;
   databaseDesignConfig?: ProjectDatabaseDesignConfig;
   createdAt: string;
 }
