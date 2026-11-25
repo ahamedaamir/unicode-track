@@ -321,17 +321,17 @@ function ProjectDetailContent() {
 
   if (!project) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
-        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+      <div className="bg-[#0e1626] rounded-2xl border border-[#1e293b] p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
           <FolderKanban className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900">Project Not Found</h2>
-        <p className="text-sm text-slate-500 mt-2 mb-6">
-          The requested project ID <span className="font-mono text-slate-700 font-semibold">{projectId}</span> could not be found or may have been removed.
+        <h2 className="text-xl font-bold text-white">Project Not Found</h2>
+        <p className="text-sm text-slate-400 mt-2 mb-6">
+          The requested project ID <span className="font-mono text-teal-400 font-semibold">{projectId}</span> could not be found or may have been removed.
         </p>
         <Link
           href="/dashboard/projects"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-medium transition-all shadow-sm"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Academic Projects
@@ -343,13 +343,13 @@ function ProjectDetailContent() {
   // Security Gate: Permission Denied Card
   if (!isAuthorizedLecturer || permissionError) {
     return (
-      <div className="bg-white rounded-2xl border border-rose-200 p-12 text-center max-w-xl mx-auto mt-10 shadow-md space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200 shadow-xs">
+      <div className="bg-[#0e1626] rounded-2xl border border-rose-900/60 p-12 text-center max-w-xl mx-auto mt-10 shadow-md space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-rose-950/40 text-rose-400 flex items-center justify-center mx-auto border border-rose-800/60 shadow-xs">
           <ShieldAlert className="w-8 h-8" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Access Denied: Faculty Supervision Restricted</h2>
-          <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+          <h2 className="text-xl font-bold text-white">Access Denied: Faculty Supervision Restricted</h2>
+          <p className="text-sm text-slate-300 mt-2 leading-relaxed">
             {permissionError ||
               `You are logged in as ${currentLecturer?.name || activeLecturerEmail}, but this project is assigned to ${project.lecturerName || "another faculty coordinator"} for course ${project.courseCode}.`}
           </p>
@@ -360,7 +360,7 @@ function ProjectDetailContent() {
         <div className="pt-4 flex items-center justify-center gap-3">
           <Link
             href="/dashboard/projects"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to My Assigned Projects
@@ -383,22 +383,22 @@ function ProjectDetailContent() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-7xl mx-auto pb-16 text-white">
       {/* ============================================================== */}
       {/* HIERARCHICAL NAVIGATION BREADCRUMBS                            */}
       {/* Hierarchy: Year -> Department -> Course -> Project -> Scope   */}
       {/* ============================================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-500 font-medium">
+        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-400 font-medium">
           <Link
             href="/dashboard/projects"
-            className="inline-flex items-center gap-1.5 hover:text-teal-600 transition-colors"
+            className="inline-flex items-center gap-1.5 hover:text-teal-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Projects Directory
           </Link>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
 
           <Link
             href={`/dashboard/projects?academicYear=${project.academicYear}`}
@@ -413,15 +413,15 @@ function ProjectDetailContent() {
             {department?.name || "Computing"}
           </span>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
 
-          <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+          <span className="font-bold text-teal-300 bg-teal-500/15 px-2 py-0.5 rounded border border-teal-500/30">
             {project.courseCode}
           </span>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
 
-          <span className="text-slate-900 font-bold truncate max-w-[200px]">
+          <span className="text-white font-bold truncate max-w-[200px]">
             {project.title}
           </span>
         </div>
@@ -430,9 +430,9 @@ function ProjectDetailContent() {
         <div className="flex items-center gap-2">
           <Link
             href={`/dashboard/projects/${project.id}/evaluation/criteria`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-semibold shadow-2xs transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-950/40 hover:bg-purple-900/60 text-purple-300 border border-purple-800/60 rounded-xl text-xs font-semibold shadow-2xs transition-all"
           >
-            <Sliders className="w-3.5 h-3.5 text-purple-600" />
+            <Sliders className="w-3.5 h-3.5 text-purple-400" />
             <span>Rubric</span>
           </Link>
 
@@ -447,16 +447,16 @@ function ProjectDetailContent() {
           ) : (
             <button
               onClick={() => archiveProject(project.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-medium transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-[#1e293b] hover:bg-slate-800 text-slate-300 rounded-xl text-xs font-medium transition-all"
             >
-              <Archive className="w-3.5 h-3.5 text-slate-500" />
+              <Archive className="w-3.5 h-3.5 text-slate-400" />
               {project.status === "Archived" ? "Restore" : "Archive"}
             </button>
           )}
 
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-medium transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-rose-900/60 hover:bg-rose-950/40 text-rose-400 rounded-xl text-xs font-medium transition-all"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Delete
@@ -467,7 +467,7 @@ function ProjectDetailContent() {
       {/* ============================================================== */}
       {/* HERO PROJECT HEADER CARD                                       */}
       {/* ============================================================== */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 sm:p-8">
+      <div className="bg-[#0e1626] rounded-2xl border border-[#1e293b] shadow-xs p-6 sm:p-8">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="space-y-3 flex-1">
             {/* Badges */}
@@ -475,18 +475,18 @@ function ProjectDetailContent() {
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                   project.status === "Published"
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                    ? "bg-emerald-950/60 text-emerald-400 border border-emerald-800/60"
                     : project.status === "Draft"
-                    ? "bg-amber-50 text-amber-700 border border-amber-200/80"
-                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                    ? "bg-amber-950/60 text-amber-400 border border-amber-800/60"
+                    : "bg-slate-800 text-slate-400 border border-slate-700"
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full ${
                     project.status === "Published"
-                      ? "bg-emerald-500 animate-pulse"
+                      ? "bg-emerald-400 animate-pulse"
                       : project.status === "Draft"
-                      ? "bg-amber-500"
+                      ? "bg-amber-400"
                       : "bg-slate-400"
                   }`}
                 />
@@ -496,59 +496,59 @@ function ProjectDetailContent() {
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                   isIndividualProject
-                    ? "bg-purple-50 text-purple-700 border border-purple-200"
-                    : "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                    ? "bg-purple-950/60 text-purple-300 border border-purple-800/60"
+                    : "bg-indigo-950/60 text-indigo-300 border border-indigo-800/60"
                 }`}
               >
                 {isIndividualProject ? (
-                  <User className="w-3.5 h-3.5 text-purple-600" />
+                  <User className="w-3.5 h-3.5 text-purple-400" />
                 ) : (
-                  <Users className="w-3.5 h-3.5 text-indigo-600" />
+                  <Users className="w-3.5 h-3.5 text-indigo-400" />
                 )}
                 {isIndividualProject ? "Individual Project" : "Group Project"}
               </span>
 
               {project.requirementsSource === "ai" ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                  <Sparkles className="w-3.5 h-3.5 text-teal-400" />
                   Gemini 2.5 Flash Generated
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                  <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-950/60 text-indigo-300 border border-indigo-800/60">
+                  <FileText className="w-3.5 h-3.5 text-indigo-400" />
                   Faculty PDF Specification
                 </span>
               )}
             </div>
 
             {/* Title & Description */}
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
               {project.title}
             </h1>
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-4xl">
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-4xl">
               {project.description}
             </p>
           </div>
 
           {/* Quick Academic Meta Pill Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 lg:w-72 shrink-0 space-y-3">
+          <div className="bg-[#090d16] border border-[#1e293b] rounded-xl p-4 lg:w-72 shrink-0 space-y-3">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               Course Information
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Course Code:</span>
-                <span className="font-bold text-teal-600 font-mono">{project.courseCode}</span>
+                <span className="text-slate-400">Course Code:</span>
+                <span className="font-bold text-teal-400 font-mono">{project.courseCode}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Target Cohort:</span>
-                <span className="font-medium text-slate-800">
+                <span className="text-slate-400">Target Cohort:</span>
+                <span className="font-medium text-slate-200">
                   Year {project.academicYear}, Sem {project.semester}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Deadline:</span>
-                <span className="font-medium text-slate-800 flex items-center gap-1">
+                <span className="text-slate-400">Deadline:</span>
+                <span className="font-medium text-slate-200 flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-slate-400" />
                   {project.deadline
                     ? new Date(project.deadline).toLocaleDateString("en-US", {
@@ -559,9 +559,9 @@ function ProjectDetailContent() {
                     : "No deadline"}
                 </span>
               </div>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200">
-                <span className="text-slate-500">Supervisor:</span>
-                <span className="font-medium text-slate-800 truncate max-w-[130px]" title={project.lecturerName}>
+              <div className="flex items-center justify-between pt-1 border-t border-[#1e293b]">
+                <span className="text-slate-400">Supervisor:</span>
+                <span className="font-medium text-slate-200 truncate max-w-[130px]" title={project.lecturerName}>
                   {project.lecturerName || "Dr. Evelyn Reed"}
                 </span>
               </div>
@@ -570,13 +570,13 @@ function ProjectDetailContent() {
         </div>
 
         {/* Tab Navigation - Supervision is Primary */}
-        <div className="flex items-center gap-2 mt-8 pt-4 border-t border-slate-200/80 overflow-x-auto">
+        <div className="flex items-center gap-2 mt-8 pt-4 border-t border-[#1e293b] overflow-x-auto">
           <button
             onClick={() => setActiveTab("supervision")}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
               activeTab === "supervision"
-                ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                ? "bg-teal-500 text-slate-950 font-bold shadow-xs"
+                : "text-slate-400 hover:text-white hover:bg-slate-800"
             }`}
           >
             {isIndividualProject ? (
@@ -652,20 +652,20 @@ function ProjectDetailContent() {
       {activeTab === "supervision" && (
         <div className="space-y-6">
           {/* Supervision Toolbar: Search & Filters */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-[#0e1626] p-4 rounded-xl border border-[#1e293b] shadow-2xs space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
                   {isIndividualProject ? (
-                    <User className="w-4 h-4 text-purple-600" />
+                    <User className="w-4 h-4 text-purple-400" />
                   ) : (
-                    <Users className="w-4 h-4 text-teal-600" />
+                    <Users className="w-4 h-4 text-teal-400" />
                   )}
                   {isIndividualProject
                     ? "Assigned Student Workspaces & Deliverables"
                     : "Academic Group Workspaces & Deliverables"}
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   {isIndividualProject
                     ? "Inspect individual personal workspaces, ER diagrams, GitHub telemetry, and assign evaluation marks."
                     : "Monitor student groups sequentially (Group 1, Group 2, ...), track submission progress, ER models, and AI reviews."}
@@ -673,7 +673,7 @@ function ProjectDetailContent() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30">
                   {isIndividualProject
                     ? `${filteredStudents.length} Students`
                     : `${filteredGroups.length} Groups`}
@@ -682,7 +682,7 @@ function ProjectDetailContent() {
             </div>
 
             {/* Filter Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-[#1e293b]">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
@@ -694,7 +694,7 @@ function ProjectDetailContent() {
                   }
                   value={supervisionSearch}
                   onChange={(e) => setSupervisionSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                  className="w-full pl-9 pr-4 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
                 />
               </div>
 
@@ -702,7 +702,7 @@ function ProjectDetailContent() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 focus:outline-none focus:border-teal-500"
                 >
                   <option value="all">All Deliverables Progress</option>
                   <option value="approved">Approved</option>
@@ -716,7 +716,7 @@ function ProjectDetailContent() {
                 <select
                   value={evalFilter}
                   onChange={(e) => setEvalFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 focus:outline-none focus:border-teal-500"
                 >
                   <option value="all">All Evaluation Statuses</option>
                   <option value="published">Graded & Published</option>
