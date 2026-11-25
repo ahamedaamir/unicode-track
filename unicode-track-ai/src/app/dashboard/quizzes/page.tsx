@@ -72,30 +72,7 @@ function generateQuizResults(questionCount: number): StudentQuizResult[] {
   }));
 }
 
-const INITIAL_QUIZZES: QuizItem[] = [
-  {
-    id: 1,
-    topic: "Pointers in C",
-    start: "2026-11-20T09:00",
-    mode: "total",
-    mins: 60,
-    q: SAMPLE_QUESTIONS.slice(),
-    st: "fin",
-    res: generateQuizResults(4),
-    saved: true,
-  },
-  {
-    id: 2,
-    topic: "Arrays and Strings",
-    start: "2026-12-02T10:00",
-    mode: "each",
-    mins: 10,
-    q: SAMPLE_QUESTIONS.slice(0, 3),
-    st: "up",
-    res: null,
-    saved: false,
-  },
-];
+const INITIAL_QUIZZES: QuizItem[] = [];
 
 export default function QuizzesPage() {
   const [quizzes, setQuizzes] = useState<QuizItem[]>(INITIAL_QUIZZES);
@@ -319,28 +296,37 @@ export default function QuizzesPage() {
         </div>
 
         {/* Quizzes Grid */}
-        <div className="proj-grid">
-          {quizzes.map((quiz) => (
-            <div
-              key={quiz.id}
-              className="proj-card proj-tile"
-              onClick={() => {
-                setActiveQuizId(quiz.id);
-                setView("detail");
-              }}
-            >
-              <b>{quiz.topic}</b>
-              <span>
-                {quiz.start.replace("T", " ")} · {formatQuizTiming(quiz)}
-              </span>
-              <br />
-              <span className={`proj-tag ${quiz.st === "fin" ? "ok" : "no"}`}>
-                {quiz.st === "fin" ? "Finished · marks ready" : "Upcoming"}
-              </span>{" "}
-              <span className="proj-tag">{quiz.q.length} questions</span>
-            </div>
-          ))}
-        </div>
+        {quizzes.length === 0 ? (
+          <div className="proj-card text-center py-12 text-muted-foreground border border-dashed border-border rounded-[16px]">
+            <p className="text-sm font-medium text-foreground">No quizzes created yet</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Click &quot;Create quiz&quot; above to publish a practical coding quiz from a PDF or custom questions.
+            </p>
+          </div>
+        ) : (
+          <div className="proj-grid">
+            {quizzes.map((quiz) => (
+              <div
+                key={quiz.id}
+                className="proj-card proj-tile"
+                onClick={() => {
+                  setActiveQuizId(quiz.id);
+                  setView("detail");
+                }}
+              >
+                <b>{quiz.topic}</b>
+                <span>
+                  {quiz.start.replace("T", " ")} · {formatQuizTiming(quiz)}
+                </span>
+                <br />
+                <span className={`proj-tag ${quiz.st === "fin" ? "ok" : "no"}`}>
+                  {quiz.st === "fin" ? "Finished · marks ready" : "Upcoming"}
+                </span>{" "}
+                <span className="proj-tag">{quiz.q.length} questions</span>
+              </div>
+            ))}
+          </div>
+        )}
       </>
     );
   };

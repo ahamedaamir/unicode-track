@@ -169,7 +169,7 @@ export function LecturerGroupCard({
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="inline-flex items-center gap-1.5 font-mono font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
             <BookOpen className="w-3.5 h-3.5" />
-            {project?.courseCode || "CS492"} {courseName ? `• ${courseName}` : ""}
+            {project?.courseCode || "Course"} {courseName ? `• ${courseName}` : ""}
           </span>
           <span className="inline-flex items-center gap-1 text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 font-medium">
             <GraduationCap className="w-3.5 h-3.5 text-slate-500" />

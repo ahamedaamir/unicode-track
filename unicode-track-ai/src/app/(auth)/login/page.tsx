@@ -109,18 +109,14 @@ function LoginContent() {
           return;
         }
 
-        const validPassword = lecturer.defaultPassword || "1234";
-        if (password !== validPassword && password !== "1234" && password !== "UniCode@2004") {
+        const validPassword = lecturer.defaultPassword;
+        if (!validPassword || password !== validPassword) {
           setErrorMessage("Invalid university email or password. Please verify your credentials.");
           setIsSubmitting(false);
           return;
         }
 
-        if (
-          !lecturer.hasChangedDefaultPassword &&
-          (password === "UniCode@2004" || password === lecturer.defaultPassword) &&
-          trimmedEmail !== "check@gmail.com"
-        ) {
+        if (!lecturer.hasChangedDefaultPassword && password === lecturer.defaultPassword) {
           try {
             sessionStorage.setItem("unicodetrack_pending_lecturer_email", trimmedEmail);
             sessionStorage.setItem("unicodetrack_pending_user_role", "lecturer");
@@ -155,12 +151,21 @@ function LoginContent() {
         return;
       }
 
-      // 5. Administrator Demo Credentials
+      // 5. Administrator Credentials
       if (trimmedEmail === "admin@university.edu" && password === "adminPassword123") {
         try {
+          sessionStorage.setItem(
+            "unicodetrack_authenticated_user",
+            JSON.stringify({
+              role: "admin",
+              email: "admin@university.edu",
+              name: "University Administrator",
+            })
+          );
           sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
           sessionStorage.removeItem("unicodetrack_pending_student_email");
           sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
+          setActiveRole("admin");
         } catch {
           // Ignore
         }

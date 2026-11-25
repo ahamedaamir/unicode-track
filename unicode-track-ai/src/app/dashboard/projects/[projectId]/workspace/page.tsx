@@ -922,11 +922,11 @@ function GroupWorkspaceContent() {
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Course Supervisor</span>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 font-bold flex items-center justify-center text-xs border border-teal-200 shrink-0">
-                  {project.lecturerName ? project.lecturerName.split(" ").map((n) => n[0]).slice(0, 2).join("") : "ER"}
+                  {project.lecturerName ? project.lecturerName.split(" ").map((n) => n[0]).slice(0, 2).join("") : "CS"}
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-slate-900">{project.lecturerName || "Dr. Evelyn Reed"}</h4>
-                  <p className="text-[11px] text-slate-500">{lecturer?.email || "evelyn.reed@university.edu"}</p>
+                  <h4 className="font-bold text-xs text-slate-900">{project.lecturerName || "Course Supervisor"}</h4>
+                  <p className="text-[11px] text-slate-500">{lecturer?.email || ""}</p>
                 </div>
               </div>
             </div>

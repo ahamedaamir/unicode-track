@@ -44,7 +44,7 @@ export default function StudentTeamsOverviewPage() {
   const [selectedRepoStatus, setSelectedRepoStatus] = useState("all");
 
   // Lecturer assigned courses filter (only show groups belonging to lecturer's assigned courses unless in admin view)
-  const lecturerCourseCodes = currentLecturer ? currentLecturer.assignedCourses : ["CS492", "SE3102"];
+  const lecturerCourseCodes = currentLecturer?.assignedCourses || [];
 
   // Filter groups
   const filteredGroups = useMemo(() => {

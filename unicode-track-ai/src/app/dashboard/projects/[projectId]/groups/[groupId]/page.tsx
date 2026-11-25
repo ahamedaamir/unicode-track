@@ -180,7 +180,7 @@ function LecturerGroupReviewContent() {
     },
     {
       id: "act-3",
-      user: "Dr. Evelyn Reed",
+      user: "Course Supervisor",
       role: "Course Supervisor",
       action: "approved Pull Request #14:",
       target: '"feat(core): implement circular buffer packet enqueue"',

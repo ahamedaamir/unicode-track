@@ -27,6 +27,7 @@ import { Course } from "@/types/admin";
 
 export default function CoursesPage() {
   const { 
+    departments,
     courses, 
     lecturers, 
     students, 
@@ -40,7 +41,7 @@ export default function CoursesPage() {
   } = useAdminData();
 
   const isLecturer = activeRole === "lecturer";
-  const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
+  const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || null;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -126,14 +127,15 @@ export default function CoursesPage() {
     const courseProjects = projects.filter((p) => p.courseCode === code);
     const projectIds = new Set(courseProjects.map((p) => p.id));
     const courseGroups = groups.filter((g) => projectIds.has(g.projectId));
-    const enrolledStudents = students.slice(0, 48); // Realistic syllabus cohort count
+    const courseObj = courses.find((c) => c.code === code);
+    const deptObj = (departments as any[]).find((d: any) => d.id === (courseObj as any)?.departmentId);
 
     return {
       projectsCount: courseProjects.length,
-      groupsCount: courseGroups.length || 6,
-      studentsCount: enrolledStudents.length,
-      department: "Dept. of Computer Science & Engineering",
-      academicYear: code.includes("CS304") ? 3 : code.includes("CS492") ? 4 : 2,
+      groupsCount: courseGroups.length,
+      studentsCount: 0,
+      department: deptObj?.name || "Academic Department",
+      academicYear: 1,
       semester: 1,
     };
   };
@@ -153,7 +155,7 @@ export default function CoursesPage() {
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             {isLecturer
-              ? `Authorized faculty curriculum view for ${currentLecturer?.name || "Dr. Evelyn Reed"}. Review syllabus units, associated projects, and enrolled students.`
+              ? `Authorized faculty curriculum view for ${currentLecturer?.name || "Lecturer"}. Review syllabus units, associated projects, and enrolled students.`
               : "Add and maintain official curriculum course codes for lecturer assignments."}
           </p>
         </div>

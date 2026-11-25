@@ -164,7 +164,7 @@ export function LecturerRepositoryViewer({
     },
     {
       id: "act-3",
-      user: project?.lecturerName || "Dr. Evelyn Reed",
+      user: project?.lecturerName || "Course Supervisor",
       role: "Course Supervisor",
       action: "approved Pull Request #14:",
       target: '"feat(core): implement circular buffer packet enqueue"',

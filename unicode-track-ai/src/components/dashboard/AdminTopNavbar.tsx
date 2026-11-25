@@ -159,10 +159,10 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
             className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-[10px] hover:bg-muted transition-colors focus:outline-none cursor-pointer"
           >
             <div className="w-8 h-8 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center">
-              AV
+              UA
             </div>
             <div className="hidden lg:block text-left text-xs leading-tight">
-              <p className="font-bold text-foreground">Dr. Arthur Vance</p>
+              <p className="font-bold text-foreground">University Administrator</p>
               <p className="text-[10px] text-muted-foreground">Administrator</p>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
@@ -171,7 +171,7 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
           {profileOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-card rounded-[16px] shadow-2xl border border-border p-2 z-40 text-xs animate-in fade-in-50">
               <div className="p-2 border-b border-border">
-                <p className="font-bold text-foreground">Dr. Arthur Vance</p>
+                <p className="font-bold text-foreground">University Administrator</p>
                 <p className="text-[11px] text-muted-foreground">admin@university.edu</p>
                 <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-accent bg-accent-soft px-2 py-0.5 rounded-full border border-accent-border">
                   <ShieldCheck className="w-3 h-3" /> University Administrator

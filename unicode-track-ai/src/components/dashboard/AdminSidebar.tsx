@@ -335,18 +335,16 @@ export function AdminSidebar({
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0">
                 <p suppressHydrationWarning className="text-xs font-semibold text-foreground truncate">
-                  {currentLecturer?.name?.toLowerCase().includes("check")
-                    ? "Dr. Check Lecturer"
-                    : currentLecturer?.name || "Dr. Check Lecturer"}
+                  {currentLecturer?.name || "Lecturer"}
                 </p>
                 <p className="text-[10px] text-muted-foreground truncate mt-0.5 font-medium">
-                  Senior Lecturer · Faculty
+                  {currentLecturer?.position || "Lecturer"} · Faculty
                 </p>
               </div>
             )}
             {collapsed && !mobileOpen && (
               <div className="w-7 h-7 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center mx-auto">
-                DC
+                {(currentLecturer?.name || "L").slice(0, 2).toUpperCase()}
               </div>
             )}
           </div>
@@ -357,21 +355,23 @@ export function AdminSidebar({
             }`}
           >
             <div className="w-7 h-7 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center shrink-0">
-              {isStudent ? "AC" : "AV"}
+              {isStudent
+                ? (currentStudent?.fullName || "S").slice(0, 2).toUpperCase()
+                : "UA"}
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
                   <p className="text-xs font-semibold text-foreground truncate">
                     {isStudent
-                      ? currentStudent?.fullName || "Alex Chen"
-                      : "Dr. Arthur Vance"}
+                      ? currentStudent?.fullName || "Student"
+                      : "University Administrator"}
                   </p>
                   <ShieldCheck className="w-3 h-3 text-accent shrink-0" />
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">
                   {isStudent
-                    ? "Student • Software Engineering"
+                    ? "Student Portal"
                     : "University Administrator"}
                 </p>
               </div>

@@ -95,294 +95,10 @@ function generateMarks(seed: number, reqs: RequirementItem[]): number[] {
 // ----------------------------------------------------------------------------
 // INITIAL SEED PROJECTS WITH REPOSITORIES, TELEMETRY, DELIVERABLES & CODE
 // ----------------------------------------------------------------------------
-const INITIAL_PROJECTS: EvaluationProject[] = [
-  {
-    id: 1,
-    b: "2.2",
-    c: "ICT2132",
-    t: "Faculty Management System",
-    g: 1,
-    tg: ["Group 1", "Group 2", "Group 3", "Group 4"],
-    fin: 0,
-    repo: "uor-ict/faculty-mgmt-c",
-    branches: [
-      ["main", 42],
-      ["dev", 28],
-      ["feature/database-cli", 14],
-    ],
-    members: [
-      ["Nimal P.", 24],
-      ["Sara F.", 19],
-      ["Kasun D.", 14],
-      ["Ayesha R.", 9],
-    ],
-    docs: [
-      ["Project proposal", "PDF", true],
-      ["ER diagram", "PNG", true],
-      ["Final report", "PDF", true],
-    ],
-    files: [
-      {
-        name: "main.c",
-        code: `#include <stdio.h>
-#include <string.h>
-
-void show_menu() {
-    printf("==========================================\\n");
-    printf(" Faculty Management System CLI — UoR ICT  \\n");
-    printf("==========================================\\n");
-    printf("1. List Academic Departments\\n");
-    printf("2. List Faculty Courses\\n");
-    printf("3. Enrolled Students\\n");
-    printf("4. Exit\\n");
-}
-
-int main(void) {
-    show_menu();
-    printf("\\n[INFO] Initializing SQLite / C memory database...\\n");
-    printf("[DB] 3 Departments loaded: CS, IS, SE\\n");
-    printf("[DB] 8 Active Courses connected to Faculty of Computing.\\n");
-    printf("[PASS] Core transaction loops executed with status 0.\\n");
-    return 0;
-}`,
-      },
-      {
-        name: "faculty.h",
-        code: `#ifndef FACULTY_H
-#define FACULTY_H
-
-typedef struct {
-    int id;
-    char name[64];
-    char code[16];
-    int credits;
-} Course;
-
-void init_database(void);
-int add_course(Course c);
-
-#endif`,
-      },
-      {
-        name: "database.sql",
-        code: `-- Faculty Management Relational Schema (3NF)
-CREATE TABLE departments (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    faculty VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE courses (
-    code VARCHAR(10) PRIMARY KEY,
-    title VARCHAR(150) NOT NULL,
-    dept_id INT REFERENCES departments(id)
-);
-
-CREATE TABLE student_enrollments (
-    student_id VARCHAR(20) NOT NULL,
-    course_code VARCHAR(10) REFERENCES courses(code),
-    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY(student_id, course_code)
-);`,
-      },
-      {
-        name: "README.md",
-        code: `# Faculty Management System
-Academic project developed by Group 01 for ICT2132 Software Engineering.
-Build: gcc -O2 -std=c11 main.c -o fms
-Run: ./fms`,
-      },
-    ],
-    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
-    res: {
-      "Group 1": {
-        m: generateMarks(3, DEFAULT_REQUIREMENTS),
-        sum: DEFAULT_SUMMARY,
-      },
-    },
-  },
-
-  {
-    id: 2,
-    b: "2.2",
-    c: "ICT2132",
-    t: "C Mini Shell",
-    g: 0,
-    tg: ["TG/2004/2004", "TG/2004/2011", "TG/2004/2037"],
-    fin: 0,
-    repo: "uor-ict/c-mini-shell",
-    branches: [
-      ["main", 35],
-      ["dev", 20],
-      ["parser-fix", 7],
-    ],
-    members: [["TG/2004/2004", 42]],
-    docs: [
-      ["Project proposal", "PDF", true],
-      ["ER diagram", "PNG", true],
-      ["Final report", "PDF", true],
-    ],
-    files: [
-      {
-        name: "main.c",
-        code: `#include <stdio.h>
-#include <string.h>
-
-int main(void) {
-    printf("==========================================\\n");
-    printf(" UniCodeTrack Mini Shell — REPL v1.2     \\n");
-    printf(" Standard Input Command Parser            \\n");
-    printf("==========================================\\n");
-
-    const char *commands[] = {"help", "status", "version", "uptime"};
-    for (int i = 0; i < 4; i++) {
-        printf("shell> %s\\n", commands[i]);
-        printf("[OK] Command '%s' dispatched successfully.\\n", commands[i]);
-    }
-    printf("shell> exit\\n[Shell terminated cleanly with code 0]\\n");
-    return 0;
-}`,
-      },
-      {
-        name: "parser.h",
-        code: `#ifndef PARSER_H
-#define PARSER_H
-
-int parse_command_line(const char *line, char **argv);
-
-#endif`,
-      },
-      {
-        name: "README.md",
-        code: `# C Mini Shell
-Interactive command interpreter with tokenization and process dispatching.
-Build: gcc -O2 -std=c11 main.c -o shell`,
-      },
-    ],
-    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
-    res: {},
-  },
-
-  {
-    id: 3,
-    b: "3.1",
-    c: "ICT2152",
-    t: "Library Management",
-    g: 1,
-    tg: ["Group 1", "Group 2", "Group 3"],
-    fin: 0,
-    repo: "uor-ict/python-library-sys",
-    branches: [
-      ["main", 38],
-      ["dev", 22],
-      ["api-routes", 11],
-    ],
-    members: [
-      ["Chathura K.", 21],
-      ["Sanduni M.", 18],
-      ["Buddhika T.", 12],
-    ],
-    docs: [
-      ["Project proposal", "PDF", true],
-      ["ER diagram", "PNG", true],
-      ["Final report", "PDF", true],
-    ],
-    files: [
-      {
-        name: "main.py",
-        code: `#!/usr/bin/env python3
-"""
-Library Management System — Python 3 Implementation
-"""
-
-class LibraryCatalog:
-    def __init__(self):
-        self.books = [
-            {"isbn": "978-0131103627", "title": "The C Programming Language", "copies": 4},
-            {"isbn": "978-0201633610", "title": "Design Patterns", "copies": 2},
-            {"isbn": "978-0132350884", "title": "Clean Code", "copies": 5},
-        ]
-
-    def list_books(self):
-        print("=== Library Books Catalog ===")
-        for b in self.books:
-            print(f" • [{b['isbn']}] {b['title']} — Copies Available: {b['copies']}")
-
-if __name__ == "__main__":
-    catalog = LibraryCatalog()
-    catalog.list_books()
-    print("\\n[PASS] Python Library System test suite passed successfully.")
-`,
-      },
-      {
-        name: "models.py",
-        code: `class Book:
-    def __init__(self, isbn, title, author):
-        self.isbn = isbn
-        self.title = title
-        self.author = author
-`,
-      },
-      {
-        name: "README.md",
-        code: `# Library Management System in Python
-Run: python main.py`,
-      },
-    ],
-    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
-    res: {},
-  },
-
-  {
-    id: 4,
-    b: "1.2",
-    c: "ICT2162",
-    t: "Mini Project",
-    g: 1,
-    tg: ["Group 1", "Group 2"],
-    fin: 1,
-    repo: "uor-ict/java-sms",
-    branches: [
-      ["main", 29],
-      ["dev", 15],
-    ],
-    members: [
-      ["Group 1 Lead", 25],
-      ["Group 2 Lead", 19],
-    ],
-    docs: [
-      ["Project proposal", "PDF", true],
-      ["ER diagram", "PNG", true],
-      ["Final report", "PDF", true],
-    ],
-    files: [
-      {
-        name: "Main.java",
-        code: `public class Main {
-    public static void main(String[] args) {
-        System.out.println("=== Student Information System (Java OpenJDK) ===");
-        System.out.println("Status: Finalized Academic Project");
-        System.out.println("Verification check: OK (Exit code 0)");
-    }
-}`,
-      },
-    ],
-    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
-    res: {
-      "Group 1": {
-        m: generateMarks(1, DEFAULT_REQUIREMENTS),
-        sum: DEFAULT_SUMMARY,
-      },
-      "Group 2": {
-        m: generateMarks(2, DEFAULT_REQUIREMENTS),
-        sum: DEFAULT_SUMMARY,
-      },
-    },
-  },
-];
+const INITIAL_PROJECTS: EvaluationProject[] = [];
 
 export default function EvaluationsAndMarksPage() {
-  const { showToast } = useAdminData();
+  const { courses: adminCourses, projects: adminProjects, groups: adminGroups, showToast } = useAdminData();
 
   // Navigation and Filter State
   const [tab, setTab] = useState<"new" | "fin">("new");
@@ -406,6 +122,39 @@ export default function EvaluationsAndMarksPage() {
 
   // Projects State
   const [projectsList, setProjectsList] = useState<EvaluationProject[]>(INITIAL_PROJECTS);
+  // Synchronize real database projects from context
+  React.useEffect(() => {
+    if (adminProjects && adminProjects.length > 0) {
+      const mapped: EvaluationProject[] = adminProjects.map((p, idx) => {
+        const projGroups = adminGroups.filter((g) => g.projectId === p.id);
+        const groupTargets = projGroups.map((g) => g.groupName || ("Group 0" + g.groupNumber));
+        return {
+          id: typeof p.id === "number" ? p.id : idx + 1,
+          b: (p.academicYear || 1) + "." + (p.semester || 1),
+          c: p.courseCode,
+          t: p.title,
+          g: p.type === "Individual Project" || p.projectType === "individual" ? 0 : 1,
+          tg: groupTargets.length > 0 ? groupTargets : ["Group 1"],
+          fin: (p.status as string) === "Completed" || (p.status as string) === "Evaluated" ? 1 : 0,
+          repo: (p as any).githubRepo || (p as any).repoUrl || "",
+          branches: [["main", 0]],
+          members: [],
+          docs: [
+            ["Project proposal", "PDF", Boolean(p.assignmentFilePath)],
+            ["ER diagram", "PDF", Boolean(p.erDiagramRequired)],
+            ["Final report", "PDF", Boolean(p.finalReportRequired)],
+          ],
+          files: [],
+          reqs: DEFAULT_REQUIREMENTS,
+          res: {},
+        };
+      });
+      setProjectsList(mapped);
+    } else {
+      setProjectsList([]);
+    }
+  }, [adminProjects, adminGroups]);
+
   const [toastMessage, setToastMessage] = useState<string>("");
 
   // Active Project Reference
@@ -885,7 +634,7 @@ export default function EvaluationsAndMarksPage() {
 
         <div className="proj-grid">
           {batchCourses.map((cCode) => {
-            const courseInfo = COURSES.find((x) => x.c === cCode);
+            const courseInfo = adminCourses.find((x) => x.code === cCode) || COURSES.find((x) => x.c === cCode);
             const courseProjectCount = activeTabProjects.filter(
               (p) => p.b === selectedBatch && p.c === cCode
             ).length;
@@ -897,7 +646,7 @@ export default function EvaluationsAndMarksPage() {
                 onClick={() => navigateTo({ c: cCode })}
               >
                 <b>{cCode}</b>
-                <span>{courseInfo?.n || "Academic Course"}</span>
+                <span>{(courseInfo as any)?.name || (courseInfo as any)?.n || "Academic Course"}</span>
                 <br />
                 <span className="proj-tag">
                   {courseProjectCount} {courseProjectCount === 1 ? "project" : "projects"}
