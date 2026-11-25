@@ -369,12 +369,6 @@ export default function EnvironmentTestPage() {
     java: "",
   });
 
-  const [activePresetMap, setActivePresetMap] = useState<Record<LanguageKey, string>>({
-    c: "hello",
-    python: "hello",
-    java: "hello",
-  });
-
   const [showStdin, setShowStdin] = useState<boolean>(false);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [executionResult, setExecutionResult] = useState<ExecutionResponse | null>(null);
@@ -385,27 +379,12 @@ export default function EnvironmentTestPage() {
   const currentLangConfig = LANGUAGES[selectedLang];
   const currentCode = codeMap[selectedLang];
   const currentStdin = stdinMap[selectedLang];
-  const currentPreset = activePresetMap[selectedLang];
 
   // Language Change
   const handleSelectLanguage = (langKey: LanguageKey) => {
     setSelectedLang(langKey);
     setExecutionResult(null);
     setTerminalHistory("");
-  };
-
-  // Preset Change
-  const handleSelectPreset = (presetKey: string) => {
-    const config = LANGUAGES[selectedLang];
-    const preset = config.presets[presetKey];
-    if (preset) {
-      setActivePresetMap((prev) => ({ ...prev, [selectedLang]: presetKey }));
-      setCodeMap((prev) => ({ ...prev, [selectedLang]: preset.code }));
-      if (preset.defaultStdin !== undefined) {
-        setStdinMap((prev) => ({ ...prev, [selectedLang]: preset.defaultStdin || "" }));
-        setShowStdin(true);
-      }
-    }
   };
 
   // Tab Key & Keyboard Shortcut Handling
@@ -439,9 +418,7 @@ export default function EnvironmentTestPage() {
 
     setIsRunning(true);
     setExecutionResult(null);
-
-    const commandPrompt = `$ ${currentLangConfig.commandSnippet}\n`;
-    setTerminalHistory(commandPrompt + "Compiling and executing in sandbox...\n");
+    setTerminalHistory("");
 
     try {
       const res = await fetch(currentLangConfig.endpoint, {
@@ -457,26 +434,34 @@ export default function EnvironmentTestPage() {
       const data: ExecutionResponse = await res.json();
       setExecutionResult(data);
 
-      let output = commandPrompt;
+      let output = "";
       if (data.status === "compilation_error") {
-        output += `[COMPILATION ERROR]\n${data.stderr || data.error || "Compilation failed."}\n`;
+        output = data.stderr || data.error || "Compilation error.";
       } else if (data.status === "security_violation") {
-        output += `[SECURITY POLICY BLOCKED]\n${data.error}\n`;
+        output = data.error || "Security policy blocked.";
       } else if (data.status === "unconfigured") {
-        output += `[UNCONFIGURED]\n${data.error}\n`;
+        output = data.error || "Compiler not configured.";
+      } else if (data.status === "error") {
+        output = data.stderr || data.error || "Execution error.";
       } else {
-        if (data.stdout) {
-          output += data.stdout;
-          if (!data.stdout.endsWith("\n")) output += "\n";
+        // Successful or runtime execution: only display stdout and any stderr/errors
+        const parts: string[] = [];
+        if (data.stdout && data.stdout.trim()) {
+          parts.push(data.stdout);
         }
-        if (data.stderr) {
-          output += `[STDERR]\n${data.stderr}\n`;
+        if (data.stderr && data.stderr.trim()) {
+          parts.push(data.stderr);
         }
-        output += `\n[Process exited with status ${data.exitCode ?? 0} in ${data.executionTimeSeconds || "0.00"}s]`;
+        if (parts.length > 0) {
+          output = parts.join("\n");
+        } else {
+          output = "(Program exited with no output)";
+        }
       }
+
       setTerminalHistory(output);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Network execution failed.";
+      const msg = err instanceof Error ? err.message : "Execution failed.";
       const errorResult: ExecutionResponse = {
         success: false,
         status: "error",
@@ -488,7 +473,7 @@ export default function EnvironmentTestPage() {
         error: msg,
       };
       setExecutionResult(errorResult);
-      setTerminalHistory(commandPrompt + `[FATAL ERROR]: ${msg}\n`);
+      setTerminalHistory(msg);
     } finally {
       setIsRunning(false);
     }
@@ -512,7 +497,7 @@ export default function EnvironmentTestPage() {
 
   // Clear Terminal Output
   const handleClearTerminal = () => {
-    setTerminalHistory("$ \n");
+    setTerminalHistory("");
     setExecutionResult(null);
   };
 
@@ -541,7 +526,7 @@ export default function EnvironmentTestPage() {
       </div>
 
       {/* 1. Language Selection Cards */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 w-full">
         {/* C Card */}
         <div
           onClick={() => handleSelectLanguage("c")}
@@ -601,62 +586,49 @@ export default function EnvironmentTestPage() {
       </div>
 
       {/* 2. Code Workspace & Terminal Runner */}
-      <div className="space-y-4">
-        {/* Preset templates bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium">Templates:</span>
-            {Object.keys(currentLangConfig.presets).map((key) => (
-              <button
-                key={key}
-                onClick={() => handleSelectPreset(key)}
-                className={`px-3 py-1 rounded-[10px] text-xs font-medium transition-colors ${currentPreset === key
-                  ? "bg-accent/20 text-accent border border-accent/40 font-semibold"
-                  : "bg-muted text-muted-foreground border border-border hover:text-foreground"
-                  }`}
-              >
-                {currentLangConfig.presets[key].name}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowStdin(!showStdin)}
-              className={`px-2.5 py-1 rounded-[10px] text-xs font-medium border transition-colors ${showStdin
-                ? "bg-accent/20 text-accent border-accent/40"
-                : "bg-muted text-muted-foreground border-border hover:text-foreground"
-                }`}
-              title="Toggle standard input (stdin)"
-            >
-              {showStdin ? "✓ Stdin Input Active" : "+ Add Stdin Input"}
-            </button>
-            <button
-              onClick={handleDownloadCode}
-              className="px-2.5 py-1 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1"
-              title={`Download ${currentLangConfig.filename}`}
-            >
-              <Download className="w-3.5 h-3.5" />
-              Download
-            </button>
-            <button
-              onClick={() => {
-                if (confirm(`Reset editor to default ${currentLangConfig.name} template?`)) {
-                  handleSelectPreset("hello");
-                }
-              }}
-              className="px-2.5 py-1 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1"
-              title="Reset code"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset
-            </button>
-          </div>
+      <div className="space-y-4 w-full">
+        {/* Action Toolbar (Templates removed) */}
+        <div className="flex items-center justify-end gap-2 w-full">
+          <button
+            onClick={() => setShowStdin(!showStdin)}
+            className={`px-3 py-1.5 rounded-[10px] text-xs font-medium border transition-colors ${showStdin
+              ? "bg-accent/20 text-accent border-accent/40"
+              : "bg-muted text-muted-foreground border-border hover:text-foreground"
+              }`}
+            title="Toggle standard input (stdin)"
+          >
+            {showStdin ? "✓ Stdin Input Active" : "+ Add Stdin Input"}
+          </button>
+          <button
+            onClick={handleDownloadCode}
+            className="px-3 py-1.5 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1.5"
+            title={`Download ${currentLangConfig.filename}`}
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download
+          </button>
+          <button
+            onClick={() => {
+              if (confirm(`Reset editor to default ${currentLangConfig.name} code?`)) {
+                setCodeMap((prev) => ({
+                  ...prev,
+                  [selectedLang]: LANGUAGES[selectedLang].presets.hello.code,
+                }));
+                setTerminalHistory("");
+                setExecutionResult(null);
+              }
+            }}
+            className="px-3 py-1.5 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1.5"
+            title="Reset code"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset
+          </button>
         </div>
 
         {/* Optional Stdin Field */}
         {showStdin && (
-          <div className="p-3 bg-card border border-border rounded-[16px] space-y-1.5 animate-in fade-in-50">
+          <div className="p-3 bg-card border border-border rounded-[16px] space-y-1.5 animate-in fade-in-50 w-full">
             <span className="font-semibold text-foreground text-xs block">Standard Input (stdin)</span>
             <textarea
               rows={2}
@@ -670,10 +642,10 @@ export default function EnvironmentTestPage() {
           </div>
         )}
 
-        {/* Editor and Terminal Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-stretch">
-          {/* Left: Code Editor */}
-          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm h-[640px] sm:h-[700px] lg:h-[740px] xl:h-[780px]">
+        {/* Editor and Terminal Grid - Split 50% / 50% across full width */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch w-full">
+          {/* Left: Code Editor (Half) */}
+          <div className="flex flex-col min-w-0 w-full bg-card border border-border rounded-[16px] overflow-hidden shadow-sm h-[640px] sm:h-[700px] lg:h-[760px] xl:h-[800px]">
             {/* Editor Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-muted border-b border-border text-xs">
               <div className="flex items-center gap-2">
@@ -729,8 +701,8 @@ export default function EnvironmentTestPage() {
             </div>
           </div>
 
-          {/* Right: Terminal Console Output */}
-          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm h-[640px] sm:h-[700px] lg:h-[740px] xl:h-[780px]">
+          {/* Right: Terminal Console Output (Half) */}
+          <div className="flex flex-col min-w-0 w-full bg-card border border-border rounded-[16px] overflow-hidden shadow-sm h-[640px] sm:h-[700px] lg:h-[760px] xl:h-[800px]">
             {/* Terminal Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-muted border-b border-border text-xs">
               <div className="flex items-center gap-2">
@@ -769,10 +741,15 @@ export default function EnvironmentTestPage() {
               </div>
             </div>
 
-            {/* Terminal Screen */}
+            {/* Terminal Screen - ONLY output and errors */}
             <div className="flex-1 bg-[#0d0d0f] p-4 sm:p-5 font-mono leading-relaxed text-foreground overflow-auto">
-              {terminalHistory ? (
-                <pre className="whitespace-pre-wrap break-words font-mono text-xs sm:text-[13px] md:text-[13.5px] leading-relaxed">
+              {isRunning ? (
+                <div className="flex items-center gap-2 text-accent text-xs sm:text-sm font-mono animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
+                  <span>Running {currentLangConfig.name} program...</span>
+                </div>
+              ) : terminalHistory ? (
+                <pre className="whitespace-pre-wrap break-words font-mono text-xs sm:text-[13px] md:text-[14px] leading-relaxed m-0 p-0 bg-transparent border-0 text-foreground">
                   {terminalHistory}
                 </pre>
               ) : (
@@ -782,7 +759,7 @@ export default function EnvironmentTestPage() {
                   </div>
                   <p className="text-sm sm:text-base font-semibold text-foreground">Console is ready</p>
                   <p className="text-xs sm:text-sm max-w-sm text-muted-foreground leading-normal">
-                    Click <strong className="text-accent">Run {currentLangConfig.name} Program</strong> or press <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono text-[11px]">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono text-[11px]">Enter</kbd> to compile and execute.
+                    Click <strong className="text-accent">Run</strong> or press <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono text-[11px]">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono text-[11px]">Enter</kbd> to execute.
                   </p>
                 </div>
               )}

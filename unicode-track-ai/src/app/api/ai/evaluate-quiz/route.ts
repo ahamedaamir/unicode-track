@@ -69,29 +69,29 @@ For example, if the lecturer specified "dont need to produce accurate output, if
 
 QUIZ QUESTIONS:
 ${questions
-  .map(
-    (q) =>
-      `Q${q.questionNumber} (Max ${q.maxMarks} Marks, Language: ${q.language || "C"}):
+            .map(
+              (q) =>
+                `Q${q.questionNumber} (Max ${q.maxMarks} Marks, Language: ${q.language || "C"}):
 Prompt: ${q.prompt}`
-  )
-  .join("\n\n")}
+            )
+            .join("\n\n")}
 
 STUDENT SUBMISSIONS TO GRADE:
 ${studentSubmissions
-  .map(
-    (s, sIdx) => `
+            .map(
+              (s, sIdx) => `
 [STUDENT ${sIdx + 1}] ID: "${s.studentId}", Name: "${s.studentName}"
 ${s.answers
-  .map(
-    (a) => `Question ${a.questionNumber} Code Submission:
+                  .map(
+                    (a) => `Question ${a.questionNumber} Code Submission:
 \`\`\`${questions.find((q) => q.questionNumber === a.questionNumber)?.language || "c"}
 ${a.code?.trim() || "// No code submitted"}
 \`\`\``
-  )
-  .join("\n")}
+                  )
+                  .join("\n")}
 `
-  )
-  .join("\n--------------------------------------------------\n")}
+            )
+            .join("\n--------------------------------------------------\n")}
 
 Respond ONLY with a valid, clean JSON object matching this EXACT JSON schema:
 {
