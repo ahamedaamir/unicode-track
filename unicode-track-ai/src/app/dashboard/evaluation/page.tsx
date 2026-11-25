@@ -16,6 +16,14 @@ import {
   RotateCcw,
   Plus,
   Trash2,
+  GitBranch,
+  FolderGit2,
+  ExternalLink,
+  Play,
+  Terminal,
+  Cpu,
+  User,
+  Users,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -39,6 +47,11 @@ interface TargetResult {
   sum: string;
 }
 
+interface ProjectFile {
+  name: string;
+  code: string;
+}
+
 interface EvaluationProject {
   id: number;
   b: string; // batch
@@ -47,6 +60,11 @@ interface EvaluationProject {
   g: number; // 1 = group project, 0 = personal/individual project
   tg: string[]; // targets: group names or student index numbers
   fin: number; // 0 = not finalized (in New evaluation), 1 = finalized (in Finished)
+  repo: string; // GitHub repository link
+  branches: [string, number][]; // [branchName, commitCount]
+  members: [string, number][]; // [memberName, commitCount]
+  docs: [string, string, boolean][]; // [docTitle, docType, isUploaded]
+  files: ProjectFile[];
   reqs: RequirementItem[];
   res: Record<string, TargetResult>;
 }
@@ -74,85 +92,294 @@ function generateMarks(seed: number, reqs: RequirementItem[]): number[] {
   return reqs.map((q, i) => Math.round(q.m * (0.68 + ((seed * 7 + i * 13) % 28) / 100)));
 }
 
-function createInitialProject(
-  id: number,
-  b: string,
-  c: string,
-  t: string,
-  g: number,
-  tg: string[],
-  fin: number
-): EvaluationProject {
-  const reqs = DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m }));
-  const p: EvaluationProject = {
-    id,
-    b,
-    c,
-    t,
-    g,
-    tg,
-    fin,
-    reqs,
-    res: {},
-  };
+// ----------------------------------------------------------------------------
+// INITIAL SEED PROJECTS WITH REPOSITORIES, TELEMETRY, DELIVERABLES & CODE
+// ----------------------------------------------------------------------------
+const INITIAL_PROJECTS: EvaluationProject[] = [
+  {
+    id: 1,
+    b: "2.2",
+    c: "ICT2132",
+    t: "Faculty Management System",
+    g: 1,
+    tg: ["Group 1", "Group 2", "Group 3", "Group 4"],
+    fin: 0,
+    repo: "uor-ict/faculty-mgmt-c",
+    branches: [
+      ["main", 42],
+      ["dev", 28],
+      ["feature/database-cli", 14],
+    ],
+    members: [
+      ["Nimal P.", 24],
+      ["Sara F.", 19],
+      ["Kasun D.", 14],
+      ["Ayesha R.", 9],
+    ],
+    docs: [
+      ["Project proposal", "PDF", true],
+      ["ER diagram", "PNG", true],
+      ["Final report", "PDF", true],
+    ],
+    files: [
+      {
+        name: "main.c",
+        code: `#include <stdio.h>
+#include <string.h>
 
-  if (fin) {
-    tg.forEach((x, i) => {
-      p.res[x] = {
-        m: generateMarks(i + id, reqs),
-        sum: DEFAULT_SUMMARY,
-      };
-    });
-  }
-
-  return p;
+void show_menu() {
+    printf("==========================================\\n");
+    printf(" Faculty Management System CLI — UoR ICT  \\n");
+    printf("==========================================\\n");
+    printf("1. List Academic Departments\\n");
+    printf("2. List Faculty Courses\\n");
+    printf("3. Enrolled Students\\n");
+    printf("4. Exit\\n");
 }
 
-// Initial Seed Projects matching prototype
-const INITIAL_PROJECTS: EvaluationProject[] = [
-  createInitialProject(
-    1,
-    "2.2",
-    "ICT2132",
-    "Faculty Management System",
-    1,
-    ["Group 1", "Group 2", "Group 3", "Group 4"],
-    0
-  ),
-  createInitialProject(
-    2,
-    "2.2",
-    "ICT2132",
-    "C Mini Shell",
-    0,
-    ["TG/2004/2004", "TG/2004/2011", "TG/2004/2037"],
-    0
-  ),
-  createInitialProject(
-    3,
-    "3.1",
-    "ICT2152",
-    "Library Management",
-    1,
-    ["Group 1", "Group 2", "Group 3"],
-    0
-  ),
-  createInitialProject(
-    4,
-    "1.2",
-    "ICT2162",
-    "Mini Project",
-    1,
-    ["Group 1", "Group 2"],
-    1
-  ),
-];
+int main(void) {
+    show_menu();
+    printf("\\n[INFO] Initializing SQLite / C memory database...\\n");
+    printf("[DB] 3 Departments loaded: CS, IS, SE\\n");
+    printf("[DB] 8 Active Courses connected to Faculty of Computing.\\n");
+    printf("[PASS] Core transaction loops executed with status 0.\\n");
+    return 0;
+}`,
+      },
+      {
+        name: "faculty.h",
+        code: `#ifndef FACULTY_H
+#define FACULTY_H
 
-// Pre-evaluate Group 1 in Project 1 so user immediately sees evaluation state
-INITIAL_PROJECTS[0].res["Group 1"] = {
-  m: generateMarks(3, INITIAL_PROJECTS[0].reqs),
-  sum: DEFAULT_SUMMARY,
-};
+typedef struct {
+    int id;
+    char name[64];
+    char code[16];
+    int credits;
+} Course;
+
+void init_database(void);
+int add_course(Course c);
+
+#endif`,
+      },
+      {
+        name: "database.sql",
+        code: `-- Faculty Management Relational Schema (3NF)
+CREATE TABLE departments (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    faculty VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE courses (
+    code VARCHAR(10) PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    dept_id INT REFERENCES departments(id)
+);
+
+CREATE TABLE student_enrollments (
+    student_id VARCHAR(20) NOT NULL,
+    course_code VARCHAR(10) REFERENCES courses(code),
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(student_id, course_code)
+);`,
+      },
+      {
+        name: "README.md",
+        code: `# Faculty Management System
+Academic project developed by Group 01 for ICT2132 Software Engineering.
+Build: gcc -O2 -std=c11 main.c -o fms
+Run: ./fms`,
+      },
+    ],
+    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
+    res: {
+      "Group 1": {
+        m: generateMarks(3, DEFAULT_REQUIREMENTS),
+        sum: DEFAULT_SUMMARY,
+      },
+    },
+  },
+
+  {
+    id: 2,
+    b: "2.2",
+    c: "ICT2132",
+    t: "C Mini Shell",
+    g: 0,
+    tg: ["TG/2004/2004", "TG/2004/2011", "TG/2004/2037"],
+    fin: 0,
+    repo: "uor-ict/c-mini-shell",
+    branches: [
+      ["main", 35],
+      ["dev", 20],
+      ["parser-fix", 7],
+    ],
+    members: [["TG/2004/2004", 42]],
+    docs: [
+      ["Project proposal", "PDF", true],
+      ["ER diagram", "PNG", true],
+      ["Final report", "PDF", true],
+    ],
+    files: [
+      {
+        name: "main.c",
+        code: `#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    printf("==========================================\\n");
+    printf(" UniCodeTrack Mini Shell — REPL v1.2     \\n");
+    printf(" Standard Input Command Parser            \\n");
+    printf("==========================================\\n");
+
+    const char *commands[] = {"help", "status", "version", "uptime"};
+    for (int i = 0; i < 4; i++) {
+        printf("shell> %s\\n", commands[i]);
+        printf("[OK] Command '%s' dispatched successfully.\\n", commands[i]);
+    }
+    printf("shell> exit\\n[Shell terminated cleanly with code 0]\\n");
+    return 0;
+}`,
+      },
+      {
+        name: "parser.h",
+        code: `#ifndef PARSER_H
+#define PARSER_H
+
+int parse_command_line(const char *line, char **argv);
+
+#endif`,
+      },
+      {
+        name: "README.md",
+        code: `# C Mini Shell
+Interactive command interpreter with tokenization and process dispatching.
+Build: gcc -O2 -std=c11 main.c -o shell`,
+      },
+    ],
+    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
+    res: {},
+  },
+
+  {
+    id: 3,
+    b: "3.1",
+    c: "ICT2152",
+    t: "Library Management",
+    g: 1,
+    tg: ["Group 1", "Group 2", "Group 3"],
+    fin: 0,
+    repo: "uor-ict/python-library-sys",
+    branches: [
+      ["main", 38],
+      ["dev", 22],
+      ["api-routes", 11],
+    ],
+    members: [
+      ["Chathura K.", 21],
+      ["Sanduni M.", 18],
+      ["Buddhika T.", 12],
+    ],
+    docs: [
+      ["Project proposal", "PDF", true],
+      ["ER diagram", "PNG", true],
+      ["Final report", "PDF", true],
+    ],
+    files: [
+      {
+        name: "main.py",
+        code: `#!/usr/bin/env python3
+"""
+Library Management System — Python 3 Implementation
+"""
+
+class LibraryCatalog:
+    def __init__(self):
+        self.books = [
+            {"isbn": "978-0131103627", "title": "The C Programming Language", "copies": 4},
+            {"isbn": "978-0201633610", "title": "Design Patterns", "copies": 2},
+            {"isbn": "978-0132350884", "title": "Clean Code", "copies": 5},
+        ]
+
+    def list_books(self):
+        print("=== Library Books Catalog ===")
+        for b in self.books:
+            print(f" • [{b['isbn']}] {b['title']} — Copies Available: {b['copies']}")
+
+if __name__ == "__main__":
+    catalog = LibraryCatalog()
+    catalog.list_books()
+    print("\\n[PASS] Python Library System test suite passed successfully.")
+`,
+      },
+      {
+        name: "models.py",
+        code: `class Book:
+    def __init__(self, isbn, title, author):
+        self.isbn = isbn
+        self.title = title
+        self.author = author
+`,
+      },
+      {
+        name: "README.md",
+        code: `# Library Management System in Python
+Run: python main.py`,
+      },
+    ],
+    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
+    res: {},
+  },
+
+  {
+    id: 4,
+    b: "1.2",
+    c: "ICT2162",
+    t: "Mini Project",
+    g: 1,
+    tg: ["Group 1", "Group 2"],
+    fin: 1,
+    repo: "uor-ict/java-sms",
+    branches: [
+      ["main", 29],
+      ["dev", 15],
+    ],
+    members: [
+      ["Group 1 Lead", 25],
+      ["Group 2 Lead", 19],
+    ],
+    docs: [
+      ["Project proposal", "PDF", true],
+      ["ER diagram", "PNG", true],
+      ["Final report", "PDF", true],
+    ],
+    files: [
+      {
+        name: "Main.java",
+        code: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("=== Student Information System (Java OpenJDK) ===");
+        System.out.println("Status: Finalized Academic Project");
+        System.out.println("Verification check: OK (Exit code 0)");
+    }
+}`,
+      },
+    ],
+    reqs: DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m })),
+    res: {
+      "Group 1": {
+        m: generateMarks(1, DEFAULT_REQUIREMENTS),
+        sum: DEFAULT_SUMMARY,
+      },
+      "Group 2": {
+        m: generateMarks(2, DEFAULT_REQUIREMENTS),
+        sum: DEFAULT_SUMMARY,
+      },
+    },
+  },
+];
 
 export default function EvaluationsAndMarksPage() {
   const { showToast } = useAdminData();
@@ -164,6 +391,14 @@ export default function EvaluationsAndMarksPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [isFinalizeView, setIsFinalizeView] = useState<boolean>(false);
+
+  // File Code Inspector State
+  const [activeFileIndex, setActiveFileIndex] = useState<number>(0);
+
+  // Gemini Auto-Detect Runner State
+  const [isRunnerActive, setIsRunnerActive] = useState<boolean>(false);
+  const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
+  const [terminalOutput, setTerminalOutput] = useState<string>("$ \n");
 
   // AI Evaluation Loading State (3-second loader)
   const [isLoadingAi, setIsLoadingAi] = useState<boolean>(false);
@@ -200,7 +435,9 @@ export default function EvaluationsAndMarksPage() {
     if (params.tgt !== undefined) setSelectedTarget(params.tgt);
     if (params.fin !== undefined) setIsFinalizeView(params.fin);
     if (params.toast !== undefined) setToastMessage(params.toast);
-    setIsLoadingAi(false);
+    setActiveFileIndex(0);
+    setIsRunnerActive(false);
+    setDetectedLanguage(null);
   };
 
   // Target Total Calculation Helper
@@ -212,6 +449,93 @@ export default function EvaluationsAndMarksPage() {
   // Count Evaluated Targets in a Project
   const countEvaluatedTargets = (p: EvaluationProject): number => {
     return p.tg.filter((t) => p.res[t]).length;
+  };
+
+  // --------------------------------------------------------------------------
+  // GEMINI AUTO-DETECT LANGUAGE & RUN IN SANDBOX
+  // --------------------------------------------------------------------------
+  const runProjectWithGeminiAutoDetect = async () => {
+    if (!currentProject || !currentProject.files.length) return;
+
+    setIsRunnerActive(true);
+    setTerminalOutput(
+      `$ [Gemini AI Language Detective]: Inspecting repository files...\n`
+    );
+
+    // 1. Analyze files to infer language (Gemini thinking simulation)
+    const files = currentProject.files;
+    const hasC = files.some((f) => f.name.endsWith(".c") || f.name.endsWith(".h"));
+    const hasPy = files.some((f) => f.name.endsWith(".py"));
+    const hasJava = files.some((f) => f.name.endsWith(".java"));
+
+    let langName = "C";
+    let endpoint = "/api/code/run-c";
+    let commandStr = "gcc -O2 -std=c11 -Wall main.c -o program.exe && ./program.exe";
+    let primaryFile = files.find((f) => f.name === "main.c") || files[0];
+
+    if (hasPy) {
+      langName = "Python 3";
+      endpoint = "/api/code/run-python";
+      commandStr = "py -u main.py";
+      primaryFile = files.find((f) => f.name === "main.py") || files[0];
+    } else if (hasJava) {
+      langName = "Java (OpenJDK 25)";
+      endpoint = "/api/code/run-java";
+      commandStr = "javac Main.java && java Main";
+      primaryFile = files.find((f) => f.name === "Main.java") || files[0];
+    }
+
+    setDetectedLanguage(langName);
+
+    // Step 2: Display Gemini AI analysis in terminal
+    await new Promise((r) => setTimeout(r, 600));
+
+    const initialLog =
+      `$ [Gemini AI Language Detective]: Inspected files (${files.map((f) => f.name).join(", ")})\n` +
+      `$ Inferred Target Runtime: ${langName}\n` +
+      `$ ${commandStr}\n` +
+      `Compiling and executing in sandbox...\n\n`;
+
+    setTerminalOutput(initialLog);
+
+    // Step 3: Call runtime execution sandbox API
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceCode: primaryFile.code,
+          filename: primaryFile.name,
+        }),
+      });
+
+      const data = await res.json();
+      let output = initialLog;
+
+      if (data.status === "compilation_error") {
+        output += `[COMPILATION ERROR]\n${data.stderr || data.error || "Compilation failed."}\n`;
+      } else if (data.status === "security_violation") {
+        output += `[SECURITY POLICY BLOCKED]\n${data.error}\n`;
+      } else {
+        if (data.stdout) {
+          output += data.stdout;
+          if (!data.stdout.endsWith("\n")) output += "\n";
+        }
+        if (data.stderr) {
+          output += `[STDERR]\n${data.stderr}\n`;
+        }
+        output += `\n[Process exited with status ${data.exitCode ?? 0} in ${
+          data.executionTimeSeconds || "0.00"
+        }s]`;
+      }
+
+      setTerminalOutput(output);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Execution failure occurred.";
+      setTerminalOutput(initialLog + `[FATAL RUNTIME ERROR]: ${msg}\n`);
+    } finally {
+      setIsRunnerActive(false);
+    }
   };
 
   // --------------------------------------------------------------------------
@@ -407,7 +731,11 @@ export default function EvaluationsAndMarksPage() {
       y += 6;
 
       doc.setFontSize(9);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()} — UniCodeTrack AI Evaluation Engine`, 14, y);
+      doc.text(
+        `Repository: github.com/${project.repo}  |  Generated: ${new Date().toLocaleDateString()}`,
+        14,
+        y
+      );
       y += 12;
 
       // Group or Student evaluations
@@ -729,7 +1057,8 @@ export default function EvaluationsAndMarksPage() {
   };
 
   // --------------------------------------------------------------------------
-  // SCREEN 5: TARGET DETAIL & EVALUATION VIEW (REQUIREMENTS + GEMINI EVAL)
+  // SCREEN 5: TARGET DETAIL & EVALUATION WORKSPACE
+  // Includes: GitHub repo, branches, member commits, files viewer, auto-runner & grading
   // --------------------------------------------------------------------------
   const renderDetailView = () => {
     if (!currentProject || !selectedTarget) return null;
@@ -738,6 +1067,7 @@ export default function EvaluationsAndMarksPage() {
     const targetResult = currentProject.res[selectedTarget];
     const totalRequirementMarks = currentProject.reqs.reduce((a, q) => a + (Number(q.m) || 0), 0);
     const currentTotalScore = calculateTotalMarks(targetResult);
+    const isGroup = Boolean(currentProject.g);
 
     // Left Column: Requirements List
     const leftColumn = (
@@ -745,7 +1075,7 @@ export default function EvaluationsAndMarksPage() {
         <b className="text-base text-white block">Requirements</b>
         <p className="text-xs text-slate-400 my-1 mb-3">
           Set when the project was created. Edits apply to every{" "}
-          {currentProject.g ? "group" : "student"} in this project.
+          {isGroup ? "group" : "student"} in this project.
         </p>
 
         <div className="space-y-2">
@@ -829,7 +1159,7 @@ export default function EvaluationsAndMarksPage() {
           <div className="py-6 space-y-3">
             <p className="text-xs text-slate-400 leading-relaxed">
               Gemini compares each requirement with this{" "}
-              {currentProject.g ? "group" : "student"}&apos;s code and reports, then suggests marks.
+              {isGroup ? "group" : "student"}&apos;s code and reports, then suggests marks.
             </p>
             <button className="proj-btn p text-xs font-semibold" onClick={runAiEvaluation}>
               Evaluate with Gemini
@@ -899,6 +1229,7 @@ export default function EvaluationsAndMarksPage() {
 
     return (
       <>
+        {/* Breadcrumb Navigation */}
         <div className="crumb">
           <a onClick={() => navigateTo({ b: null, c: null, pid: null, tgt: null })}>
             Evaluations & Marks
@@ -918,12 +1249,166 @@ export default function EvaluationsAndMarksPage() {
           / <span>{selectedTarget}</span>
         </div>
 
-        <h1 className="text-2xl font-bold text-white tracking-tight">{selectedTarget}</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
-          {currentProject.t} · {currentProject.c}
+        {/* Header with linked repository */}
+        <h1 className="text-2xl font-bold text-white tracking-tight">
+          {selectedTarget} · {currentProject.t}
+        </h1>
+        <p className="sub text-sm text-slate-400 mb-4 flex items-center gap-1.5 flex-wrap">
+          <span>Linked repository:</span>
+          <a
+            href={`https://github.com/${currentProject.repo}`}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-teal-400 hover:underline flex items-center gap-1"
+          >
+            <span>github.com/{currentProject.repo}</span>
+            <ExternalLink className="w-3 h-3 text-teal-400" />
+          </a>
         </p>
 
-        {/* Two Columns: Requirements & Evaluation */}
+        {/* 1. Repository Stats Grid */}
+        <div className="proj-stats">
+          <div className="proj-card">
+            <b>{currentProject.branches.length}</b>
+            <span>Branches</span>
+          </div>
+          <div className="proj-card">
+            <b>
+              {currentProject.branches.reduce((a, b) => a + b[1], 0)}
+            </b>
+            <span>Total commits</span>
+          </div>
+          <div className="proj-card">
+            <b>{isGroup ? currentProject.members.length : 1}</b>
+            <span>{isGroup ? "Contributors" : "Contributor"}</span>
+          </div>
+          <div className="proj-card">
+            <b>1 h ago</b>
+            <span>Last activity</span>
+          </div>
+        </div>
+
+        {/* 2. Branches & Commits per member Breakdown */}
+        <div className="proj-two mb-4">
+          <div className="proj-card">
+            <b className="text-base text-white">Branches</b>
+            {currentProject.branches.map((bItem) => (
+              <div key={bItem[0]} className="mt-3">
+                <div className="proj-row">
+                  <span className="font-mono text-xs text-slate-200">{bItem[0]}</span>
+                  <span className="proj-sp"></span>
+                  <span className="text-xs text-slate-400">{bItem[1]} commits</span>
+                </div>
+                <div className="proj-bar">
+                  <i style={{ width: `${(bItem[1] / 42) * 100}%` }}></i>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="proj-card">
+            <b className="text-base text-white">
+              {isGroup ? "Commits per member" : "Member Commits"}
+            </b>
+            {currentProject.members.map((mItem) => (
+              <div key={mItem[0]} className="mt-3">
+                <div className="proj-row">
+                  <span className="text-xs font-medium text-slate-200">{mItem[0]}</span>
+                  <span className="proj-sp"></span>
+                  <span className="text-xs text-slate-400">{mItem[1]} commits</span>
+                </div>
+                <div className="proj-bar">
+                  <i style={{ width: `${(mItem[1] / 42) * 100}%` }}></i>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Deliverables Status */}
+        <div className="proj-sec">Deliverables</div>
+        <div className="proj-row mb-6">
+          {currentProject.docs.map((d) => (
+            <div key={d[0]} className="proj-card proj-doc" style={{ minWidth: 210 }}>
+              <div className="proj-ic">{d[1]}</div>
+              <div>
+                <b className="text-xs block text-white">{d[0]}</b>
+                <span className={`proj-tag ${d[2] ? "ok" : "no"}`}>
+                  {d[2] ? "Uploaded" : "Not yet"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 4. Code & Files Inspection on the Same Platform */}
+        <div className="proj-sec">Project Source Files (Read-only)</div>
+        <div className="proj-ws mb-6">
+          <div className="proj-tree">
+            {currentProject.files.map((file, idx) => (
+              <div
+                key={file.name}
+                className={activeFileIndex === idx ? "on" : ""}
+                onClick={() => setActiveFileIndex(idx)}
+              >
+                {file.name}
+              </div>
+            ))}
+          </div>
+          <pre className="proj-pre">
+            {currentProject.files[activeFileIndex]?.code || "// No file selected"}
+          </pre>
+        </div>
+
+        {/* 5. Gemini AI Auto-Detect Runtime Runner & Terminal Console */}
+        <div className="proj-sec">Run Project (Gemini Auto-Detect)</div>
+        <div className="proj-card mb-6">
+          <div className="proj-row mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-teal-400" />
+              <b className="text-base text-white">Execution Console & Sandbox</b>
+            </div>
+            <span className="proj-sp"></span>
+            {detectedLanguage ? (
+              <span className="proj-tag ok" style={{ margin: 0 }}>
+                Detected: {detectedLanguage}
+              </span>
+            ) : (
+              <span className="proj-tag" style={{ margin: 0 }}>
+                Gemini Auto-Detect Ready
+              </span>
+            )}
+          </div>
+
+          <pre
+            className="proj-pre rounded-lg overflow-auto"
+            style={{ minHeight: 180 }}
+          >
+            {terminalOutput}
+          </pre>
+
+          <div className="proj-row mt-3">
+            <button
+              className="proj-btn p flex items-center gap-1.5"
+              disabled={isRunnerActive}
+              onClick={runProjectWithGeminiAutoDetect}
+            >
+              <Play className={`w-3.5 h-3.5 fill-current ${isRunnerActive ? "animate-spin" : ""}`} />
+              {isRunnerActive
+                ? "Gemini Analyzing & Executing..."
+                : "▶ Run Project (Gemini Auto-Detect)"}
+            </button>
+            <button
+              className="proj-btn"
+              onClick={() => setTerminalOutput("$ \n")}
+            >
+              Clear Console
+            </button>
+          </div>
+        </div>
+
+        {/* 6. Two Columns: Requirements & AI Evaluation Grading */}
+        <div className="proj-sec">Grading & Pedagogical Evaluation</div>
         <div className="proj-two mb-4">
           {leftColumn}
           {rightColumn}
@@ -935,7 +1420,7 @@ export default function EvaluationsAndMarksPage() {
             className="proj-btn text-xs"
             onClick={() => navigateTo({ tgt: null })}
           >
-            ← Back to {currentProject.g ? "groups" : "students"}
+            ← Back to {isGroup ? "groups" : "students"}
           </button>
         </div>
       </>
