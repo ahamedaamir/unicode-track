@@ -545,11 +545,10 @@ export default function EnvironmentTestPage() {
         {/* C Card */}
         <div
           onClick={() => handleSelectLanguage("c")}
-          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${
-            selectedLang === "c"
-              ? "border-accent bg-accent/10 ring-1 ring-accent/30"
-              : "border-border bg-card hover:border-accent/40"
-          }`}
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${selectedLang === "c"
+            ? "border-accent bg-accent/10 ring-1 ring-accent/30"
+            : "border-border bg-card hover:border-accent/40"
+            }`}
         >
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center font-bold text-accent font-mono text-xs sm:text-sm shrink-0">
@@ -565,11 +564,10 @@ export default function EnvironmentTestPage() {
         {/* Python Card */}
         <div
           onClick={() => handleSelectLanguage("python")}
-          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${
-            selectedLang === "python"
-              ? "border-accent bg-accent/10 ring-1 ring-accent/30"
-              : "border-border bg-card hover:border-accent/40"
-          }`}
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${selectedLang === "python"
+            ? "border-accent bg-accent/10 ring-1 ring-accent/30"
+            : "border-border bg-card hover:border-accent/40"
+            }`}
         >
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-warning/20 border border-warning/30 flex items-center justify-center font-bold text-warning font-mono text-xs sm:text-sm shrink-0">
@@ -585,11 +583,10 @@ export default function EnvironmentTestPage() {
         {/* Java Card */}
         <div
           onClick={() => handleSelectLanguage("java")}
-          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${
-            selectedLang === "java"
-              ? "border-accent bg-accent/10 ring-1 ring-accent/30"
-              : "border-border bg-card hover:border-accent/40"
-          }`}
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${selectedLang === "java"
+            ? "border-accent bg-accent/10 ring-1 ring-accent/30"
+            : "border-border bg-card hover:border-accent/40"
+            }`}
         >
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 font-mono text-xs sm:text-sm shrink-0">
@@ -613,11 +610,10 @@ export default function EnvironmentTestPage() {
               <button
                 key={key}
                 onClick={() => handleSelectPreset(key)}
-                className={`px-3 py-1 rounded-[10px] text-xs font-medium transition-colors ${
-                  currentPreset === key
-                    ? "bg-accent/20 text-accent border border-accent/40 font-semibold"
-                    : "bg-muted text-muted-foreground border border-border hover:text-foreground"
-                }`}
+                className={`px-3 py-1 rounded-[10px] text-xs font-medium transition-colors ${currentPreset === key
+                  ? "bg-accent/20 text-accent border border-accent/40 font-semibold"
+                  : "bg-muted text-muted-foreground border border-border hover:text-foreground"
+                  }`}
               >
                 {currentLangConfig.presets[key].name}
               </button>
@@ -627,11 +623,10 @@ export default function EnvironmentTestPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowStdin(!showStdin)}
-              className={`px-2.5 py-1 rounded-[10px] text-xs font-medium border transition-colors ${
-                showStdin
-                  ? "bg-accent/20 text-accent border-accent/40"
-                  : "bg-muted text-muted-foreground border-border hover:text-foreground"
-              }`}
+              className={`px-2.5 py-1 rounded-[10px] text-xs font-medium border transition-colors ${showStdin
+                ? "bg-accent/20 text-accent border-accent/40"
+                : "bg-muted text-muted-foreground border-border hover:text-foreground"
+                }`}
               title="Toggle standard input (stdin)"
             >
               {showStdin ? "✓ Stdin Input Active" : "+ Add Stdin Input"}
@@ -751,11 +746,10 @@ export default function EnvironmentTestPage() {
               <div className="flex items-center gap-2">
                 {executionResult && (
                   <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      executionResult.success
-                        ? "bg-accent/20 text-accent border border-accent/30"
-                        : "bg-danger/20 text-danger border border-danger/30"
-                    }`}
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${executionResult.success
+                      ? "bg-accent/20 text-accent border border-accent/30"
+                      : "bg-danger/20 text-danger border border-danger/30"
+                      }`}
                   >
                     {executionResult.success ? "Exit Code 0" : `Exit Code ${executionResult.exitCode ?? 1}`}
                   </span>
