@@ -231,7 +231,11 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           setMasterLecturers(
             parsed.lecturers
               .filter((l: Lecturer) => l.email.toLowerCase() !== "check@gmail.com")
-              .map((l: Lecturer) => ({ ...l, adminEmail: l.adminEmail || "admin@university.edu" }))
+              .map((l: Lecturer) => ({
+                ...l,
+                adminEmail: l.adminEmail || "admin@university.edu",
+                defaultPassword: l.defaultPassword === "UniCode@2004" ? "12345678" : (l.defaultPassword || "12345678"),
+              }))
           );
         }
         if (parsed.students && Array.isArray(parsed.students)) {
@@ -792,7 +796,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       assignedCourses: data.assignedCourses || [],
       status: "Pending First Login",
       hasChangedDefaultPassword: false,
-      defaultPassword: "UniCode@2004",
+      defaultPassword: "12345678",
       createdAt: new Date().toISOString().split("T")[0],
       adminEmail: effectiveAdminEmail,
     };

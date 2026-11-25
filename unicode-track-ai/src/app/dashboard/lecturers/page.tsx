@@ -302,12 +302,12 @@ export default function LecturersPage() {
                             Deactivated
                           </span>
                         ) : !lec.hasChangedDefaultPassword ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold" title="Default password must be updated on first login">
-                            <KeyRound className="w-3 h-3 text-amber-600" /> Pending 1st Login
+                          <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-warning-soft text-warning border border-warning/30 font-semibold" title="Default password must be updated on first login">
+                            <KeyRound className="w-3 h-3 text-warning" /> Pending 1st Login
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
+                          <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-success-soft text-success border border-success/30 font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent" /> Active
                           </span>
                         )}
                       </td>
@@ -546,7 +546,7 @@ export default function LecturersPage() {
               <div className="flex justify-between items-center py-1">
                 <span className="text-muted-foreground font-medium">Default Password</span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-teal-800 bg-card px-2 py-0.5 rounded border border-teal-200">
+                  <span className="font-mono font-bold text-accent bg-accent-soft px-2 py-0.5 rounded border border-accent-border">
                     {createdCredentials.defaultPassword}
                   </span>
                   <button
@@ -554,15 +554,15 @@ export default function LecturersPage() {
                     className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted"
                     title="Copy password"
                   >
-                    {copied ? <CheckCheck className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <CheckCheck className="w-4 h-4 text-accent" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Warning requirement */}
-            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-warning-soft border border-warning/30 text-xs text-warning flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
               <p className="leading-relaxed">
                 <strong className="font-bold">Security Requirement:</strong> The lecturer must change this password during their first login before accessing the lecturer dashboard.
               </p>
