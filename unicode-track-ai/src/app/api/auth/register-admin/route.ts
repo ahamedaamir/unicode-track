@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
           if (!createError && userData?.user) {
             userId = userData.user.id;
             authCreated = true;
-          } else if (createError && createError.message.toLowerCase().includes("already")) {
-            // If already registered, update their password so they can log in immediately
+          } else if (createError) {
+            // If already registered or error occurred, locate user and update their password so they can log in immediately
             const { data: existingUsers } = await adminClient.auth.admin.listUsers();
             const existing = existingUsers?.users?.find(
               (u) => u.email?.toLowerCase() === trimmedEmail
@@ -49,8 +49,11 @@ export async function POST(req: NextRequest) {
                 password,
                 email_confirm: true,
                 user_metadata: {
+                  ...existing.user_metadata,
                   role: "admin",
-                  university_name: universityName || "University",
+                  university_name: universityName || existing.user_metadata?.university_name || "University",
+                  faculty: faculty || existing.user_metadata?.faculty || "Faculty",
+                  location: location || existing.user_metadata?.location || "",
                 },
               });
               userId = existing.id;
