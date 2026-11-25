@@ -178,12 +178,12 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
             onClick={() => setProfileOpen(!profileOpen)}
             className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-[10px] hover:bg-muted transition-colors focus:outline-none cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center">
+            <div suppressHydrationWarning className="w-8 h-8 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center">
               {adminInitials}
             </div>
             <div className="hidden lg:block text-left text-xs leading-tight">
-              <p className="font-bold text-foreground truncate max-w-[150px]">{adminDisplayName}</p>
-              <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{adminDisplayEmail}</p>
+              <p suppressHydrationWarning className="font-bold text-foreground truncate max-w-[150px]">{adminDisplayName}</p>
+              <p suppressHydrationWarning className="text-[10px] text-muted-foreground truncate max-w-[150px]">{adminDisplayEmail}</p>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
           </button>
