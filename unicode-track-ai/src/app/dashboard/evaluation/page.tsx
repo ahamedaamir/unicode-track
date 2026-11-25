@@ -2,666 +2,1070 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { 
-  Sparkles, 
-  CheckSquare, 
-  BarChart3, 
-  Sliders, 
-  Check, 
-  Clock, 
-  AlertCircle, 
-  ChevronRight, 
-  Download, 
-  FolderGit2, 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  X, 
-  Users, 
-  Code2, 
-  Database, 
-  FileText,
-  ShieldCheck,
+import { jsPDF } from "jspdf";
+import {
+  CheckSquare,
+  ChevronRight,
+  Download,
+  AlertCircle,
   CheckCircle2,
-  ExternalLink
+  Sparkles,
+  Layers,
+  FileText,
+  Clock,
+  RotateCcw,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 
-interface RubricCriterion {
-  id: string;
-  name: string;
-  description: string;
-  maxMarks: number;
+// Batches list matching prototype
+const BATCHES = ["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"] as const;
+
+// Official Courses catalogue
+const COURSES = [
+  { c: "ICT2132", n: "Software Engineering" },
+  { c: "ICT2152", n: "Systems Analysis & Design" },
+  { c: "ICT2162", n: "Management Information Systems" },
+];
+
+interface RequirementItem {
+  t: string;
+  m: number;
 }
 
-interface GroupEvaluationSummary {
-  groupId: string;
-  groupName: string;
-  projectId: string;
-  projectTitle: string;
-  courseCode: string;
-  repoUrl?: string;
-  totalCommits: number;
-  proposalStatus: string;
-  erDiagramStatus: string;
-  aiSuggestedScore: number;
-  lecturerScore?: number;
-  status: "not_evaluated" | "ai_completed" | "approved" | "published";
-  reviewedAt?: string;
+interface TargetResult {
+  m: number[];
+  sum: string;
 }
 
-export default function EvaluationsPage() {
-  const { projects, groups, activeRole } = useAdminData();
-  const isLecturer = activeRole === "lecturer";
+interface EvaluationProject {
+  id: number;
+  b: string; // batch
+  c: string; // course code
+  t: string; // title
+  g: number; // 1 = group project, 0 = personal/individual project
+  tg: string[]; // targets: group names or student index numbers
+  fin: number; // 0 = not finalized (in New evaluation), 1 = finalized (in Finished)
+  reqs: RequirementItem[];
+  res: Record<string, TargetResult>;
+}
 
-  const [activeTab, setActiveTab] = useState<"cohort_evaluations" | "rubrics_manager" | "code_findings">("cohort_evaluations");
+const DEFAULT_REQUIREMENTS: RequirementItem[] = [
+  { t: "Functionality", m: 30 },
+  { t: "Code quality", m: 20 },
+  { t: "ER / database design", m: 20 },
+  { t: "Documentation", m: 15 },
+  { t: "Requirement coverage", m: 15 },
+];
 
-  // Standard Rubric Criteria state (Section 13)
-  const [rubricCriteria, setRubricCriteria] = useState<RubricCriterion[]>([
-    {
-      id: "crit-1",
-      name: "ER Diagram Correctness",
-      description: "Entities, attributes, keys, and cardinalities match project specification.",
-      maxMarks: 20,
-    },
-    {
-      id: "crit-2",
-      name: "Database Implementation",
-      description: "PostgreSQL DDL scripts, foreign key cascades, normalization, and constraints.",
-      maxMarks: 20,
-    },
-    {
-      id: "crit-3",
-      name: "Code Quality & Architecture",
-      description: "Modular C / full-stack structure, memory safety, clean error handling.",
-      maxMarks: 20,
-    },
-    {
-      id: "crit-4",
-      name: "Functional Requirements Fulfillment",
-      description: "Core milestone deliverables implemented and verified against project brief.",
-      maxMarks: 25,
-    },
-    {
-      id: "crit-5",
-      name: "Documentation & Git Telemetry",
-      description: "Detailed system defense report, balanced commit velocity across members.",
-      maxMarks: 15,
-    },
-  ]);
+const EVIDENCE_TEMPLATES = [
+  "Core features implemented and run correctly in sandbox environment",
+  "Readable modular structure, clean separation of concerns and logic",
+  "Tables, constraints and foreign key relations match proposal schema",
+  "Report covers architectural decisions, system defense and diagrams",
+  "Most project specification deliverables verified against criteria",
+];
 
-  // Cohort Group Evaluations
-  const [cohortEvaluations, setCohortEvaluations] = useState<GroupEvaluationSummary[]>([
-    {
-      groupId: "grp-1",
-      groupName: "Group 01 — CyberNova",
-      projectId: "proj-1",
-      projectTitle: "University Event & Symposium Management System",
-      courseCode: "CS304",
-      repoUrl: "https://github.com/unicodetrack-demo/cybernova-event-hub",
-      totalCommits: 28,
-      proposalStatus: "approved",
-      erDiagramStatus: "analyzed",
-      aiSuggestedScore: 92,
-      lecturerScore: 94,
-      status: "published",
-      reviewedAt: "Nov 23, 2026",
-    },
-    {
-      groupId: "grp-2",
-      groupName: "Group 02 — DataSphere",
-      projectId: "proj-2",
-      projectTitle: "Distributed Edge Sensor Pipeline & Telemetry",
-      courseCode: "ICT2142",
-      repoUrl: "https://github.com/unicodetrack-demo/datasphere-pipeline",
-      totalCommits: 19,
-      proposalStatus: "approved",
-      erDiagramStatus: "revision_requested",
-      aiSuggestedScore: 84,
-      lecturerScore: 85,
-      status: "approved",
-      reviewedAt: "Nov 22, 2026",
-    },
-    {
-      groupId: "grp-3",
-      groupName: "Group 03 — NexusTech",
-      projectId: "proj-1",
-      projectTitle: "University Event & Symposium Management System",
-      courseCode: "CS304",
-      repoUrl: "https://github.com/unicodetrack-demo/nexustech-portal",
-      totalCommits: 14,
-      proposalStatus: "submitted",
-      erDiagramStatus: "submitted",
-      aiSuggestedScore: 78,
-      status: "ai_completed",
-    },
-    {
-      groupId: "grp-4",
-      groupName: "Group 04 — CloudPulse",
-      projectId: "proj-2",
-      projectTitle: "Distributed Edge Sensor Pipeline & Telemetry",
-      courseCode: "ICT2142",
-      totalCommits: 6,
-      proposalStatus: "submitted",
-      erDiagramStatus: "pending",
-      aiSuggestedScore: 72,
-      status: "not_evaluated",
-    },
-  ]);
+const DEFAULT_SUMMARY =
+  "Implements the proposed scope and matches the ER diagram and report. Error handling and testing are the main gaps.";
 
-  // Dynamic merge of past/archived projects into cohort evaluations
-  const allEvaluations = useMemo<GroupEvaluationSummary[]>(() => {
-    const list = [...cohortEvaluations];
-    const existingGroupIds = new Set(list.map((c) => c.groupId));
+function generateMarks(seed: number, reqs: RequirementItem[]): number[] {
+  return reqs.map((q, i) => Math.round(q.m * (0.68 + ((seed * 7 + i * 13) % 28) / 100)));
+}
 
-    projects
-      .filter((p) => p.status === "Archived" || (p as any).isPast)
-      .forEach((pastProj) => {
-        const projGroups = groups.filter((g) => g.projectId === pastProj.id);
-        if (projGroups.length > 0) {
-          projGroups.forEach((g) => {
-            if (!existingGroupIds.has(g.id)) {
-              list.push({
-                groupId: g.id,
-                groupName: g.groupName,
-                projectId: pastProj.id,
-                projectTitle: pastProj.title,
-                courseCode: pastProj.courseCode,
-                repoUrl: g.repoUrl,
-                totalCommits: g.totalCommits || 24,
-                proposalStatus: g.proposalStatus || "approved",
-                erDiagramStatus: "analyzed",
-                aiSuggestedScore: g.evaluationScore || 91,
-                lecturerScore: g.evaluationScore,
-                status: g.evaluationScore ? "published" : "ai_completed",
-                reviewedAt: "Duration Concluded",
-              });
-              existingGroupIds.add(g.id);
-            }
-          });
-        }
-      });
-
-    return list;
-  }, [cohortEvaluations, projects, groups]);
-
-  // Edit Marks Modal
-  const [editingGroup, setEditingGroup] = useState<GroupEvaluationSummary | null>(null);
-  const [modalLecturerScore, setModalLecturerScore] = useState("90");
-  const [modalFeedback, setModalFeedback] = useState("");
-  const [publishImmediately, setPublishImmediately] = useState(true);
-
-  // Rubric total marks calculation
-  const totalRubricMarks = rubricCriteria.reduce((sum, c) => sum + c.maxMarks, 0);
-
-  const handleSaveMarks = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingGroup) return;
-
-    const scoreNum = parseInt(modalLecturerScore, 10) || 85;
-    setCohortEvaluations((prev) =>
-      prev.map((g) =>
-        g.groupId === editingGroup.groupId
-          ? {
-              ...g,
-              lecturerScore: scoreNum,
-              status: publishImmediately ? "published" : "approved",
-              reviewedAt: "Just now",
-            }
-          : g
-      )
-    );
-    setEditingGroup(null);
+function createInitialProject(
+  id: number,
+  b: string,
+  c: string,
+  t: string,
+  g: number,
+  tg: string[],
+  fin: number
+): EvaluationProject {
+  const reqs = DEFAULT_REQUIREMENTS.map((r) => ({ t: r.t, m: r.m }));
+  const p: EvaluationProject = {
+    id,
+    b,
+    c,
+    t,
+    g,
+    tg,
+    fin,
+    reqs,
+    res: {},
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0B1220] tracking-tight">
-              Evaluations, Rubrics & Grading
-            </h2>
-            <Badge variant="teal" size="sm">
-              Standard 100-Mark Rubric
-            </Badge>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Configure academic rubrics, inspect Gemini AI evaluation recommendations, approve faculty marks, and publish results to student dashboards.
-          </p>
+  if (fin) {
+    tg.forEach((x, i) => {
+      p.res[x] = {
+        m: generateMarks(i + id, reqs),
+        sum: DEFAULT_SUMMARY,
+      };
+    });
+  }
+
+  return p;
+}
+
+// Initial Seed Projects matching prototype
+const INITIAL_PROJECTS: EvaluationProject[] = [
+  createInitialProject(
+    1,
+    "2.2",
+    "ICT2132",
+    "Faculty Management System",
+    1,
+    ["Group 1", "Group 2", "Group 3", "Group 4"],
+    0
+  ),
+  createInitialProject(
+    2,
+    "2.2",
+    "ICT2132",
+    "C Mini Shell",
+    0,
+    ["TG/2004/2004", "TG/2004/2011", "TG/2004/2037"],
+    0
+  ),
+  createInitialProject(
+    3,
+    "3.1",
+    "ICT2152",
+    "Library Management",
+    1,
+    ["Group 1", "Group 2", "Group 3"],
+    0
+  ),
+  createInitialProject(
+    4,
+    "1.2",
+    "ICT2162",
+    "Mini Project",
+    1,
+    ["Group 1", "Group 2"],
+    1
+  ),
+];
+
+// Pre-evaluate Group 1 in Project 1 so user immediately sees evaluation state
+INITIAL_PROJECTS[0].res["Group 1"] = {
+  m: generateMarks(3, INITIAL_PROJECTS[0].reqs),
+  sum: DEFAULT_SUMMARY,
+};
+
+export default function EvaluationsAndMarksPage() {
+  const { showToast } = useAdminData();
+
+  // Navigation and Filter State
+  const [tab, setTab] = useState<"new" | "fin">("new");
+  const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
+  const [isFinalizeView, setIsFinalizeView] = useState<boolean>(false);
+
+  // AI Evaluation Loading State (3-second loader)
+  const [isLoadingAi, setIsLoadingAi] = useState<boolean>(false);
+  const [evalLoadingStep, setEvalLoadingStep] = useState<string>("");
+
+  // Projects State
+  const [projectsList, setProjectsList] = useState<EvaluationProject[]>(INITIAL_PROJECTS);
+  const [toastMessage, setToastMessage] = useState<string>("");
+
+  // Active Project Reference
+  const currentProject = useMemo(() => {
+    return projectsList.find((p) => p.id === selectedProjectId) || null;
+  }, [projectsList, selectedProjectId]);
+
+  // Projects filtered by current tab (new = unfinished, fin = finalized)
+  const activeTabProjects = useMemo(() => {
+    return projectsList.filter((p) => p.fin === (tab === "fin" ? 1 : 0));
+  }, [projectsList, tab]);
+
+  // Navigation Reset Helper
+  const navigateTo = (params: {
+    tab?: "new" | "fin";
+    b?: string | null;
+    c?: string | null;
+    pid?: number | null;
+    tgt?: string | null;
+    fin?: boolean;
+    toast?: string;
+  }) => {
+    if (params.tab !== undefined) setTab(params.tab);
+    if (params.b !== undefined) setSelectedBatch(params.b);
+    if (params.c !== undefined) setSelectedCourse(params.c);
+    if (params.pid !== undefined) setSelectedProjectId(params.pid);
+    if (params.tgt !== undefined) setSelectedTarget(params.tgt);
+    if (params.fin !== undefined) setIsFinalizeView(params.fin);
+    if (params.toast !== undefined) setToastMessage(params.toast);
+    setIsLoadingAi(false);
+  };
+
+  // Target Total Calculation Helper
+  const calculateTotalMarks = (res?: TargetResult | null): number => {
+    if (!res || !res.m) return 0;
+    return res.m.reduce((a, x) => a + (Number(x) || 0), 0);
+  };
+
+  // Count Evaluated Targets in a Project
+  const countEvaluatedTargets = (p: EvaluationProject): number => {
+    return p.tg.filter((t) => p.res[t]).length;
+  };
+
+  // --------------------------------------------------------------------------
+  // AI EVALUATION: 3-SECOND LOADER WITH GEMINI CRITERIA MATCHING
+  // --------------------------------------------------------------------------
+  const runAiEvaluation = () => {
+    if (!currentProject || !selectedTarget) return;
+
+    setIsLoadingAi(true);
+    setEvalLoadingStep("Reading proposal and checking requirement scope…");
+
+    setTimeout(() => {
+      setEvalLoadingStep("Scanning repository files and C code…");
+    }, 1000);
+
+    setTimeout(() => {
+      setEvalLoadingStep("Comparing database ER diagram with final report…");
+    }, 2000);
+
+    setTimeout(() => {
+      const targetIndex = currentProject.tg.indexOf(selectedTarget);
+      const generated = generateMarks(
+        targetIndex + currentProject.id * 3,
+        currentProject.reqs
+      );
+
+      setProjectsList((prevList) => {
+        return prevList.map((p) => {
+          if (p.id === currentProject.id) {
+            return {
+              ...p,
+              res: {
+                ...p.res,
+                [selectedTarget]: {
+                  m: generated,
+                  sum: DEFAULT_SUMMARY,
+                },
+              },
+            };
+          }
+          return p;
+        });
+      });
+
+      setIsLoadingAi(false);
+      setEvalLoadingStep("");
+    }, 3000);
+  };
+
+  // --------------------------------------------------------------------------
+  // REQUIREMENTS MANAGEMENT: EDIT, ADD, REMOVE, UPDATE WEIGHTS
+  // --------------------------------------------------------------------------
+  const handleUpdateReqTitle = (reqIdx: number, newTitle: string) => {
+    if (!currentProject || currentProject.fin) return;
+    setProjectsList((prev) =>
+      prev.map((p) => {
+        if (p.id === currentProject.id) {
+          const updatedReqs = [...p.reqs];
+          updatedReqs[reqIdx] = { ...updatedReqs[reqIdx], t: newTitle };
+          return { ...p, reqs: updatedReqs };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleUpdateReqMark = (reqIdx: number, newMark: number) => {
+    if (!currentProject || currentProject.fin) return;
+    setProjectsList((prev) =>
+      prev.map((p) => {
+        if (p.id === currentProject.id) {
+          const updatedReqs = [...p.reqs];
+          updatedReqs[reqIdx] = { ...updatedReqs[reqIdx], m: newMark };
+          return { ...p, reqs: updatedReqs };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleAddRequirement = () => {
+    if (!currentProject || currentProject.fin) return;
+    setProjectsList((prev) =>
+      prev.map((p) => {
+        if (p.id === currentProject.id) {
+          const updatedReqs = [...p.reqs, { t: "New Requirement", m: 10 }];
+          const updatedRes: Record<string, TargetResult> = {};
+          Object.entries(p.res).forEach(([tKey, tVal]) => {
+            updatedRes[tKey] = {
+              ...tVal,
+              m: [...tVal.m, 8],
+            };
+          });
+          return { ...p, reqs: updatedReqs, res: updatedRes };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleDeleteRequirement = (reqIdx: number) => {
+    if (!currentProject || currentProject.fin || currentProject.reqs.length <= 1) return;
+    setProjectsList((prev) =>
+      prev.map((p) => {
+        if (p.id === currentProject.id) {
+          const updatedReqs = p.reqs.filter((_, idx) => idx !== reqIdx);
+          const updatedRes: Record<string, TargetResult> = {};
+          Object.entries(p.res).forEach(([tKey, tVal]) => {
+            updatedRes[tKey] = {
+              ...tVal,
+              m: tVal.m.filter((_, idx) => idx !== reqIdx),
+            };
+          });
+          return { ...p, reqs: updatedReqs, res: updatedRes };
+        }
+        return p;
+      })
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // LIVE SCORE EDITING: LECTURER OVERRIDE OF SPECIFIC CRITERION MARK
+  // --------------------------------------------------------------------------
+  const handleUpdateTargetScore = (criterionIdx: number, val: number) => {
+    if (!currentProject || !selectedTarget || currentProject.fin) return;
+    setProjectsList((prev) =>
+      prev.map((p) => {
+        if (p.id === currentProject.id) {
+          const existingRes = p.res[selectedTarget];
+          if (!existingRes) return p;
+          const updatedMarks = [...existingRes.m];
+          updatedMarks[criterionIdx] = val;
+          return {
+            ...p,
+            res: {
+              ...p.res,
+              [selectedTarget]: {
+                ...existingRes,
+                m: updatedMarks,
+              },
+            },
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleUpdateTargetSummary = (newSummary: string) => {
+    if (!currentProject || !selectedTarget || currentProject.fin) return;
+    setProjectsList((prev) =>
+      prev.map((p) => {
+        if (p.id === currentProject.id) {
+          const existingRes = p.res[selectedTarget];
+          if (!existingRes) return p;
+          return {
+            ...p,
+            res: {
+              ...p.res,
+              [selectedTarget]: {
+                ...existingRes,
+                sum: newSummary,
+              },
+            },
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // PDF GENERATION USING JSPDF
+  // --------------------------------------------------------------------------
+  const generateAndDownloadPdf = (project: EvaluationProject) => {
+    try {
+      const doc = new jsPDF();
+      let y = 20;
+
+      // Header Banner
+      doc.setFontSize(18);
+      doc.text(`${project.t} — Final Academic Evaluation`, 14, y);
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.text(
+        `Course: ${project.c}  |  Batch: ${project.b}  |  ${
+          project.g ? "Group Project" : "Individual Project"
+        }`,
+        14,
+        y
+      );
+      y += 6;
+
+      doc.setFontSize(9);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} — UniCodeTrack AI Evaluation Engine`, 14, y);
+      y += 12;
+
+      // Group or Student evaluations
+      project.tg.forEach((targetName) => {
+        const result = project.res[targetName];
+        if (y > 230) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.setFontSize(13);
+        const total = calculateTotalMarks(result);
+        doc.text(`${targetName}   —   Total Score: ${total} / 100`, 14, y);
+        y += 7;
+
+        doc.setFontSize(10);
+        project.reqs.forEach((q, i) => {
+          const mark = result?.m?.[i] ?? 0;
+          doc.text(`• ${q.t}: ${mark} / ${q.m} marks`, 18, y);
+          y += 5.5;
+        });
+
+        y += 2;
+        const summaryText = result?.sum || "No summary provided.";
+        const splitSummary = doc.splitTextToSize(`Project Summary: ${summaryText}`, 176);
+        doc.text(splitSummary, 18, y);
+        y += splitSummary.length * 5 + 10;
+      });
+
+      const filename = `${project.t.replace(/\W+/g, "-").toLowerCase()}-marks.pdf`;
+      doc.save(filename);
+
+      return true;
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      return false;
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // FINALIZE PROJECT: DOWNLOAD PDF & MOVE TO FINISHED TAB
+  // --------------------------------------------------------------------------
+  const handleFinalizeProject = (project: EvaluationProject) => {
+    generateAndDownloadPdf(project);
+
+    // Update project state to fin = 1 (Finished)
+    setProjectsList((prev) =>
+      prev.map((p) => {
+        if (p.id === project.id) {
+          return { ...p, fin: 1 };
+        }
+        return p;
+      })
+    );
+
+    navigateTo({
+      b: null,
+      c: null,
+      pid: null,
+      tgt: null,
+      fin: false,
+      toast: `Finalized "${project.t}". PDF downloaded and project moved to Finished!`,
+    });
+  };
+
+  // --------------------------------------------------------------------------
+  // SCREEN 1: BATCHES VIEW
+  // --------------------------------------------------------------------------
+  const renderBatchesView = () => {
+    return (
+      <>
+        {/* Breadcrumb */}
+        <div className="crumb">
+          <span>Evaluations & Marks</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href="/dashboard/submissions"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all"
+        <h1 className="text-2xl font-bold text-white tracking-tight">Evaluations & Marks</h1>
+        <p className="sub text-sm text-slate-400 mb-4">
+          Only batches with projects whose duration has ended are available.
+        </p>
+
+        {/* Tab Selector: New evaluation vs Finished */}
+        <div className="seg mb-4">
+          <button
+            className={tab === "new" ? "on" : ""}
+            onClick={() => navigateTo({ tab: "new", b: null, c: null, pid: null, tgt: null })}
           >
-            <CheckSquare className="w-3.5 h-3.5" />
-            <span>Submissions Ledger</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* KPI Stats Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[10px] font-bold text-slate-400 uppercase">Evaluated Groups</span>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-slate-900 font-mono">
-              {cohortEvaluations.filter((g) => g.status === "approved" || g.status === "published").length}
-            </span>
-            <span className="text-xs text-slate-500">of {cohortEvaluations.length}</span>
-          </div>
+            New evaluation
+          </button>
+          <button
+            className={tab === "fin" ? "on" : ""}
+            onClick={() => navigateTo({ tab: "fin", b: null, c: null, pid: null, tgt: null })}
+          >
+            Finished
+          </button>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[10px] font-bold text-teal-600 uppercase">Average Cohort Mark</span>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-teal-700 font-mono">87.5%</span>
-            <span className="text-xs text-teal-600">Mean score</span>
-          </div>
+        <div className="proj-sec">Select batch</div>
+        <div className="proj-grid">
+          {BATCHES.map((b) => {
+            const count = activeTabProjects.filter((p) => p.b === b).length;
+            const isAvailable = count > 0;
+
+            return (
+              <div
+                key={b}
+                className={`proj-card proj-tile ${
+                  isAvailable ? "" : "opacity-45 cursor-not-allowed hover:border-[#1e293b]"
+                }`}
+                onClick={() => {
+                  if (isAvailable) navigateTo({ b });
+                }}
+              >
+                <b>Batch {b}</b>
+                <span>
+                  {isAvailable
+                    ? `${count} ${tab === "new" ? "to evaluate" : "finished"}`
+                    : "No ended projects"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // SCREEN 2: COURSES VIEW FOR SELECTED BATCH
+  // --------------------------------------------------------------------------
+  const renderCoursesView = () => {
+    const batchCourses = Array.from(
+      new Set(activeTabProjects.filter((p) => p.b === selectedBatch).map((p) => p.c))
+    );
+
+    return (
+      <>
+        <div className="crumb">
+          <a onClick={() => navigateTo({ b: null, c: null, pid: null, tgt: null })}>
+            Evaluations & Marks
+          </a>{" "}
+          / <span>Batch {selectedBatch}</span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[10px] font-bold text-purple-600 uppercase">AI Recommendations</span>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-purple-700 font-mono">
-              {cohortEvaluations.filter((g) => g.status === "ai_completed").length}
-            </span>
-            <span className="text-xs text-purple-600">Pending approval</span>
-          </div>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Batch {selectedBatch}</h1>
+        <p className="sub text-sm text-slate-400 mb-4">Select a course.</p>
+
+        <div className="proj-grid">
+          {batchCourses.map((cCode) => {
+            const courseInfo = COURSES.find((x) => x.c === cCode);
+            const courseProjectCount = activeTabProjects.filter(
+              (p) => p.b === selectedBatch && p.c === cCode
+            ).length;
+
+            return (
+              <div
+                key={cCode}
+                className="proj-card proj-tile"
+                onClick={() => navigateTo({ c: cCode })}
+              >
+                <b>{cCode}</b>
+                <span>{courseInfo?.n || "Academic Course"}</span>
+                <br />
+                <span className="proj-tag">
+                  {courseProjectCount} {courseProjectCount === 1 ? "project" : "projects"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // SCREEN 3: PROJECTS VIEW FOR SELECTED COURSE
+  // --------------------------------------------------------------------------
+  const renderProjectsView = () => {
+    const courseProjects = activeTabProjects.filter(
+      (p) => p.b === selectedBatch && p.c === selectedCourse
+    );
+
+    return (
+      <>
+        <div className="crumb">
+          <a onClick={() => navigateTo({ b: null, c: null, pid: null, tgt: null })}>
+            Evaluations & Marks
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ c: null, pid: null, tgt: null })}>
+            Batch {selectedBatch}
+          </a>{" "}
+          / <span>{selectedCourse}</span>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[10px] font-bold text-emerald-600 uppercase">Published to Students</span>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-emerald-700 font-mono">
-              {cohortEvaluations.filter((g) => g.status === "published").length}
-            </span>
-            <span className="text-xs text-emerald-600">Results live</span>
-          </div>
+        <h1 className="text-2xl font-bold text-white tracking-tight">{selectedCourse}</h1>
+        <p className="sub text-sm text-slate-400 mb-4">Select a project.</p>
+
+        <div className="proj-grid">
+          {courseProjects.map((p) => {
+            const evaluatedCount = countEvaluatedTargets(p);
+            const isCompleted = evaluatedCount === p.tg.length;
+
+            return (
+              <div
+                key={p.id}
+                className="proj-card proj-tile"
+                onClick={() => navigateTo({ pid: p.id })}
+              >
+                <b>{p.t}</b>
+                <span>{p.g ? "Group project" : "Personal project"}</span>
+                <br />
+                <span className={`proj-tag ${p.fin ? "ok" : isCompleted ? "ok" : "no"}`}>
+                  {p.fin
+                    ? "Finished"
+                    : `${evaluatedCount} of ${p.tg.length} evaluated`}
+                </span>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </>
+    );
+  };
 
-      {/* Tabs */}
-      <div className="flex flex-wrap items-center gap-2 p-1 bg-slate-100 rounded-2xl max-w-xl text-xs font-semibold">
-        <button
-          onClick={() => setActiveTab("cohort_evaluations")}
-          className={`flex-1 py-2 px-3 rounded-xl transition-all ${
-            activeTab === "cohort_evaluations"
-              ? "bg-white text-slate-900 shadow-xs font-bold"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          Cohort Evaluations ({cohortEvaluations.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("rubrics_manager")}
-          className={`flex-1 py-2 px-3 rounded-xl transition-all ${
-            activeTab === "rubrics_manager"
-              ? "bg-white text-slate-900 shadow-xs font-bold"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          Rubric Criteria ({rubricCriteria.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("code_findings")}
-          className={`flex-1 py-2 px-3 rounded-xl transition-all ${
-            activeTab === "code_findings"
-              ? "bg-white text-slate-900 shadow-xs font-bold"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          AI Code Review Findings
-        </button>
-      </div>
+  // --------------------------------------------------------------------------
+  // SCREEN 4: TARGETS VIEW (GROUPS OR STUDENT INDEXES)
+  // --------------------------------------------------------------------------
+  const renderTargetsView = () => {
+    if (!currentProject) return null;
 
-      {/* TAB 1: COHORT GROUP EVALUATIONS */}
-      {activeTab === "cohort_evaluations" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-sm text-slate-900">Student Group Academic Evaluations</h3>
-              <p className="text-xs text-slate-500">Review AI-assisted scores, override recommendations, and publish final marks.</p>
+    const evaluatedCount = countEvaluatedTargets(currentProject);
+    const totalCount = currentProject.tg.length;
+    const isAllEvaluated = evaluatedCount === totalCount;
+    const isGroup = Boolean(currentProject.g);
+    const targetLabel = isGroup ? "Groups" : "Students";
+
+    return (
+      <>
+        <div className="crumb">
+          <a onClick={() => navigateTo({ b: null, c: null, pid: null, tgt: null })}>
+            Evaluations & Marks
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ c: null, pid: null, tgt: null })}>
+            Batch {selectedBatch}
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ pid: null, tgt: null })}>
+            {selectedCourse}
+          </a>{" "}
+          / <span>{currentProject.t}</span>
+        </div>
+
+        <h1 className="text-2xl font-bold text-white tracking-tight">{currentProject.t}</h1>
+        <p className="sub text-sm text-slate-400 mb-4">
+          {targetLabel} · {currentProject.c} · Batch {currentProject.b}
+        </p>
+
+        {/* Progress & Finalize Card */}
+        <div className="proj-card proj-row mb-4">
+          <div className="flex-1 min-w-[200px]">
+            <div className="proj-row mb-1">
+              <b className="text-sm text-white">
+                {evaluatedCount} of {totalCount} {targetLabel.toLowerCase()} evaluated
+              </b>
+              <span className="proj-sp"></span>
+              <span className="text-xs text-slate-400">{totalCount} total</span>
             </div>
-            <span className="text-xs font-mono text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 font-semibold">
-              AI suggestions require lecturer approval before release
-            </span>
+            <div className="proj-bar">
+              <i style={{ width: `${(evaluatedCount / totalCount) * 100}%` }}></i>
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {currentProject.fin ? (
+            <button
+              className="proj-btn flex items-center gap-1.5"
+              onClick={() => generateAndDownloadPdf(currentProject)}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download PDF
+            </button>
+          ) : (
+            <button
+              className="proj-btn p flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!isAllEvaluated}
+              onClick={() => navigateTo({ fin: true })}
+            >
+              Finalize
+            </button>
+          )}
+        </div>
+
+        {/* Targets Grid */}
+        <div className="proj-grid">
+          {currentProject.tg.map((targetName) => {
+            const targetResult = currentProject.res[targetName];
+            const isEvaluated = Boolean(targetResult);
+            const totalScore = calculateTotalMarks(targetResult);
+
+            return (
+              <div
+                key={targetName}
+                className="proj-card proj-tile"
+                onClick={() => navigateTo({ tgt: targetName })}
+              >
+                <b className={isGroup ? "" : "font-mono"}>{targetName}</b>
+                <span>{isEvaluated ? `${totalScore} / 100` : "Not evaluated"}</span>
+                <br />
+                <span className={`proj-tag ${isEvaluated ? "ok" : "no"}`}>
+                  {isEvaluated ? "Evaluated" : "Pending"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // SCREEN 5: TARGET DETAIL & EVALUATION VIEW (REQUIREMENTS + GEMINI EVAL)
+  // --------------------------------------------------------------------------
+  const renderDetailView = () => {
+    if (!currentProject || !selectedTarget) return null;
+
+    const isReadOnly = Boolean(currentProject.fin);
+    const targetResult = currentProject.res[selectedTarget];
+    const totalRequirementMarks = currentProject.reqs.reduce((a, q) => a + (Number(q.m) || 0), 0);
+    const currentTotalScore = calculateTotalMarks(targetResult);
+
+    // Left Column: Requirements List
+    const leftColumn = (
+      <div className="proj-card">
+        <b className="text-base text-white block">Requirements</b>
+        <p className="text-xs text-slate-400 my-1 mb-3">
+          Set when the project was created. Edits apply to every{" "}
+          {currentProject.g ? "group" : "student"} in this project.
+        </p>
+
+        <div className="space-y-2">
+          {currentProject.reqs.map((req, i) => (
+            <div key={i} className="proj-row">
+              <input
+                className="proj-in flex-1 text-xs py-1.5 px-2 bg-[#0e1626] border border-[#1e293b] text-white rounded-lg focus:outline-none focus:border-teal-500"
+                value={req.t}
+                disabled={isReadOnly}
+                onChange={(e) => handleUpdateReqTitle(i, e.target.value)}
+              />
+              <input
+                type="number"
+                min="0"
+                max="100"
+                className="proj-in w-20 text-xs py-1.5 px-2 bg-[#0e1626] border border-[#1e293b] text-white rounded-lg text-center font-mono focus:outline-none focus:border-teal-500"
+                value={req.m}
+                disabled={isReadOnly}
+                onChange={(e) => handleUpdateReqMark(i, Number(e.target.value))}
+              />
+              {!isReadOnly && currentProject.reqs.length > 1 && (
+                <button
+                  className="proj-btn py-1 px-2 text-xs hover:text-rose-400"
+                  onClick={() => handleDeleteRequirement(i)}
+                  title="Remove requirement"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {!isReadOnly && (
+          <button
+            className="proj-btn text-xs mt-3 flex items-center gap-1"
+            onClick={handleAddRequirement}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add requirement
+          </button>
+        )}
+
+        <div className="proj-row mt-3 pt-2 border-t border-[#1e293b]">
+          <b className="text-xs text-white">Total</b>
+          <span className="proj-sp"></span>
+          <b
+            className="text-sm font-mono"
+            style={{ color: totalRequirementMarks === 100 ? "#4ade80" : "#fbbf24" }}
+          >
+            {totalRequirementMarks} / 100
+          </b>
+        </div>
+      </div>
+    );
+
+    // Right Column: Evaluation
+    const rightColumn = (
+      <div className="proj-card">
+        <div className="proj-row mb-3">
+          <b className="text-base text-white">Evaluation</b>
+          <span className="proj-sp"></span>
+          {targetResult && (
+            <span className="proj-tag ok" style={{ margin: 0 }}>
+              {currentTotalScore} / 100
+            </span>
+          )}
+        </div>
+
+        {isLoadingAi ? (
+          <div className="py-6 text-center space-y-3 animate-in fade-in-50">
+            <p className="text-xs text-teal-300 font-mono">
+              {evalLoadingStep || "Checking requirements against code, ER diagram and reports…"}
+            </p>
+            <button className="proj-btn p text-xs font-semibold px-4 py-2 opacity-85 cursor-not-allowed">
+              <span className="sp2"></span>
+              Evaluating with Gemini AI…
+            </button>
+          </div>
+        ) : !targetResult ? (
+          <div className="py-6 space-y-3">
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Gemini compares each requirement with this{" "}
+              {currentProject.g ? "group" : "student"}&apos;s code and reports, then suggests marks.
+            </p>
+            <button className="proj-btn p text-xs font-semibold" onClick={runAiEvaluation}>
+              Evaluate with Gemini
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  <th className="py-3.5 px-4 sm:px-6">Group & Project</th>
-                  <th className="py-3.5 px-4">Telemetry</th>
-                  <th className="py-3.5 px-4">AI Suggested</th>
-                  <th className="py-3.5 px-4">Faculty Approved</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
+                <tr className="border-b border-[#1e293b] text-slate-400">
+                  <th className="py-2 px-1">Requirement</th>
+                  <th className="py-2 px-1 text-center">Mark</th>
+                  <th className="py-2 px-1">Evidence</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {allEvaluations.map((item) => (
-                  <tr key={item.groupId} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3.5 px-4 sm:px-6">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200">
-                            {item.courseCode}
-                          </span>
-                          <span className="font-bold text-slate-900">{item.groupName}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 truncate max-w-sm">{item.projectTitle}</p>
-                      </div>
+              <tbody className="divide-y divide-[#1e293b]">
+                {currentProject.reqs.map((req, i) => (
+                  <tr key={i}>
+                    <td className="py-2 px-1 font-semibold text-slate-200">{req.t}</td>
+                    <td className="py-2 px-1 text-center whitespace-nowrap">
+                      <input
+                        type="number"
+                        min="0"
+                        max={req.m}
+                        value={targetResult.m[i] ?? 0}
+                        disabled={isReadOnly}
+                        onChange={(e) => handleUpdateTargetScore(i, Number(e.target.value))}
+                        className="w-14 p-1 border border-[#1e293b] rounded bg-[#070b13] text-white text-center font-mono text-xs focus:border-teal-500 focus:outline-none"
+                      />{" "}
+                      <span className="text-slate-400 text-xs">/ {req.m}</span>
                     </td>
-
-                    <td className="py-3.5 px-4 font-mono text-slate-600">
-                      <span>{item.totalCommits} commits</span>
-                      <span className="block text-[10px] text-slate-400">Proposal: {item.proposalStatus}</span>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-xs">
-                        {item.aiSuggestedScore}/100
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 font-mono font-bold text-xs">
-                      {item.lecturerScore !== undefined ? (
-                        <span className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                          {item.lecturerScore}/100
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 italic font-normal">Pending Review</span>
-                      )}
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      {item.status === "published" ? (
-                        <Badge variant="teal" size="sm">Published</Badge>
-                      ) : item.status === "approved" ? (
-                        <Badge variant="default" size="sm">Approved</Badge>
-                      ) : item.status === "ai_completed" ? (
-                        <span className="text-[10px] font-semibold bg-purple-50 text-purple-800 px-2 py-0.5 rounded-full border border-purple-200">
-                          AI Ready
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                          Not Evaluated
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-3.5 px-4 sm:px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/dashboard/projects/${item.projectId}/groups/${item.groupId}/reports`}
-                          className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
-                          title="Inspect uploaded reports, run C project and view AI marks"
-                        >
-                          <FileText className="w-3.5 h-3.5 text-purple-600" />
-                          <span>Reports & C Runner</span>
-                        </Link>
-
-                        <button
-                          onClick={() => {
-                            setEditingGroup(item);
-                            setModalLecturerScore(item.lecturerScore ? item.lecturerScore.toString() : item.aiSuggestedScore.toString());
-                            setModalFeedback(`Final marks approved based on standard rubric criteria and C source code execution.`);
-                          }}
-                          className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs"
-                        >
-                          {item.status === "published" ? "Edit Marks" : "Grade & Publish"}
-                        </button>
-                      </div>
+                    <td className="py-2 px-1 text-slate-400 text-[11px]">
+                      {EVIDENCE_TEMPLATES[i % EVIDENCE_TEMPLATES.length]}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
 
-      {/* TAB 2: RUBRIC CRITERIA MANAGER (Section 13) */}
-      {activeTab === "rubrics_manager" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
-              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-teal-600" />
-                Standard Academic Capstone Rubric (100 Marks)
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Define evaluation criteria, weight allocations, and performance descriptions for all academic projects.
-              </p>
+              <b className="text-xs text-white block mb-1">Project Summary</b>
+              <textarea
+                rows={3}
+                value={targetResult.sum}
+                disabled={isReadOnly}
+                onChange={(e) => handleUpdateTargetSummary(e.target.value)}
+                className="w-full p-2.5 border border-[#1e293b] rounded-lg bg-[#070b13] text-xs text-slate-200 leading-relaxed font-sans focus:outline-none focus:border-teal-500"
+              />
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold text-teal-700 bg-teal-50 px-3 py-1 rounded-xl border border-teal-200">
-                Total Marks: {totalRubricMarks} / 100
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {rubricCriteria.map((crit, idx) => (
-              <div
-                key={crit.id}
-                className="p-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-slate-400 font-bold">0{idx + 1}.</span>
-                    <h4 className="font-bold text-slate-900 text-sm">{crit.name}</h4>
-                  </div>
-                  <p className="text-slate-600">{crit.description}</p>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-right">
-                    <span className="font-mono font-extrabold text-sm text-teal-700">{crit.maxMarks}</span>
-                    <span className="text-[10px] text-slate-400 block font-bold">Max Marks</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      const newMarks = prompt(`Enter new maximum marks for "${crit.name}":`, crit.maxMarks.toString());
-                      if (newMarks && !isNaN(parseInt(newMarks, 10))) {
-                        setRubricCriteria((prev) =>
-                          prev.map((c) => (c.id === crit.id ? { ...c, maxMarks: parseInt(newMarks, 10) } : c))
-                        );
-                      }
-                    }}
-                    className="p-1.5 text-slate-400 hover:text-teal-600 rounded-lg hover:bg-white"
-                    title="Edit mark weight"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-4 rounded-xl bg-teal-50/60 border border-teal-200 text-xs text-teal-950 flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-            <p>
-              This standard rubric is automatically applied when executing Gemini AI code reviews and evaluating student ER diagrams. Lecturers can override individual criterion scores during final review.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: AI CODE REVIEW FINDINGS (Section 11) */}
-      {activeTab === "code_findings" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-6">
-          <div className="pb-3 border-b border-slate-100">
-            <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-teal-600" />
-              Automated Code Review Findings (Gemini 2.5 Flash)
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Findings categorized into Critical, High, Medium, Low, and Informational severity.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              {
-                severity: "Critical",
-                color: "rose",
-                desc: "Potential buffer overflow in packet enqueue without ring capacity check",
-                file: "src/telemetry.c:84",
-                correction: "Add fixed ring buffer head/tail wrapping check: (head + 1) % MAX_CAPACITY.",
-                group: "Group 01 — CyberNova",
-              },
-              {
-                severity: "High",
-                color: "amber",
-                desc: "Missing FOREIGN KEY constraint on sensor_telemetry table referencing symposium_events",
-                file: "database/001_symposium_schema.sql:32",
-                correction: "Add CONSTRAINT fk_telemetry_event FOREIGN KEY (event_id) REFERENCES symposium_events(id) ON DELETE CASCADE.",
-                group: "Group 02 — DataSphere",
-              },
-              {
-                severity: "Medium",
-                color: "indigo",
-                desc: "Unchecked return value of malloc() in dynamic matrix allocation",
-                file: "src/matrix_util.c:19",
-                correction: "Verify if (ptr == NULL) and handle graceful exit or error code dispatch.",
-                group: "Group 03 — NexusTech",
-              },
-              {
-                severity: "Informational",
-                color: "teal",
-                desc: "Good normalization structure adhering to 3NF relational requirements",
-                file: "database/schema.sql",
-                correction: "No action required. Architecture satisfies course guidelines.",
-                group: "Group 01 — CyberNova",
-              },
-            ].map((finding, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-xl border border-slate-200 bg-white space-y-2 text-xs hover:border-slate-300 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                        finding.severity === "Critical"
-                          ? "bg-rose-100 text-rose-800"
-                          : finding.severity === "High"
-                          ? "bg-amber-100 text-amber-800"
-                          : finding.severity === "Medium"
-                          ? "bg-indigo-100 text-indigo-800"
-                          : "bg-teal-100 text-teal-800"
-                      }`}
-                    >
-                      {finding.severity}
-                    </span>
-                    <strong className="text-slate-900">{finding.desc}</strong>
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-500">{finding.group}</span>
-                </div>
-
-                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 font-mono text-[11px] text-slate-700 flex items-center justify-between">
-                  <span>File: <strong>{finding.file}</strong></span>
-                  <span className="text-teal-700 font-semibold text-[10px]">Suggested Fix Included</span>
-                </div>
-
-                <p className="text-slate-600 text-[11px]">
-                  <strong>Recommendation:</strong> {finding.correction}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Grade & Publish Modal */}
-      {editingGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
-          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-start justify-between pb-3 border-b border-slate-100">
-              <div>
-                <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
-                  {editingGroup.courseCode}
-                </span>
-                <h3 className="font-bold text-base text-slate-900 mt-1">
-                  Faculty Grading: {editingGroup.groupName}
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">{editingGroup.projectTitle}</p>
-              </div>
-              <button
-                onClick={() => setEditingGroup(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveMarks} className="space-y-4 text-xs">
-              <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-purple-950 flex items-center justify-between">
-                <span>Gemini AI Recommended Score:</span>
-                <strong className="font-mono text-purple-700 font-bold">{editingGroup.aiSuggestedScore}/100</strong>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block font-semibold text-slate-700">
-                  Approved Faculty Score (/100) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={modalLecturerScore}
-                  onChange={(e) => setModalLecturerScore(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 text-sm focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block font-semibold text-slate-700">Official Faculty Feedback</label>
-                <textarea
-                  rows={3}
-                  value={modalFeedback}
-                  onChange={(e) => setModalFeedback(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 resize-none text-xs"
-                />
-              </div>
-
-              <label className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={publishImmediately}
-                  onChange={(e) => setPublishImmediately(e.target.checked)}
-                  className="text-teal-600 rounded"
-                />
-                <span className="text-slate-800 font-semibold">
-                  Publish marks immediately to student group dashboard
-                </span>
-              </label>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingGroup(null)}
+            {!isReadOnly && (
+              <div className="proj-row mt-2">
+                <span className="proj-sp"></span>
+                <button
+                  className="proj-btn text-xs flex items-center gap-1"
+                  onClick={runAiEvaluation}
                 >
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary" size="sm">
-                  Save & Publish Marks
-                </Button>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Re-evaluate
+                </button>
               </div>
-            </form>
+            )}
+          </div>
+        )}
+      </div>
+    );
+
+    return (
+      <>
+        <div className="crumb">
+          <a onClick={() => navigateTo({ b: null, c: null, pid: null, tgt: null })}>
+            Evaluations & Marks
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ c: null, pid: null, tgt: null })}>
+            Batch {selectedBatch}
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ pid: null, tgt: null })}>
+            {selectedCourse}
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ tgt: null })}>
+            {currentProject.t}
+          </a>{" "}
+          / <span>{selectedTarget}</span>
+        </div>
+
+        <h1 className="text-2xl font-bold text-white tracking-tight">{selectedTarget}</h1>
+        <p className="sub text-sm text-slate-400 mb-4">
+          {currentProject.t} · {currentProject.c}
+        </p>
+
+        {/* Two Columns: Requirements & Evaluation */}
+        <div className="proj-two mb-4">
+          {leftColumn}
+          {rightColumn}
+        </div>
+
+        {/* Back Button */}
+        <div className="proj-row mt-4">
+          <button
+            className="proj-btn text-xs"
+            onClick={() => navigateTo({ tgt: null })}
+          >
+            ← Back to {currentProject.g ? "groups" : "students"}
+          </button>
+        </div>
+      </>
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // SCREEN 6: FINALIZE REVIEW SCREEN
+  // --------------------------------------------------------------------------
+  const renderFinalizeView = () => {
+    if (!currentProject) return null;
+
+    const targetLabel = currentProject.g ? "Group" : "Student";
+
+    return (
+      <>
+        <div className="crumb">
+          <a onClick={() => navigateTo({ b: null, c: null, pid: null, tgt: null })}>
+            Evaluations & Marks
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ c: null, pid: null, tgt: null })}>
+            Batch {selectedBatch}
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ pid: null, tgt: null })}>
+            {selectedCourse}
+          </a>{" "}
+          /{" "}
+          <a onClick={() => navigateTo({ fin: false })}>
+            {currentProject.t}
+          </a>{" "}
+          / <span>Finalize</span>
+        </div>
+
+        <h1 className="text-2xl font-bold text-white tracking-tight">
+          Finalize {currentProject.t}
+        </h1>
+        <p className="sub text-sm text-slate-400 mb-4">
+          Review every {targetLabel.toLowerCase()} before generating the PDF.
+        </p>
+
+        <div className="proj-card space-y-4">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-[#1e293b] text-slate-400">
+                <th className="py-2.5 px-2">{targetLabel}</th>
+                <th className="py-2.5 px-2">Marks</th>
+                <th className="py-2.5 px-2 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#1e293b]">
+              {currentProject.tg.map((targetName) => {
+                const totalScore = calculateTotalMarks(currentProject.res[targetName]);
+                return (
+                  <tr key={targetName}>
+                    <td className={`py-2.5 px-2 font-semibold text-white ${currentProject.g ? "" : "font-mono"}`}>
+                      {targetName}
+                    </td>
+                    <td className="py-2.5 px-2 font-mono">
+                      <b className="text-teal-400">{totalScore}</b> / 100
+                    </td>
+                    <td className="py-2.5 px-2 text-right">
+                      <span className="proj-tag ok" style={{ margin: 0 }}>
+                        Evaluated
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <p className="text-xs text-slate-400 leading-relaxed">
+            One PDF with the separate marks of every {targetLabel.toLowerCase()} will be downloaded.
+            The project then moves to Finished.
+          </p>
+
+          <div className="proj-row pt-2 border-t border-[#1e293b]">
+            <span className="proj-sp"></span>
+            <button
+              className="proj-btn text-xs"
+              onClick={() => navigateTo({ fin: false })}
+            >
+              Back
+            </button>
+            <button
+              className="proj-btn p text-xs font-semibold flex items-center gap-1.5"
+              onClick={() => handleFinalizeProject(currentProject)}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Finalize & download PDF
+            </button>
           </div>
         </div>
+      </>
+    );
+  };
+
+  return (
+    <div className="max-w-[1100px] mx-auto py-3 px-1 sm:px-4">
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div className="proj-card mb-4 border-emerald-500/40 bg-emerald-950/20 text-emerald-300 flex items-center justify-between text-xs p-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <b className="font-semibold">{toastMessage}</b>
+          </div>
+          <button
+            onClick={() => setToastMessage("")}
+            className="text-emerald-400 hover:text-white"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Screen Router */}
+      {isFinalizeView && currentProject ? (
+        renderFinalizeView()
+      ) : selectedTarget && currentProject ? (
+        renderDetailView()
+      ) : selectedProjectId && currentProject ? (
+        renderTargetsView()
+      ) : selectedCourse ? (
+        renderProjectsView()
+      ) : selectedBatch ? (
+        renderCoursesView()
+      ) : (
+        renderBatchesView()
       )}
     </div>
   );
