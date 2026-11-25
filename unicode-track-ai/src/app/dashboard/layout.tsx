@@ -49,6 +49,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const { activeRole } = useAdminData();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isLecturer = activeRole === "lecturer";
   const isWidePage = pathname?.includes("/dashboard/test") || pathname?.includes("/workspace");
@@ -110,8 +115,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
-              {isLecturer ? "Lecturer" : activeRole === "student" ? "Student" : "Admin"}
+            <span
+              suppressHydrationWarning
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border"
+            >
+              {mounted ? (isLecturer ? "Lecturer" : activeRole === "student" ? "Student" : "Admin") : "User"}
             </span>
           </div>
         </header>
