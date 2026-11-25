@@ -1358,122 +1358,86 @@ const initialERSubmissions: ERDiagramSubmission[] = [
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
-  const [departments, setDepartments] = useState<Department[]>(() => {
-    if (typeof window === "undefined") return initialDepartments;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.departments) return parsed.departments;
-      }
-    } catch {}
-    return initialDepartments;
-  });
+  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
+  const [courses, setCourses] = useState<Course[]>(initialCourses);
+  const [lecturers, setLecturers] = useState<Lecturer[]>(initialLecturers);
+  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [activities, setActivities] = useState<ActivityLog[]>(initialActivities);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [activeRole, setActiveRole] = useState<"admin" | "lecturer" | "student">("lecturer");
+  const [activeLecturerEmail, setActiveLecturerEmail] = useState<string>("evelyn.reed@university.edu");
+  const [activeStudentEmail, setActiveStudentEmail] = useState<string>("alex.chen@university.edu");
+  const [groups, setGroups] = useState<ProjectGroup[]>(initialGroups);
+  const [studentAssignments, setStudentAssignments] = useState<ProjectStudentAssignment[]>(initialStudentAssignments);
+  const [timelineActivities, setTimelineActivities] = useState<ProjectTimelineActivity[]>(initialTimelineActivities);
+  const [rubrics, setRubrics] = useState<Record<string, EvaluationRubric>>(initialRubrics);
+  const [evaluations, setEvaluations] = useState<ProjectEvaluation[]>(initialEvaluations);
+  const [erSubmissions, setERSubmissions] = useState<ERDiagramSubmission[]>(initialERSubmissions);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
-  const [courses, setCourses] = useState<Course[]>(() => {
-    if (typeof window === "undefined") return initialCourses;
+  // Hydrate client-only storage on mount to eliminate SSR hydration mismatches
+  useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.courses) return parsed.courses;
+      const storedRole = sessionStorage.getItem("unicodetrack_pending_user_role");
+      if (storedRole === "admin" || storedRole === "lecturer" || storedRole === "student") {
+        setActiveRole(storedRole);
       }
-    } catch {}
-    return initialCourses;
-  });
+      const user = sessionStorage.getItem("unicodetrack_authenticated_user");
+      if (user) {
+        const parsed = JSON.parse(user);
+        if (parsed.email && parsed.role === "lecturer") {
+          setActiveLecturerEmail(parsed.email);
+        } else if (parsed.email && parsed.role === "student") {
+          setActiveStudentEmail(parsed.email);
+        }
+      }
 
-  const [lecturers, setLecturers] = useState<Lecturer[]>(() => {
-    if (typeof window === "undefined") return initialLecturers;
-    try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        if (parsed.departments) setDepartments(parsed.departments);
+        if (parsed.courses) setCourses(parsed.courses);
         if (parsed.lecturers && Array.isArray(parsed.lecturers)) {
           const hasCheck = parsed.lecturers.some((l: Lecturer) => l.email.toLowerCase() === "check@gmail.com");
           if (!hasCheck) {
-            return [initialLecturers[0], ...parsed.lecturers];
+            setLecturers([initialLecturers[0], ...parsed.lecturers]);
+          } else {
+            setLecturers(parsed.lecturers);
           }
-          return parsed.lecturers;
         }
-      }
-    } catch {}
-    return initialLecturers;
-  });
-
-  const [students, setStudents] = useState<Student[]>(() => {
-    if (typeof window === "undefined") return initialStudents;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
         if (parsed.students && Array.isArray(parsed.students)) {
-          return parsed.students.map(normalizeStudent);
+          setStudents(parsed.students.map(normalizeStudent));
         }
-      }
-    } catch {}
-    return initialStudents;
-  });
-
-  const [activities, setActivities] = useState<ActivityLog[]>(() => {
-    if (typeof window === "undefined") return initialActivities;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.activities) return parsed.activities;
-      }
-    } catch {}
-    return initialActivities;
-  });
-
-  const [projects, setProjects] = useState<Project[]>(() => {
-    if (typeof window === "undefined") return initialProjects;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
+        if (parsed.activities) setActivities(parsed.activities);
         if (parsed.projects && Array.isArray(parsed.projects)) {
-          return parsed.projects;
+          setProjects(parsed.projects);
+        }
+        if (parsed.groups && Array.isArray(parsed.groups)) {
+          setGroups(parsed.groups);
+        }
+        if (parsed.timelineActivities && Array.isArray(parsed.timelineActivities)) {
+          setTimelineActivities(parsed.timelineActivities);
         }
       }
-    } catch {}
-    return initialProjects;
-  });
 
-  const [activeRole, setActiveRole] = useState<"admin" | "lecturer" | "student">(() => {
-    if (typeof window === "undefined") return "lecturer";
-    try {
-      const stored = sessionStorage.getItem("unicodetrack_pending_user_role");
-      if (stored === "admin" || stored === "lecturer" || stored === "student") {
-        return stored;
+      const savedAssignments = localStorage.getItem("unicodetrack_student_assignments_v1");
+      if (savedAssignments) {
+        setStudentAssignments(JSON.parse(savedAssignments));
+      }
+      const savedRubrics = localStorage.getItem("unicodetrack_rubrics_store");
+      if (savedRubrics) {
+        setRubrics(JSON.parse(savedRubrics));
+      }
+      const savedEvaluations = localStorage.getItem("unicodetrack_evaluations_store");
+      if (savedEvaluations) {
+        setEvaluations(JSON.parse(savedEvaluations));
+      }
+      const savedER = localStorage.getItem("unicodetrack_er_submissions_store");
+      if (savedER) {
+        setERSubmissions(JSON.parse(savedER));
       }
     } catch {}
-    return "lecturer";
-  });
-
-  const [activeLecturerEmail, setActiveLecturerEmail] = useState<string>(() => {
-    if (typeof window === "undefined") return "evelyn.reed@university.edu";
-    try {
-      const user = sessionStorage.getItem("unicodetrack_authenticated_user");
-      if (user) {
-        const parsed = JSON.parse(user);
-        if (parsed.email && parsed.role === "lecturer") return parsed.email;
-      }
-    } catch {}
-    return "evelyn.reed@university.edu";
-  });
-
-  const [activeStudentEmail, setActiveStudentEmail] = useState<string>(() => {
-    if (typeof window === "undefined") return "alex.chen@university.edu";
-    try {
-      const user = sessionStorage.getItem("unicodetrack_authenticated_user");
-      if (user) {
-        const parsed = JSON.parse(user);
-        if (parsed.email && parsed.role === "student") return parsed.email;
-      }
-    } catch {}
-    return "alex.chen@university.edu";
-  });
+  }, []);
 
   // Sync projects from Supabase on mount
   useEffect(() => {
@@ -1496,73 +1460,6 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         // Silently continue if Supabase is offline
       });
   }, []);
-
-  const [groups, setGroups] = useState<ProjectGroup[]>(() => {
-    if (typeof window === "undefined") return initialGroups;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.groups && Array.isArray(parsed.groups)) {
-          return parsed.groups;
-        }
-      }
-    } catch {}
-    return initialGroups;
-  });
-
-  const [studentAssignments, setStudentAssignments] = useState<ProjectStudentAssignment[]>(() => {
-    if (typeof window === "undefined") return initialStudentAssignments;
-    try {
-      const saved = localStorage.getItem("unicodetrack_student_assignments_v1");
-      return saved ? JSON.parse(saved) : initialStudentAssignments;
-    } catch {
-      return initialStudentAssignments;
-    }
-  });
-
-  const [timelineActivities, setTimelineActivities] = useState<ProjectTimelineActivity[]>(() => {
-    if (typeof window === "undefined") return initialTimelineActivities;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.timelineActivities && Array.isArray(parsed.timelineActivities)) {
-          return parsed.timelineActivities;
-        }
-      }
-    } catch {}
-    return initialTimelineActivities;
-  });
-
-  const [rubrics, setRubrics] = useState<Record<string, EvaluationRubric>>(() => {
-    if (typeof window === "undefined") return initialRubrics;
-    try {
-      const saved = localStorage.getItem("unicodetrack_rubrics_store");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return initialRubrics;
-  });
-
-  const [evaluations, setEvaluations] = useState<ProjectEvaluation[]>(() => {
-    if (typeof window === "undefined") return initialEvaluations;
-    try {
-      const saved = localStorage.getItem("unicodetrack_evaluations_store");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return initialEvaluations;
-  });
-
-  const [erSubmissions, setERSubmissions] = useState<ERDiagramSubmission[]>(() => {
-    if (typeof window === "undefined") return initialERSubmissions;
-    try {
-      const saved = localStorage.getItem("unicodetrack_er_submissions_store");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return initialERSubmissions;
-  });
-
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
 
   // Sync to localStorage
   const persist = (

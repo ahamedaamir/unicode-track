@@ -332,7 +332,7 @@ function LecturerProjectsContent() {
               onClick={() => go({ batch: b })}
             >
               <b className="text-foreground block text-base font-semibold">Batch {b}</b>
-              <span className="text-muted-foreground text-xs block mt-1">
+              <span suppressHydrationWarning className="text-muted-foreground text-xs block mt-1">
                 {tab === "current"
                   ? `${displayCount} active projects`
                   : `${displayCount} archived projects`}
