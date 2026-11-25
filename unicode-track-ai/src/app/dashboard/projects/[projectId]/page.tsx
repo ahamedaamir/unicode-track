@@ -562,7 +562,7 @@ function ProjectDetailContent() {
               <div className="flex items-center justify-between pt-1 border-t border-[#1e293b]">
                 <span className="text-slate-400">Supervisor:</span>
                 <span className="font-medium text-slate-200 truncate max-w-[130px]" title={project.lecturerName}>
-                  {project.lecturerName || "Dr. Evelyn Reed"}
+                  {project.lecturerName || "Lecturer"}
                 </span>
               </div>
             </div>

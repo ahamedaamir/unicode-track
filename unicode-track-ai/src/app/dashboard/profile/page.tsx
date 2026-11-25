@@ -42,21 +42,26 @@ export default function ProfilePage() {
   const isLecturer = activeRole === "lecturer";
   const isStudent = activeRole === "student";
 
-  const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
-  const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || students[0];
+  const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || null;
+  const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || null;
 
   // Editable Profile Form State
   const [fullName, setFullName] = useState(
-    isLecturer ? (currentLecturer?.name || "Dr. Evelyn Reed") : (currentStudent?.fullName || "Alex Chen")
+    isLecturer ? (currentLecturer?.name || "") : (currentStudent?.fullName || "")
   );
-  const [officeLocation, setOfficeLocation] = useState(isLecturer ? "Faculty Building 4, Office 302" : "Student Lab Hall B");
-  const [phoneNumber, setPhoneNumber] = useState("+1 (555) 382-9102");
-  const [biography, setBiography] = useState(
-    isLecturer
-      ? "Senior Lecturer in Systems Engineering and Distributed Computing. Faculty advisor for undergraduate capstone projects and research symposiums."
-      : "Undergraduate student majoring in Software Engineering. Focus on real-time systems and IoT telemetric pipelines."
-  );
+  const [officeLocation, setOfficeLocation] = useState(isLecturer ? "Faculty Building" : "Student Lab");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [biography, setBiography] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
+
+  // Sync profile details when user is loaded
+  React.useEffect(() => {
+    if (isLecturer && currentLecturer) {
+      setFullName(currentLecturer.name);
+    } else if (isStudent && currentStudent) {
+      setFullName(currentStudent.fullName);
+    }
+  }, [isLecturer, isStudent, currentLecturer, currentStudent]);
 
   // Password Change Form State
   const [currentPassword, setCurrentPassword] = useState("");

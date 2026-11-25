@@ -367,7 +367,7 @@ function EvaluationReviewContent() {
 
     const feedback: ERLecturerFeedback = {
       id: `er-fb-${currentERSubmission.id}`,
-      lecturerName: "Dr. Evelyn Reed",
+      lecturerName: project?.lecturerName || "Lecturer",
       reviewedAt: new Date().toISOString(),
       approvedMarks: currentERTotalApprovedMarks,
       status: decision === "resubmission_requested" ? "resubmission_requested" : "approved",

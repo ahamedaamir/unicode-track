@@ -120,10 +120,8 @@ export default function DashboardOverviewPage() {
   const pendingPasswordCount = lecturers.filter((l) => !l.hasChangedDefaultPassword).length;
 
   const lecturerDisplayName = React.useMemo(() => {
-    const raw = currentLecturer?.name || "Dr. Check";
-    if (raw.toLowerCase().includes("check")) return "Dr. Check";
-    return raw;
-  }, [currentLecturer]);
+    return currentLecturer?.name || (activeLecturerEmail ? activeLecturerEmail.split("@")[0] : "Lecturer");
+  }, [currentLecturer, activeLecturerEmail]);
 
   const recentProjectsList = React.useMemo(() => {
     return lecturerProjects.slice(0, 4).map((p) => ({
@@ -320,7 +318,7 @@ export default function DashboardOverviewPage() {
             {isStudent
               ? `Welcome back, ${currentStudent?.fullName || "Alex Chen"}`
               : isLecturer
-              ? `Welcome back, ${currentLecturer?.name || "Dr. Evelyn Reed"}`
+              ? `Welcome back, ${currentLecturer?.name || "Lecturer"}`
               : "University Administrator Overview"}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
@@ -896,48 +894,10 @@ export default function DashboardOverviewPage() {
               </div>
 
               <div className="space-y-3">
-                {[
-                  {
-                    title: "Capstone Proposal: IoT Symposium Service",
-                    type: "Proposal PDF",
-                    group: "Group 01 — CyberNova",
-                    date: "Today, 10:30 AM",
-                    status: "Submitted",
-                  },
-                  {
-                    title: "Normalized Relational ER Diagram (3NF)",
-                    type: "ER Diagram PDF",
-                    group: "Group 02 — DataSphere",
-                    date: "Yesterday, 4:15 PM",
-                    status: "AI Ready",
-                  },
-                  {
-                    title: "DDL Schema Script & Foreign Keys",
-                    type: "Database SQL",
-                    group: "Group 01 — CyberNova",
-                    date: "Nov 22, 2026",
-                    status: "Under Review",
-                  },
-                ].map((sub, i) => (
-                  <div key={i} className="p-3 rounded-[10px] border border-border bg-muted/40 flex items-center justify-between text-xs">
-                    <div className="min-w-0 pr-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-foreground truncate">{sub.title}</span>
-                        <span className="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
-                          {sub.type}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{sub.group} • {sub.date}</p>
-                    </div>
-
-                    <Link
-                      href="/dashboard/submissions"
-                      className="px-2.5 py-1 bg-muted border border-border hover:bg-muted/80 text-foreground rounded-[10px] text-xs font-semibold shrink-0"
-                    >
-                      Inspect
-                    </Link>
-                  </div>
-                ))}
+                <div className="py-8 text-center text-muted-foreground border border-dashed border-border rounded-[10px]">
+                  <p className="text-xs font-medium text-foreground">No recent student submissions</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">When student groups submit proposals or ER diagrams, they will appear here.</p>
+                </div>
               </div>
             </div>
 
@@ -952,52 +912,15 @@ export default function DashboardOverviewPage() {
                 </div>
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                  Webhook Active
+                  Webhook Ready
                 </span>
               </div>
 
               <div className="space-y-3">
-                {[
-                  {
-                    author: "Alex Chen",
-                    message: "feat(core): circular buffer overflow check and CRC16 checksum",
-                    repo: "cybernova-event-hub",
-                    branch: "main",
-                    time: "25 mins ago",
-                    hash: "7b4c89a",
-                  },
-                  {
-                    author: "Sarah Lin",
-                    message: "feat(db): symposium schema DDL with foreign key constraints",
-                    repo: "cybernova-event-hub",
-                    branch: "feature/db-schema",
-                    time: "2 hours ago",
-                    hash: "4e9d12f",
-                  },
-                  {
-                    author: "Priya Patel",
-                    message: "test: unit tests for packet serialization in C",
-                    repo: "datasphere-pipeline",
-                    branch: "dev",
-                    time: "5 hours ago",
-                    hash: "1a8e34c",
-                  },
-                ].map((cm, i) => (
-                  <div key={i} className="p-3 rounded-[10px] border border-border bg-muted/40 flex items-start justify-between gap-3 text-xs">
-                    <div className="min-w-0 space-y-0.5">
-                      <p className="font-bold text-foreground truncate">{cm.message}</p>
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
-                        <span>{cm.author}</span>
-                        <span>•</span>
-                        <span className="text-accent font-semibold">{cm.repo}</span>
-                        <span>({cm.branch})</span>
-                      </div>
-                    </div>
-                    <span className="font-mono text-[10px] bg-muted px-2 py-1 rounded-[10px] border border-border text-muted-foreground shrink-0">
-                      {cm.hash}
-                    </span>
-                  </div>
-                ))}
+                <div className="py-8 text-center text-muted-foreground border border-dashed border-border rounded-[10px]">
+                  <p className="text-xs font-medium text-foreground">No GitHub activity recorded</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Student repository commit and branch webhooks will display live here.</p>
+                </div>
               </div>
             </div>
 
@@ -1019,40 +942,9 @@ export default function DashboardOverviewPage() {
               </div>
 
               <div className="space-y-3">
-                <div className="p-3.5 rounded-[10px] border border-warning/30 bg-warning/10 flex items-center justify-between gap-3 text-xs">
-                  <div>
-                    <h4 className="font-bold text-foreground">Group 01 Proposal Evaluation</h4>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">IoT Event Hub specification awaiting approval</p>
-                  </div>
-                  <Link
-                    href={`/dashboard/projects/${lecturerProjects[0]?.id || 'proj-1'}/groups/${lecturerGroups[0]?.id || 'grp-1'}`}
-                    className="px-3 py-1.5 bg-warning text-background hover:bg-warning/90 rounded-[10px] text-xs font-bold shrink-0 transition-colors"
-                  >
-                    Review Proposal
-                  </Link>
-                </div>
-
-                <div className="p-3.5 rounded-[10px] border border-accent/30 bg-accent/10 flex items-center justify-between gap-3 text-xs">
-                  <div>
-                    <h4 className="font-bold text-foreground">AI ER Diagram Analysis Ready</h4>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">Gemini 2.5 Flash identified 1 cardinality warning</p>
-                  </div>
-                  <Link
-                    href="/dashboard/submissions"
-                    className="px-3 py-1.5 bg-accent text-background hover:bg-accent/90 rounded-[10px] text-xs font-bold shrink-0 transition-colors"
-                  >
-                    Verify AI Findings
-                  </Link>
-                </div>
-
-                <div className="p-3.5 rounded-[10px] border border-border bg-muted/40 flex items-center justify-between gap-3 text-xs">
-                  <div>
-                    <h4 className="font-bold text-foreground">Milestone 1 Feedback Published</h4>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">Dr. Evelyn Reed sent revision notes to Group 02</p>
-                  </div>
-                  <span className="text-[10px] font-mono text-accent font-semibold shrink-0">
-                    Resubmission Pending
-                  </span>
+                <div className="py-8 text-center text-muted-foreground border border-dashed border-border rounded-[10px]">
+                  <p className="text-xs font-medium text-foreground">No pending reviews</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">All student proposals and milestones are up to date.</p>
                 </div>
               </div>
             </div>
