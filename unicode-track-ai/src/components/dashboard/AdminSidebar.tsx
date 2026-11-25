@@ -22,7 +22,8 @@ import {
   User,
   CheckSquare,
   Inbox,
-  FileText
+  FileText,
+  Terminal
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -94,6 +95,12 @@ export function AdminSidebar({
       count: undefined,
     },
     {
+      name: "Test",
+      href: "/dashboard/test",
+      icon: Terminal,
+      count: undefined,
+    },
+    {
       name: "Profile",
       href: "/dashboard/profile",
       icon: User,
@@ -118,6 +125,12 @@ export function AdminSidebar({
       name: "Evaluations & Marks",
       href: "/dashboard/evaluation",
       icon: CheckSquare,
+      count: undefined,
+    },
+    {
+      name: "Test",
+      href: "/dashboard/test",
+      icon: Terminal,
       count: undefined,
     },
     {
@@ -170,6 +183,12 @@ export function AdminSidebar({
       href: "/dashboard/projects",
       icon: FolderGit2,
       count: projects.length,
+    },
+    {
+      name: "Test",
+      href: "/dashboard/test",
+      icon: Terminal,
+      count: undefined,
     },
     {
       name: "Settings",

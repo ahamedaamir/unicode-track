@@ -34,6 +34,7 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
     pathname.startsWith("/dashboard/projects") ||
     pathname.startsWith("/dashboard/evaluation") ||
     pathname.startsWith("/dashboard/hackathons") ||
+    pathname.startsWith("/dashboard/test") ||
     pathname.startsWith("/dashboard/profile")
   ) {
     return null;
