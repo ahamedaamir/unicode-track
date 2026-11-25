@@ -288,11 +288,11 @@ function GroupWorkspaceContent() {
 
   if (!project) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+      <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
         <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-slate-900">Project Not Found</h2>
-        <p className="text-sm text-slate-500 mt-2 mb-6">
-          The project ID <span className="font-mono text-slate-700">{projectId}</span> does not exist or has been removed.
+        <h2 className="text-xl font-bold text-foreground">Project Not Found</h2>
+        <p className="text-sm text-muted-foreground mt-2 mb-6">
+          The project ID <span className="font-mono text-foreground">{projectId}</span> does not exist or has been removed.
         </p>
         <Link
           href="/dashboard/projects"
@@ -307,26 +307,26 @@ function GroupWorkspaceContent() {
   // Enforce student access isolation
   if (isStudentAccessDenied) {
     return (
-      <div className="bg-white rounded-2xl border border-rose-200 p-8 sm:p-12 text-center max-w-xl mx-auto mt-8 shadow-sm space-y-4">
-        <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
+      <div className="bg-card rounded-[16px] border border-rose-200 p-8 sm:p-12 text-center max-w-xl mx-auto mt-8 shadow-sm space-y-4">
+        <div className="w-14 h-14 rounded-[16px] bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
           <ShieldAlert className="w-8 h-8 text-rose-600" />
         </div>
-        <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+        <h2 className="text-xl font-extrabold text-foreground tracking-tight">
           Student Access Isolation — Access Restricted
         </h2>
-        <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+        <p className="text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
           UniCodeTrack AI enforces strict student workspace boundaries. Students are only authorized to access the shared workspace of their own assigned group.
         </p>
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-left text-xs space-y-1.5 text-slate-700 max-w-md mx-auto">
+        <div className="p-4 bg-muted border border-border rounded-xl text-left text-xs space-y-1.5 text-foreground max-w-md mx-auto">
           <p className="flex justify-between">
-            <span className="text-slate-500">Student Identity:</span>
-            <span className="font-semibold text-slate-900">{activeStudentEmail}</span>
+            <span className="text-muted-foreground">Student Identity:</span>
+            <span className="font-semibold text-foreground">{activeStudentEmail}</span>
           </p>
           <p className="flex justify-between">
-            <span className="text-slate-500">Project / Course:</span>
-            <span className="font-semibold text-slate-900">{project.courseCode} — {project.title}</span>
+            <span className="text-muted-foreground">Project / Course:</span>
+            <span className="font-semibold text-foreground">{project.courseCode} — {project.title}</span>
           </p>
-          <p className="flex justify-between border-t border-slate-200 pt-1 text-rose-600 font-semibold">
+          <p className="flex justify-between border-t border-border pt-1 text-rose-600 font-semibold">
             <span>Assignment Status:</span>
             <span>
               {isIndividual
@@ -446,19 +446,19 @@ function GroupWorkspaceContent() {
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       {/* Top Navigation & Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
-          <Link href="/dashboard" className="hover:text-teal-700">Dashboard</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <Link href="/dashboard/projects" className="hover:text-teal-700">Projects</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <Link href="/dashboard" className="hover:text-accent">Dashboard</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+          <Link href="/dashboard/projects" className="hover:text-accent">Projects</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
           <span className="font-semibold text-teal-700">{project.courseCode}</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="text-slate-900 font-bold truncate max-w-xs">{group?.groupName || "Group Workspace"}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+          <span className="text-foreground font-bold truncate max-w-xs">{group?.groupName || "Group Workspace"}</span>
         </div>
 
         {/* Role Notice */}
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400">Viewing as:</span>
+          <span className="text-muted-foreground">Viewing as:</span>
           <span className="font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
             {activeRole === "student" ? "Student Member" : "Course Lecturer"}
@@ -467,7 +467,7 @@ function GroupWorkspaceContent() {
       </div>
 
       {/* Hero Workspace Header Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
+      <div className="bg-card rounded-[16px] border border-border shadow-sm p-6 sm:p-8 space-y-6">
         {/* Supervisor Switcher (Lecturer & Admin) */}
         {activeRole !== "student" && projectGroups.length > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-slate-900 text-white rounded-xl border border-slate-800 shadow-xs">
@@ -479,7 +479,7 @@ function GroupWorkspaceContent() {
                 <span className="text-xs font-bold text-white block">
                   {isIndividual ? "Supervisor Student Switcher" : "Supervisor Workspace Switcher"}
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-muted-foreground">
                   {isIndividual
                     ? `Select student to evaluate (${projectGroups.length} assigned students)`
                     : `Select group to supervise and evaluate (${projectGroups.length} total groups)`}
@@ -490,7 +490,7 @@ function GroupWorkspaceContent() {
               <select
                 value={group.id}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="bg-slate-800 hover:bg-slate-750 text-white font-bold px-3 py-1.5 rounded-lg border border-slate-700 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-hidden cursor-pointer"
+                className="bg-slate-800 hover:bg-slate-750 text-white font-bold px-3 py-1.5 rounded-lg border border-slate-700 text-xs focus:ring-2 focus:ring-accent focus:border-accent focus:outline-hidden cursor-pointer"
               >
                 {projectGroups.map((g) => (
                   <option key={g.id} value={g.id}>
@@ -551,15 +551,15 @@ function GroupWorkspaceContent() {
             </div>
 
             {/* Title & Description */}
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
               {project.title}
             </h1>
-            <p className="text-slate-600 text-sm leading-relaxed max-w-4xl">
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-4xl">
               {project.description}
             </p>
 
             {/* Workspace Access Notice */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex items-start gap-2.5">
+            <div className="p-3 rounded-xl bg-muted border border-border text-xs text-muted-foreground flex items-start gap-2.5">
               <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
               <p className="leading-relaxed">
                 {isIndividual ? (
@@ -577,14 +577,14 @@ function GroupWorkspaceContent() {
           </div>
 
           {/* Quick Meta Widget */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 lg:w-72 shrink-0 space-y-3">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Group Progress</div>
+          <div className="bg-muted border border-border rounded-xl p-4 lg:w-72 shrink-0 space-y-3">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Group Progress</div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+              <div className="flex items-center justify-between text-xs font-bold text-foreground">
                 <span>Milestone Completion</span>
                 <span className="text-teal-600">{group?.progress || 0}%</span>
               </div>
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                 <div
                   className="bg-teal-500 h-full rounded-full transition-all duration-500"
                   style={{ width: `${group?.progress || 0}%` }}
@@ -592,15 +592,15 @@ function GroupWorkspaceContent() {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200 space-y-1.5 text-xs">
-              <div className="flex justify-between text-slate-600">
+            <div className="pt-2 border-t border-border space-y-1.5 text-xs">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Supervisor:</span>
-                <span className="font-semibold text-slate-900">{project.lecturerName || lecturer?.name}</span>
+                <span className="font-semibold text-foreground">{project.lecturerName || lecturer?.name}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Deadline:</span>
-                <span className="font-semibold text-slate-900 flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-slate-400" />
+                <span className="font-semibold text-foreground flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-muted-foreground" />
                   {project.deadline ? new Date(project.deadline).toLocaleDateString() : "Dec 15, 2026"}
                 </span>
               </div>
@@ -609,14 +609,14 @@ function GroupWorkspaceContent() {
         </div>
 
         {/* Deliverables & Uploaded Reports Status Strip */}
-        <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="bg-muted border border-border rounded-[16px] p-4 sm:p-5 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200/60 inline-flex items-center gap-1">
                 <FileCheck className="w-3.5 h-3.5" />
                 Uploaded Deliverables & Reports Status
               </span>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Click any report below to navigate to the full reports console to download artifacts, run C code, and conduct AI evaluations.
               </p>
             </div>
@@ -634,19 +634,19 @@ function GroupWorkspaceContent() {
             {/* 1. Project Proposal */}
             <Link
               href={`/dashboard/projects/${projectId}/groups/${group.id}/reports?tab=proposal`}
-              className="p-3.5 rounded-xl border bg-white hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
+              className="p-3.5 rounded-xl border bg-card hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
             >
               <div className="w-9 h-9 rounded-lg bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold text-xs shrink-0 border border-teal-500/20">
                 PDF
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900">Project Proposal</span>
+                  <span className="text-xs font-bold text-foreground">Project Proposal</span>
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                     Uploaded ✓
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                   {group.proposal?.fileName || "CS492_Group_Proposal_v1.pdf"}
                 </p>
               </div>
@@ -655,19 +655,19 @@ function GroupWorkspaceContent() {
             {/* 2. ER Diagram */}
             <Link
               href={`/dashboard/projects/${projectId}/groups/${group.id}/reports?tab=er_diagram`}
-              className="p-3.5 rounded-xl border bg-white hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
+              className="p-3.5 rounded-xl border bg-card hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
             >
               <div className="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-500/20">
                 ERD
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900">ER Diagram</span>
+                  <span className="text-xs font-bold text-foreground">ER Diagram</span>
                   <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
                     Uploaded ✓
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                   3NF Relational Model & DDL Schema
                 </p>
               </div>
@@ -676,19 +676,19 @@ function GroupWorkspaceContent() {
             {/* 3. Final Report */}
             <Link
               href={`/dashboard/projects/${projectId}/groups/${group.id}/reports?tab=final_report`}
-              className="p-3.5 rounded-xl border bg-white hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
+              className="p-3.5 rounded-xl border bg-card hover:border-teal-400 hover:shadow-xs transition-all flex items-start gap-3"
             >
               <div className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center font-bold text-xs shrink-0 border border-purple-500/20">
                 DOC
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900">Final Report</span>
+                  <span className="text-xs font-bold text-foreground">Final Report</span>
                   <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
                     Uploaded ✓
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                   Capstone Defense & Implementation Spec
                 </p>
               </div>
@@ -697,13 +697,13 @@ function GroupWorkspaceContent() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-100">
+        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border">
           <button
             onClick={() => setActiveTab("overview")}
             className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "overview"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             Project Overview
@@ -714,7 +714,7 @@ function GroupWorkspaceContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "members"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -726,7 +726,7 @@ function GroupWorkspaceContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "repo"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <FolderGit2 className="w-3.5 h-3.5" />
@@ -738,7 +738,7 @@ function GroupWorkspaceContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "proposal"
                 ? "bg-teal-600 text-white shadow-xs shadow-teal-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
@@ -753,7 +753,7 @@ function GroupWorkspaceContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "activity"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <Bell className="w-3.5 h-3.5" />
@@ -765,7 +765,7 @@ function GroupWorkspaceContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "evaluation"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-teal-400" />
@@ -780,7 +780,7 @@ function GroupWorkspaceContent() {
             className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "database"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <Database className="w-3.5 h-3.5 text-teal-400" />
@@ -807,23 +807,23 @@ function GroupWorkspaceContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             {/* Academic Assignment Details */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card p-6 rounded-[16px] border border-border shadow-2xs space-y-4">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-teal-600" />
                 Course & Capstone Scope
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Course Name</span>
-                  <span className="font-bold text-slate-900 text-sm mt-0.5 block">{course?.name || "Capstone Project"}</span>
+                <div className="p-3.5 rounded-xl bg-muted border border-border/70">
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">Course Name</span>
+                  <span className="font-bold text-foreground text-sm mt-0.5 block">{course?.name || "Capstone Project"}</span>
                   <span className="font-mono text-teal-700 font-semibold">{project.courseCode}</span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Academic Cohort</span>
-                  <span className="font-bold text-slate-900 text-sm mt-0.5 block">Year {project.academicYear}, Semester {project.semester}</span>
-                  <span className="text-slate-500">Group Collaboration (Max 4 students)</span>
+                <div className="p-3.5 rounded-xl bg-muted border border-border/70">
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">Academic Cohort</span>
+                  <span className="font-bold text-foreground text-sm mt-0.5 block">Year {project.academicYear}, Semester {project.semester}</span>
+                  <span className="text-muted-foreground">Group Collaboration (Max 4 students)</span>
                 </div>
               </div>
 
@@ -834,10 +834,10 @@ function GroupWorkspaceContent() {
                     PDF
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-900">
+                    <p className="text-xs font-bold text-foreground">
                       {project.requirementsPdfName || "CS492_Academic_Requirements_Specification.pdf"}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-muted-foreground">
                       Official requirements document uploaded by course supervisor
                     </p>
                   </div>
@@ -857,8 +857,8 @@ function GroupWorkspaceContent() {
             </div>
 
             {/* Milestone Roadmap */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card p-6 rounded-[16px] border border-border shadow-2xs space-y-4">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Layers className="w-4 h-4 text-teal-600" />
                 Submission Milestones
               </h3>
@@ -870,44 +870,44 @@ function GroupWorkspaceContent() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-900">Project Proposal & Architecture</h4>
+                      <h4 className="text-xs font-bold text-foreground">Project Proposal & Architecture</h4>
                       <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded">
                         {group?.proposalStatus === "approved" ? "Completed ✓" : "In Progress"}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
                       Submit official PDF proposal with data model, system context diagrams, and team task allocation.
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-start gap-3.5">
-                  <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0">
+                <div className="p-4 rounded-xl border border-border bg-muted flex items-start gap-3.5">
+                  <div className="w-7 h-7 rounded-lg bg-muted text-foreground font-bold flex items-center justify-center text-xs shrink-0">
                     M2
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-900">Working Prototype & Git Activity</h4>
-                      <span className="text-[11px] font-medium text-slate-500">Mid-term evaluation</span>
+                      <h4 className="text-xs font-bold text-foreground">Working Prototype & Git Activity</h4>
+                      <span className="text-[11px] font-medium text-muted-foreground">Mid-term evaluation</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
                       Functional microservices/C pipelines, GitHub feature branch integration, and peer PR reviews.
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-start gap-3.5">
-                  <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0">
+                <div className="p-4 rounded-xl border border-border bg-muted flex items-start gap-3.5">
+                  <div className="w-7 h-7 rounded-lg bg-muted text-foreground font-bold flex items-center justify-center text-xs shrink-0">
                     M3
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-900">Final Defense & Code Review</h4>
-                      <span className="text-[11px] font-medium text-slate-500">
+                      <h4 className="text-xs font-bold text-foreground">Final Defense & Code Review</h4>
+                      <span className="text-[11px] font-medium text-muted-foreground">
                         {project.deadline ? new Date(project.deadline).toLocaleDateString() : "Final cycle"}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
                       Oral defense presentation, automated AI code review report, and live demonstration.
                     </p>
                   </div>
@@ -918,41 +918,41 @@ function GroupWorkspaceContent() {
 
           {/* Right Sidebar: Supervisor & Repository Summary */}
           <div className="space-y-6">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Course Supervisor</span>
+            <div className="bg-card p-5 rounded-[16px] border border-border shadow-2xs space-y-3">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Course Supervisor</span>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 font-bold flex items-center justify-center text-xs border border-teal-200 shrink-0">
                   {project.lecturerName ? project.lecturerName.split(" ").map((n) => n[0]).slice(0, 2).join("") : "CS"}
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-slate-900">{project.lecturerName || "Course Supervisor"}</h4>
-                  <p className="text-[11px] text-slate-500">{lecturer?.email || ""}</p>
+                  <h4 className="font-bold text-xs text-foreground">{project.lecturerName || "Course Supervisor"}</h4>
+                  <p className="text-[11px] text-muted-foreground">{lecturer?.email || ""}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Repository Status</span>
+            <div className="bg-card p-5 rounded-[16px] border border-border shadow-2xs space-y-3">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Repository Status</span>
               {group?.repoStatus === "connected" ? (
                 <div className="space-y-2 text-xs">
-                  <div className="flex items-center gap-2 text-slate-900 font-mono font-bold">
+                  <div className="flex items-center gap-2 text-foreground font-mono font-bold">
                     <FolderGit2 className="w-4 h-4 text-teal-600" />
                     <span className="truncate">{group.repoName}</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 font-mono truncate">{group.repoUrl}</p>
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                    <span className="text-slate-500">Default branch:</span>
-                    <span className="font-mono font-semibold text-slate-800">{group.defaultBranch || "main"}</span>
+                  <p className="text-[11px] text-muted-foreground font-mono truncate">{group.repoUrl}</p>
+                  <div className="pt-2 border-t border-border flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">Default branch:</span>
+                    <span className="font-mono font-semibold text-foreground">{group.defaultBranch || "main"}</span>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-500">Total Commits:</span>
+                    <span className="text-muted-foreground">Total Commits:</span>
                     <span className="font-bold text-teal-700">{group.totalCommits}</span>
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-3 space-y-2">
-                  <FolderGit2 className="w-8 h-8 text-slate-300 mx-auto" />
-                  <p className="text-xs text-slate-600">No repository connected yet.</p>
+                  <FolderGit2 className="w-8 h-8 text-muted-foreground/60 mx-auto" />
+                  <p className="text-xs text-muted-foreground">No repository connected yet.</p>
                   <Button variant="outline" size="sm" onClick={() => setActiveTab("repo")}>
                     Connect GitHub Repo
                   </Button>
@@ -967,13 +967,13 @@ function GroupWorkspaceContent() {
       {/* TAB B: STUDENT INFORMATION / GROUP MEMBERS                     */}
       {/* ============================================================== */}
       {activeTab === "members" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-foreground">
                 {isIndividual ? "Assigned Student Profile" : `Assigned Team Members (${group?.members.length || 0})`}
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 {isIndividual
                   ? "Assigned student for this personal workspace. Repository telemetry, proposals, and grades are linked directly to this student."
                   : `Official students enrolled in ${group?.groupName}. All members access this single shared workspace.`}
@@ -988,7 +988,7 @@ function GroupWorkspaceContent() {
             {group?.members.map((member) => (
               <div
                 key={member.email}
-                className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-white hover:shadow-xs transition-all flex items-start gap-3.5"
+                className="p-4 rounded-xl border border-border bg-muted hover:bg-card hover:shadow-xs transition-all flex items-start gap-3.5"
               >
                 <div className="w-11 h-11 rounded-xl bg-teal-600 text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-xs">
                   {member.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("")}
@@ -996,24 +996,24 @@ function GroupWorkspaceContent() {
 
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                    <h4 className="font-bold text-xs sm:text-sm text-foreground truncate">
                       {member.fullName}
                     </h4>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         member.role === "Team Lead"
                           ? "bg-teal-100 text-teal-800 border border-teal-200"
-                          : "bg-slate-200 text-slate-700"
+                          : "bg-muted text-foreground"
                       }`}
                     >
                       {member.role}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 truncate">{member.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">{member.email}</p>
 
-                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600">
-                    <span className="font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
+                  <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                    <span className="font-mono bg-card px-2 py-0.5 rounded border border-border">
                       ID: {member.studentId}
                     </span>
                     {member.githubUsername && (
@@ -1022,7 +1022,7 @@ function GroupWorkspaceContent() {
                         @{member.githubUsername}
                       </span>
                     )}
-                    <span className="text-slate-400">
+                    <span className="text-muted-foreground">
                       {member.commitsCount} commits
                     </span>
                   </div>
@@ -1037,14 +1037,14 @@ function GroupWorkspaceContent() {
       {/* TAB C: GITHUB REPOSITORY CONNECTION                            */}
       {/* ============================================================== */}
       {activeTab === "repo" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <FolderGit2 className="w-5 h-5 text-teal-600" />
                 Shared Group GitHub Repository
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Only one repository connects to this group workspace. All members and supervisors access this repository.
               </p>
             </div>
@@ -1063,7 +1063,7 @@ function GroupWorkspaceContent() {
 
           {/* Connected Repo Card */}
           {group?.repoStatus === "connected" ? (
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <div className="p-5 rounded-[16px] bg-muted border border-border space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
@@ -1071,7 +1071,7 @@ function GroupWorkspaceContent() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-slate-900">{group.repoName}</h4>
+                      <h4 className="font-bold text-sm text-foreground">{group.repoName}</h4>
                       <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         Connected & Active
                       </span>
@@ -1088,40 +1088,40 @@ function GroupWorkspaceContent() {
                   </div>
                 </div>
 
-                <div className="text-right text-xs text-slate-500">
+                <div className="text-right text-xs text-muted-foreground">
                   <p>Last synchronized:</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="font-medium text-foreground">
                     {group.lastSyncAt ? new Date(group.lastSyncAt).toLocaleTimeString() : "Just now"}
                   </p>
                 </div>
               </div>
 
               {/* Quick Branch and Commit stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-200/70 text-xs">
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Default Branch</span>
-                  <span className="font-mono font-bold text-slate-900 flex items-center gap-1 mt-0.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/70 text-xs">
+                <div className="p-3 bg-card rounded-xl border border-border">
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Default Branch</span>
+                  <span className="font-mono font-bold text-foreground flex items-center gap-1 mt-0.5">
                     <GitBranch className="w-3.5 h-3.5 text-teal-600" />
                     {group.defaultBranch || "main"}
                   </span>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Total Commits</span>
+                <div className="p-3 bg-card rounded-xl border border-border">
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Total Commits</span>
                   <span className="font-mono font-bold text-teal-700 text-sm mt-0.5 block">
                     {group.totalCommits}
                   </span>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Active Branches</span>
-                  <span className="font-mono font-bold text-slate-900 text-sm mt-0.5 block">
+                <div className="p-3 bg-card rounded-xl border border-border">
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Active Branches</span>
+                  <span className="font-mono font-bold text-foreground text-sm mt-0.5 block">
                     {group.branches?.length || 3}
                   </span>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Telemetry Status</span>
+                <div className="p-3 bg-card rounded-xl border border-border">
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Telemetry Status</span>
                   <span className="font-semibold text-emerald-700 flex items-center gap-1 mt-0.5">
                     <Check className="w-3.5 h-3.5" /> Healthy
                   </span>
@@ -1139,10 +1139,10 @@ function GroupWorkspaceContent() {
             </div>
           ) : (
             /* Repository Connect Form */
-            <form onSubmit={handleConnectRepo} className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <form onSubmit={handleConnectRepo} className="p-6 rounded-[16px] bg-muted border border-border space-y-4">
               <div>
-                <h4 className="font-bold text-xs text-slate-900">Connect Group GitHub Repository</h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h4 className="font-bold text-xs text-foreground">Connect Group GitHub Repository</h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Paste the repository URL. Any group member can link the repository once for the entire workspace.
                 </p>
               </div>
@@ -1155,18 +1155,18 @@ function GroupWorkspaceContent() {
               )}
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-slate-700">
+                <label className="block text-xs font-semibold text-foreground">
                   GitHub Repository URL <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-1">
-                    <FolderGit2 className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <FolderGit2 className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       placeholder="https://github.com/organization/repository-name"
                       value={repoInputUrl}
                       onChange={(e) => setRepoInputUrl(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono"
+                      className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent/20 focus:border-accent font-mono"
                     />
                   </div>
                   <Button
@@ -1179,7 +1179,7 @@ function GroupWorkspaceContent() {
                     {isConnectingRepo ? "Connecting..." : "Connect Repository"}
                   </Button>
                 </div>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-muted-foreground">
                   Example: <code>https://github.com/unicodetrack-demo/cybernova-event-hub</code>
                 </p>
               </div>
@@ -1192,14 +1192,14 @@ function GroupWorkspaceContent() {
       {/* TAB D: PROPOSAL SUBMISSION & FEEDBACK                          */}
       {/* ============================================================== */}
       {activeTab === "proposal" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <FileText className="w-5 h-5 text-teal-600" />
                 Project Proposal Submission
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Upload your group's capstone proposal PDF for faculty review and approval.
               </p>
             </div>
@@ -1219,7 +1219,7 @@ function GroupWorkspaceContent() {
           {/* Current Submitted Proposal Card */}
           {group?.proposal && !showRevisionForm ? (
             <div className="space-y-5">
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+              <div className="p-5 rounded-[16px] bg-muted border border-border space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="flex items-start gap-3.5">
                     <div className="w-12 h-12 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
@@ -1227,15 +1227,15 @@ function GroupWorkspaceContent() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-sm text-slate-900">{group.proposal.title}</h4>
-                        <span className="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                        <h4 className="font-bold text-sm text-foreground">{group.proposal.title}</h4>
+                        <span className="text-[10px] font-semibold text-muted-foreground bg-card px-2 py-0.5 rounded border border-border">
                           v{group.proposal.version}.0
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
+                      <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">
                         {group.proposal.description}
                       </p>
-                      <p className="text-[11px] text-slate-400 font-mono mt-2">
+                      <p className="text-[11px] text-muted-foreground font-mono mt-2">
                         File: <strong>{group.proposal.fileName}</strong> ({group.proposal.fileSize}) • Submitted by {group.proposal.submittedBy}
                       </p>
                     </div>
@@ -1262,8 +1262,8 @@ function GroupWorkspaceContent() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-500">
+                <div className="pt-3 border-t border-border flex items-center justify-between">
+                  <span className="text-[11px] text-muted-foreground">
                     Submitted: {new Date(group.proposal.submittedAt).toLocaleDateString()}
                   </span>
                   <a
@@ -1272,9 +1272,9 @@ function GroupWorkspaceContent() {
                       e.preventDefault();
                       alert(`Downloading proposal document: ${group.proposal?.fileName}`);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold shadow-2xs transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground rounded-lg text-xs font-semibold shadow-2xs transition-colors"
                   >
-                    <Download className="w-3.5 h-3.5 text-slate-500" /> Download Document
+                    <Download className="w-3.5 h-3.5 text-muted-foreground" /> Download Document
                   </a>
                 </div>
               </div>
@@ -1282,7 +1282,7 @@ function GroupWorkspaceContent() {
               {/* Faculty Feedback Display */}
               {group.proposal.feedback && (
                 <div
-                  className={`p-5 rounded-2xl border ${
+                  className={`p-5 rounded-[16px] border ${
                     group.proposal.feedback.decision === "approved"
                       ? "bg-emerald-50/60 border-emerald-200 text-emerald-950"
                       : "bg-rose-50/60 border-rose-200 text-rose-950"
@@ -1294,7 +1294,7 @@ function GroupWorkspaceContent() {
                         Faculty Feedback from {group.proposal.feedback.lecturerName}
                       </span>
                       {group.proposal.feedback.rubricScore && (
-                        <span className="font-bold text-[11px] px-2 py-0.5 rounded bg-white/80 border border-emerald-300">
+                        <span className="font-bold text-[11px] px-2 py-0.5 rounded bg-muted border border-emerald-300">
                           Rubric Score: {group.proposal.feedback.rubricScore}/100
                         </span>
                       )}
@@ -1304,7 +1304,7 @@ function GroupWorkspaceContent() {
                     </span>
                   </div>
 
-                  <p className="text-xs leading-relaxed font-medium bg-white/70 p-3.5 rounded-xl border border-emerald-200/60">
+                  <p className="text-xs leading-relaxed font-medium bg-card/70 p-3.5 rounded-xl border border-emerald-200/60">
                     "{group.proposal.feedback.comments}"
                   </p>
                 </div>
@@ -1312,12 +1312,12 @@ function GroupWorkspaceContent() {
             </div>
           ) : (
             /* Proposal Submission Form */
-            <form onSubmit={handleSubmitProposal} className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <form onSubmit={handleSubmitProposal} className="p-6 rounded-[16px] bg-muted border border-border space-y-4">
               <div>
-                <h4 className="font-bold text-xs text-slate-900">
+                <h4 className="font-bold text-xs text-foreground">
                   {showRevisionForm ? "Submit Proposal Revision" : "New Proposal Submission"}
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Attach your group's capstone specification document in PDF format.
                 </p>
               </div>
@@ -1330,7 +1330,7 @@ function GroupWorkspaceContent() {
               )}
 
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-slate-700">
+                <label className="block text-xs font-semibold text-foreground">
                   Proposal Title <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -1338,12 +1338,12 @@ function GroupWorkspaceContent() {
                   placeholder="e.g. Distributed Sensor Telemetry & Queue Pipeline"
                   value={proposalTitle}
                   onChange={(e) => setProposalTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                  className="w-full px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent/20 focus:border-accent"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-slate-700">
+                <label className="block text-xs font-semibold text-foreground">
                   Executive Summary & Approach
                 </label>
                 <textarea
@@ -1351,7 +1351,7 @@ function GroupWorkspaceContent() {
                   placeholder="Summarize the core technical solution and division of responsibilities..."
                   value={proposalDescription}
                   onChange={(e) => setProposalDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                  className="w-full px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent/20 focus:border-accent resize-none"
                 />
               </div>
 
@@ -1372,13 +1372,13 @@ function GroupWorkspaceContent() {
                   };
                   input.click();
                 }}
-                className="border-2 border-dashed border-slate-300 hover:border-teal-500 bg-white p-6 rounded-2xl text-center cursor-pointer transition-colors space-y-2"
+                className="border-2 border-dashed border-border hover:border-teal-500 bg-card p-6 rounded-[16px] text-center cursor-pointer transition-colors space-y-2"
               >
                 <UploadCloud className="w-8 h-8 text-teal-600 mx-auto" />
-                <p className="text-xs font-bold text-slate-900">
+                <p className="text-xs font-bold text-foreground">
                   {proposalFileName ? proposalFileName : "Drag and drop your Proposal PDF here, or click to browse"}
                 </p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-muted-foreground">
                   {proposalFileSize ? `File size: ${proposalFileSize}` : "Accepts PDF files up to 15 MB"}
                 </p>
               </div>
@@ -1410,9 +1410,9 @@ function GroupWorkspaceContent() {
       {activeTab === "activity" && (
         <div className="space-y-6">
           {/* Workspace Notifications & System Alerts */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+          <div className="bg-card p-6 rounded-[16px] border border-border shadow-2xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Bell className="w-5 h-5 text-teal-600" />
                 Workspace Notifications & System Alerts
               </h3>
@@ -1428,7 +1428,7 @@ function GroupWorkspaceContent() {
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-teal-950 text-sm">Group Workspace Active & Isolated</p>
-                    <span className="text-[10px] text-teal-700 font-mono font-semibold bg-white/80 px-2 py-0.5 rounded border border-teal-300">
+                    <span className="text-[10px] text-teal-700 font-mono font-semibold bg-muted px-2 py-0.5 rounded border border-teal-300">
                       ws-{projectId}-{group.groupNumber}
                     </span>
                   </div>
@@ -1444,7 +1444,7 @@ function GroupWorkspaceContent() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-bold text-emerald-950 text-sm">GitHub Repository Telemetry Linked</p>
-                      <span className="text-[10px] text-emerald-700 font-mono font-semibold bg-white/80 px-2 py-0.5 rounded border border-emerald-300">
+                      <span className="text-[10px] text-emerald-700 font-mono font-semibold bg-muted px-2 py-0.5 rounded border border-emerald-300">
                         {group.defaultBranch || "main"}
                       </span>
                     </div>
@@ -1459,7 +1459,7 @@ function GroupWorkspaceContent() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-bold text-amber-950 text-sm">Repository Link Required</p>
-                      <span className="text-[10px] text-amber-700 font-mono font-semibold bg-white/80 px-2 py-0.5 rounded border border-amber-300">
+                      <span className="text-[10px] text-amber-700 font-mono font-semibold bg-muted px-2 py-0.5 rounded border border-amber-300">
                         Pending
                       </span>
                     </div>
@@ -1475,14 +1475,14 @@ function GroupWorkspaceContent() {
                 .filter((t) => t.projectId === projectId)
                 .slice(0, 3)
                 .map((act) => (
-                  <div key={act.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3 text-xs">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                  <div key={act.id} className="p-3.5 rounded-xl bg-muted border border-border flex items-start gap-3 text-xs">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-bold text-slate-800">{act.user} {act.action}</p>
-                        <span className="text-[10px] text-slate-400">{act.timestamp}</span>
+                        <p className="font-bold text-foreground">{act.user} {act.action}</p>
+                        <span className="text-[10px] text-muted-foreground">{act.timestamp}</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">{act.target}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{act.target}</p>
                     </div>
                   </div>
                 ))}
@@ -1490,14 +1490,14 @@ function GroupWorkspaceContent() {
           </div>
 
           {/* Recent Git Commit Activity */}
-          <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+          <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border">
               <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <GitCommit className="w-5 h-5 text-teal-600" />
                   Recent Git Commit Activity
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Real-time commit telemetry from the linked repository branch ({group?.defaultBranch || "main"}).
                 </p>
               </div>
@@ -1515,8 +1515,8 @@ function GroupWorkspaceContent() {
             </div>
 
           {/* Member contribution breakdown bars */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+          <div className="p-4 rounded-xl bg-muted border border-border space-y-3">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
               Contribution Distribution by Student Member
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1525,15 +1525,15 @@ function GroupWorkspaceContent() {
                 const pct = Math.min(100, Math.round((m.commitsCount / total) * 100));
 
                 return (
-                  <div key={m.email} className="p-3 bg-white rounded-xl border border-slate-200/80 space-y-1.5">
+                  <div key={m.email} className="p-3 bg-card rounded-xl border border-border space-y-1.5">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-slate-900 truncate">{m.fullName.split(" ")[0]}</span>
+                      <span className="font-bold text-foreground truncate">{m.fullName.split(" ")[0]}</span>
                       <span className="font-mono text-teal-700 font-semibold">{m.commitsCount} commits</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
                       <div className="bg-teal-500 h-full rounded-full" style={{ width: `${pct}%` }} />
                     </div>
-                    <span className="text-[10px] text-slate-400 block">{pct}% of repository activity</span>
+                    <span className="text-[10px] text-muted-foreground block">{pct}% of repository activity</span>
                   </div>
                 );
               })}
@@ -1542,27 +1542,27 @@ function GroupWorkspaceContent() {
 
           {/* Commits List */}
           <div className="space-y-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
               Commit Stream ({group?.commits?.length || 0} commits recorded)
             </span>
             <div className="space-y-2">
               {(group?.commits || []).map((c) => (
                 <div
                   key={c.hash}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                  className="p-3.5 rounded-xl border border-border bg-card hover:border-border transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                 >
                   <div className="flex items-start gap-2.5">
                     <GitCommit className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-slate-900">{c.message}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="font-semibold text-foreground">{c.message}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         Author: <strong>{c.author}</strong> • {new Date(c.date).toLocaleString()}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-center font-mono">
-                    <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 border border-slate-200">
+                    <span className="text-[10px] bg-muted px-2 py-0.5 rounded text-muted-foreground border border-border">
                       {c.branch}
                     </span>
                     <span className="text-[11px] text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
@@ -1593,27 +1593,27 @@ function GroupWorkspaceContent() {
           {evaluation && evaluation.status === "published" ? (
             <div className="space-y-6">
               {/* Published Grade Banner */}
-              <div className="bg-gradient-to-r from-teal-900 to-[#0B1220] rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="bg-gradient-to-r from-teal-900 to-[#0B1220] rounded-[16px] p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="px-3 py-1 bg-teal-500/20 text-teal-300 rounded-full text-xs font-bold border border-teal-500/30 flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5" /> Official Faculty Grade Published
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-muted-foreground">
                       Evaluated on {new Date(evaluation.publishedAt || evaluation.evaluatedAt).toLocaleDateString()}
                     </span>
                   </div>
                   <h2 className="text-2xl font-black tracking-tight">{group?.groupName} — Final Academic Assessment</h2>
-                  <p className="text-xs text-slate-300 max-w-xl">
+                  <p className="text-xs text-muted-foreground/60 max-w-xl">
                     Evaluated by <strong>{evaluation.lecturerName || "Supervising Faculty"}</strong> using the university academic capstone rubric and Gemini 2.5 Flash code review.
                   </p>
                 </div>
 
-                <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-4 text-center shrink-0 min-w-40">
+                <div className="bg-muted backdrop-blur-sm border border-white/10 rounded-[16px] p-4 text-center shrink-0 min-w-40">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-teal-300 block">Overall Score</span>
                   <div className="text-4xl font-black mt-1">
                     {evaluation.totalScore}
-                    <span className="text-lg text-slate-400 font-normal"> / {evaluation.maxScore}</span>
+                    <span className="text-lg text-muted-foreground font-normal"> / {evaluation.maxScore}</span>
                   </div>
                   <span className="text-xs font-bold text-emerald-400 mt-1 block">
                     {evaluation.percentage}% Achievement
@@ -1623,20 +1623,20 @@ function GroupWorkspaceContent() {
 
               {/* Faculty Qualitative Feedback */}
               {evaluation.lecturerComments && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-2">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-2">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-teal-600" />
                     Faculty Feedback & Supervisor Comments
                   </h3>
-                  <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 text-xs text-slate-800 leading-relaxed font-medium">
+                  <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 text-xs text-foreground leading-relaxed font-medium">
                     {evaluation.lecturerComments}
                   </div>
                 </div>
               )}
 
               {/* Criterion-Wise Marks Breakdown */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-teal-600" />
                   Rubric Assessment Breakdown
                 </h3>
@@ -1645,25 +1645,25 @@ function GroupWorkspaceContent() {
                   {evaluation.criterionScores.map((scoreItem, idx) => (
                     <div
                       key={scoreItem.criterionId || idx}
-                      className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs"
+                      className="p-4 rounded-xl bg-muted border border-border space-y-3 text-xs"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/80">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
                         <div className="flex items-center gap-2.5">
                           <span className="w-6 h-6 rounded-lg bg-teal-100 text-teal-800 font-bold flex items-center justify-center text-xs">
                             {idx + 1}
                           </span>
-                          <span className="font-bold text-slate-900 text-sm">{scoreItem.criterionName}</span>
+                          <span className="font-bold text-foreground text-sm">{scoreItem.criterionName}</span>
                         </div>
                         <span className="font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">
                           {scoreItem.finalScore} / {scoreItem.maxMarks} Marks ({scoreItem.percentage}%)
                         </span>
                       </div>
 
-                      <p className="text-slate-700 leading-relaxed">{scoreItem.explanation}</p>
+                      <p className="text-foreground leading-relaxed">{scoreItem.explanation}</p>
 
                       {scoreItem.suggestions && scoreItem.suggestions.length > 0 && (
-                        <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-600">
-                          <strong className="text-slate-900 block mb-1 font-semibold">Recommendations for Defense:</strong>
+                        <div className="p-3 bg-card rounded-lg border border-border text-muted-foreground">
+                          <strong className="text-foreground block mb-1 font-semibold">Recommendations for Defense:</strong>
                           <ul className="list-disc list-inside space-y-0.5">
                             {scoreItem.suggestions.map((sug, sIdx) => (
                               <li key={sIdx}>{sug}</li>
@@ -1678,15 +1678,15 @@ function GroupWorkspaceContent() {
             </div>
           ) : (
             /* Pending Publication Confidentiality Card */
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-2xl mx-auto shadow-sm space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
+            <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-2xl mx-auto shadow-sm space-y-4">
+              <div className="w-14 h-14 rounded-[16px] bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
                 <Clock className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Academic Evaluation Pending Faculty Publication</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+              <h3 className="text-lg font-bold text-foreground">Academic Evaluation Pending Faculty Publication</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
                 Your group&apos;s project proposal, source code repository, and technical deliverables are undergoing evaluation under university rubric criteria.
               </p>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 max-w-md mx-auto flex items-center gap-2 text-left">
+              <div className="p-3 bg-muted rounded-xl border border-border text-xs text-muted-foreground max-w-md mx-auto flex items-center gap-2 text-left">
                 <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0" />
                 <span>
                   Official grades and individual criterion breakdowns will be unlocked here once your supervising lecturer approves and publishes the evaluation.
@@ -1703,7 +1703,7 @@ function GroupWorkspaceContent() {
       {activeTab === "database" && (
         <div className="space-y-6">
           {/* Submission Status & Action Banner */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-mono text-xs font-bold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-200">
@@ -1721,7 +1721,7 @@ function GroupWorkspaceContent() {
                       ? "bg-purple-50 text-purple-700 border border-purple-200"
                       : erSubmission?.status === "submitted"
                       ? "bg-sky-50 text-sky-700 border border-sky-200"
-                      : "bg-slate-100 text-slate-600"
+                      : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {erSubmission?.status === "published"
@@ -1737,8 +1737,8 @@ function GroupWorkspaceContent() {
                     : "No Submission"}
                 </span>
               </div>
-              <h2 className="text-xl font-bold text-slate-900">Database Design & ER Diagram Specification</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h2 className="text-xl font-bold text-foreground">Database Design & ER Diagram Specification</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Upload your group&apos;s relational schema model (PDF, PNG, JPG). All team members share this submission.
               </p>
             </div>
@@ -1754,7 +1754,7 @@ function GroupWorkspaceContent() {
 
           {/* Resubmission Alert if requested by faculty */}
           {erSubmission?.status === "resubmission_requested" && (
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3 text-xs text-rose-900">
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-[16px] flex items-start gap-3 text-xs text-rose-900">
               <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <strong className="font-bold text-rose-950 block text-sm">Faculty Requested Diagram Revisions</strong>
@@ -1768,15 +1768,15 @@ function GroupWorkspaceContent() {
 
           {/* Current Submitted Diagram Card */}
           {erSubmission ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 font-bold">
                     {erSubmission.fileType === "pdf" ? <FileText className="w-5 h-5" /> : <Image className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">{erSubmission.fileName}</h3>
-                    <p className="text-[11px] text-slate-400">
+                    <h3 className="text-sm font-bold text-foreground">{erSubmission.fileName}</h3>
+                    <p className="text-[11px] text-muted-foreground">
                       Uploaded by <strong>{erSubmission.submittedByName}</strong> • {erSubmission.fileSize} • Version {erSubmission.version}
                     </p>
                   </div>
@@ -1786,7 +1786,7 @@ function GroupWorkspaceContent() {
                   <a
                     href={erSubmission.fileUrl}
                     download={erSubmission.fileName}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold border border-border transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" /> Download
                   </a>
@@ -1794,28 +1794,28 @@ function GroupWorkspaceContent() {
               </div>
 
               {erSubmission.versionNote && (
-                <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600">
-                  <strong className="text-slate-800">Version Note:</strong> {erSubmission.versionNote}
+                <div className="p-3 bg-muted rounded-xl text-xs text-muted-foreground">
+                  <strong className="text-foreground">Version Note:</strong> {erSubmission.versionNote}
                 </div>
               )}
 
               {/* Diagram Visual Preview Box */}
-              <div className="p-8 bg-slate-950 rounded-xl text-center text-slate-400 font-mono text-xs border border-slate-800 flex flex-col items-center justify-center space-y-2">
+              <div className="p-8 bg-slate-950 rounded-xl text-center text-muted-foreground font-mono text-xs border border-slate-800 flex flex-col items-center justify-center space-y-2">
                 <Database className="w-12 h-12 text-teal-400 animate-pulse" />
                 <p className="font-bold text-slate-200">{erSubmission.fileName} (v{erSubmission.version})</p>
-                <p className="text-[11px] text-slate-500 max-w-md">
+                <p className="text-[11px] text-muted-foreground max-w-md">
                   Active relational schema model. Verified against GitHub database DDL in database/schema.sql.
                 </p>
               </div>
             </div>
           ) : (
             /* Empty State */
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto shadow-sm space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
+            <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto shadow-sm space-y-3">
+              <div className="w-12 h-12 rounded-[16px] bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-100">
                 <Database className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">No ER Diagram Uploaded Yet</h3>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
+              <h3 className="text-base font-bold text-foreground">No ER Diagram Uploaded Yet</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
                 Upload your group&apos;s database model and ER diagram to trigger automated AI consistency analysis against your GitHub SQL schemas.
               </p>
               <Button
@@ -1828,54 +1828,54 @@ function GroupWorkspaceContent() {
           )}
 
           {/* Database Implementation Submission (Physical Schema & DDL) */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-100 font-bold">
                   <Code2 className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-slate-900">Database Implementation Submission (DDL Schema)</h3>
+                    <h3 className="text-sm font-bold text-foreground">Database Implementation Submission (DDL Schema)</h3>
                     <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                       Physical Schema Active
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-muted-foreground">
                     Physical SQL implementation scripts synchronized from GitHub or direct upload.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                <span className="text-xs font-mono text-muted-foreground bg-muted px-2.5 py-1 rounded-lg border border-border">
                   database/schema.sql
                 </span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Tables Implemented</span>
-                <span className="text-base font-bold text-slate-900 mt-0.5 block">8 Relations</span>
+              <div className="p-3 bg-muted rounded-xl border border-border">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold block">Tables Implemented</span>
+                <span className="text-base font-bold text-foreground mt-0.5 block">8 Relations</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Foreign Key Constraints</span>
+              <div className="p-3 bg-muted rounded-xl border border-border">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold block">Foreign Key Constraints</span>
                 <span className="text-base font-bold text-teal-700 mt-0.5 block">14 Foreign Keys</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Index Coverage</span>
+              <div className="p-3 bg-muted rounded-xl border border-border">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold block">Index Coverage</span>
                 <span className="text-base font-bold text-indigo-700 mt-0.5 block">100% Primary/FK</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">DDL Verification</span>
+              <div className="p-3 bg-muted rounded-xl border border-border">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold block">DDL Verification</span>
                 <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1 mt-1">
                   <Check className="w-3.5 h-3.5" /> Aligned with ER
                 </span>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-start gap-2">
+            <div className="p-3 bg-muted/40 rounded-xl border border-border text-xs text-muted-foreground flex items-start gap-2">
               <Info className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
               <p>
                 <strong>Automated AI Consistency Engine:</strong> Gemini cross-checks the uploaded ER diagram cardinalities against the actual DDL foreign keys in your GitHub repository to ensure complete alignment between design and implementation.
@@ -1886,11 +1886,11 @@ function GroupWorkspaceContent() {
           {/* Published Evaluation Feedback (When Lecturer Publishes) */}
           {erSubmission?.lecturerFeedback?.isPublished && (
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-teal-900 to-[#0B1220] rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="bg-gradient-to-r from-teal-900 to-[#0B1220] rounded-[16px] p-6 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">Official Assessment</span>
                   <h3 className="text-xl font-black mt-1">Database & ER Diagram Grade Published</h3>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <p className="text-xs text-muted-foreground/60 mt-1">
                     Evaluated by <strong>{erSubmission.lecturerFeedback.lecturerName}</strong> on {new Date(erSubmission.lecturerFeedback.publishedAt || "").toLocaleDateString()}
                   </p>
                 </div>
@@ -1898,16 +1898,16 @@ function GroupWorkspaceContent() {
                   <span className="text-3xl font-black text-emerald-400">
                     {erSubmission.lecturerFeedback.approvedMarks}
                   </span>
-                  <span className="text-slate-400 text-sm"> / 100 Marks</span>
+                  <span className="text-muted-foreground text-sm"> / 100 Marks</span>
                 </div>
               </div>
 
               {erSubmission.lecturerFeedback.generalComments && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-2">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-2">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-teal-600" /> Faculty Reviewer Comments
                   </h3>
-                  <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-xs text-foreground leading-relaxed bg-muted p-4 rounded-xl border border-border">
                     {erSubmission.lecturerFeedback.generalComments}
                   </p>
                 </div>
@@ -1915,40 +1915,40 @@ function GroupWorkspaceContent() {
 
               {/* If permitted by lecturer, show the AI analysis report */}
               {erSubmission.lecturerFeedback.allowStudentAIFeedbackView && erSubmission.aiAnalysis && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-teal-600" />
                     Gemini AI Consistency & Quality Findings
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-center">
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">Correctness</span>
-                      <p className="text-xl font-black text-slate-900 mt-0.5">{erSubmission.aiAnalysis.overallCorrectnessScore}%</p>
+                    <div className="p-3 bg-muted rounded-xl border border-border">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Correctness</span>
+                      <p className="text-xl font-black text-foreground mt-0.5">{erSubmission.aiAnalysis.overallCorrectnessScore}%</p>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">Completeness</span>
-                      <p className="text-xl font-black text-slate-900 mt-0.5">{erSubmission.aiAnalysis.completenessScore}%</p>
+                    <div className="p-3 bg-muted rounded-xl border border-border">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Completeness</span>
+                      <p className="text-xl font-black text-foreground mt-0.5">{erSubmission.aiAnalysis.completenessScore}%</p>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">SQL Consistency</span>
-                      <p className="text-xl font-black text-slate-900 mt-0.5">{erSubmission.aiAnalysis.implementationConsistencyScore}%</p>
+                    <div className="p-3 bg-muted rounded-xl border border-border">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">SQL Consistency</span>
+                      <p className="text-xl font-black text-foreground mt-0.5">{erSubmission.aiAnalysis.implementationConsistencyScore}%</p>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-slate-700">Identified Design Improvements</h4>
+                    <h4 className="text-xs font-bold text-foreground">Identified Design Improvements</h4>
                     {erSubmission.aiAnalysis.issues.map((iss, idx) => (
-                      <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                      <div key={idx} className="p-3 rounded-xl bg-muted border border-border text-xs space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-900">{iss.title}</span>
+                          <span className="font-bold text-foreground">{iss.title}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             iss.severity === "Critical" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
                           }`}>
                             {iss.severity}
                           </span>
                         </div>
-                        <p className="text-slate-600">{iss.explanation}</p>
+                        <p className="text-muted-foreground">{iss.explanation}</p>
                         <p className="text-teal-700 font-semibold text-[11px]">Correction: {iss.expectedCorrection}</p>
                       </div>
                     ))}
@@ -1962,16 +1962,16 @@ function GroupWorkspaceContent() {
 
       {/* Upload ER Diagram Modal */}
       {showERUploadModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 max-w-lg w-full shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-[16px] border border-border max-w-lg w-full shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="font-bold text-foreground text-base flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-teal-600" />
                 Upload Database ER Diagram
               </h3>
               <button
                 onClick={() => setShowERUploadModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-xs"
+                className="text-muted-foreground hover:text-foreground text-xs"
               >
                 ✕
               </button>
@@ -1979,7 +1979,7 @@ function GroupWorkspaceContent() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Select Diagram File (PDF, PNG, JPG)</label>
+                <label className="block font-semibold text-foreground mb-1">Select Diagram File (PDF, PNG, JPG)</label>
                 <input
                   type="file"
                   accept=".pdf,.png,.jpg,.jpeg"
@@ -1992,25 +1992,25 @@ function GroupWorkspaceContent() {
                       setErFileType(ext === "png" ? "png" : ext === "jpg" || ext === "jpeg" ? "jpg" : "pdf");
                     }
                   }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-xl"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Version Description / Submission Note</label>
+                <label className="block font-semibold text-foreground mb-1">Version Description / Submission Note</label>
                 <textarea
                   rows={2}
                   value={erVersionNote}
                   onChange={(e) => setErVersionNote(e.target.value)}
                   placeholder="e.g. Added composite key to event_registrations and normalized sensor tables..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl resize-none"
+                  className="w-full px-3 py-2 bg-muted border border-border rounded-xl resize-none"
                 />
               </div>
 
               {erError && <p className="text-rose-600 font-semibold">{erError}</p>}
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+            <div className="pt-3 border-t border-border flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowERUploadModal(false)}>
                 Cancel
               </Button>
@@ -2050,9 +2050,9 @@ export default function GroupWorkspacePage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+        <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
           <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm font-medium text-slate-600">Loading shared group workspace...</p>
+          <p className="text-sm font-medium text-muted-foreground">Loading shared group workspace...</p>
         </div>
       }
     >

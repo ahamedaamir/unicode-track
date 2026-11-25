@@ -260,14 +260,14 @@ export default function StudentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0B1220] tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Student Management
             </h2>
             <Badge variant="teal" size="sm">
               {students.length} Registered
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Create and maintain enrolled student records, departmental allocations, and credentials.
           </p>
         </div>
@@ -283,7 +283,7 @@ export default function StudentsPage() {
       </div>
 
       {/* Search & Filter Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+      <div className="bg-card p-4 rounded-[16px] border border-border shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative flex-1">
@@ -292,13 +292,13 @@ export default function StudentsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by student full name, email, or department..."
-              className="w-full px-3.5 py-2 pl-9 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-slate-50/60 focus:bg-white transition-all placeholder:text-slate-400"
+              className="w-full px-3.5 py-2 pl-9 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent focus:border-transparent text-foreground bg-muted focus:bg-muted transition-all placeholder:text-muted-foreground"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-muted-foreground"
                 aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -307,17 +307,17 @@ export default function StudentsPage() {
           </div>
 
           {/* Quick Counter */}
-          <div className="text-xs text-slate-500 flex items-center gap-2 self-end md:self-auto shrink-0">
+          <div className="text-xs text-muted-foreground flex items-center gap-2 self-end md:self-auto shrink-0">
             <span>Showing:</span>
-            <strong className="text-slate-900 font-semibold">
+            <strong className="text-foreground font-semibold">
               {filteredStudents.length} of {students.length}
             </strong>
           </div>
         </div>
 
         {/* Filter Dropdowns */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-400 mr-1">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border text-xs">
+          <div className="flex items-center gap-1.5 text-muted-foreground mr-1">
             <Filter className="w-3.5 h-3.5" />
             <span className="font-semibold text-[11px] uppercase tracking-wider">Filters:</span>
           </div>
@@ -326,7 +326,7 @@ export default function StudentsPage() {
           <select
             value={selectedDeptFilter}
             onChange={(e) => setSelectedDeptFilter(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="px-2.5 py-1.5 rounded-lg border border-border bg-muted text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
           >
             <option value="ALL">All Departments ({departments.length})</option>
             {departments.map((d) => (
@@ -340,7 +340,7 @@ export default function StudentsPage() {
           <select
             value={selectedYearFilter}
             onChange={(e) => setSelectedYearFilter(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="px-2.5 py-1.5 rounded-lg border border-border bg-muted text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
           >
             <option value="ALL">All Academic Years</option>
             <option value="1">Year 1</option>
@@ -353,7 +353,7 @@ export default function StudentsPage() {
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="px-2.5 py-1.5 rounded-lg border border-border bg-muted text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
           >
             <option value="ALL">All Statuses</option>
             <option value="active">Active Accounts</option>
@@ -369,7 +369,7 @@ export default function StudentsPage() {
                 setSelectedStatusFilter("ALL");
                 setSearchQuery("");
               }}
-              className="text-xs text-teal-600 hover:text-teal-800 font-semibold px-2 py-1 rounded-md hover:bg-teal-50 transition-colors"
+              className="text-xs text-teal-600 hover:text-accent-hover font-semibold px-2 py-1 rounded-md hover:bg-teal-50 transition-colors"
             >
               Reset Filters
             </button>
@@ -378,11 +378,11 @@ export default function StudentsPage() {
       </div>
 
       {/* Students Directory Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="bg-card rounded-[16px] border border-border shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <tr className="bg-muted border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <th className="py-3.5 px-4 sm:px-6">Student</th>
                 <th className="py-3.5 px-4">Department</th>
                 <th className="py-3.5 px-3">Year</th>
@@ -391,13 +391,13 @@ export default function StudentsPage() {
                 <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-border text-xs">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    <GraduationCap className="w-9 h-9 mx-auto mb-2 text-slate-300" />
-                    <p className="font-semibold text-slate-700 text-sm">No students match your criteria</p>
-                    <p className="text-[11px] text-slate-400 mt-1">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                    <GraduationCap className="w-9 h-9 mx-auto mb-2 text-muted-foreground/60" />
+                    <p className="font-semibold text-foreground text-sm">No students match your criteria</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">
                       {searchQuery || selectedDeptFilter !== "ALL"
                         ? "Try adjusting your search terms or filters."
                         : "Click 'Add Student' above to register the university's first student."}
@@ -418,7 +418,7 @@ export default function StudentsPage() {
                 filteredStudents.map((std) => (
                   <tr
                     key={std.id}
-                    className="hover:bg-slate-50/70 transition-colors group"
+                    className="hover:bg-muted/40 transition-colors group"
                   >
                     {/* Profile Photo / Avatar & Name & Email */}
                     <td className="py-3.5 px-4 sm:px-6">
@@ -428,7 +428,7 @@ export default function StudentsPage() {
                           <img
                             src={std.profilePhotoUrl}
                             alt={std.fullName}
-                            className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
+                            className="w-9 h-9 rounded-full object-cover border border-border shrink-0"
                           />
                         ) : (
                           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
@@ -436,10 +436,10 @@ export default function StudentsPage() {
                           </div>
                         )}
                         <div>
-                          <p className="font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
+                          <p className="font-bold text-foreground group-hover:text-accent transition-colors">
                             {std.fullName}
                           </p>
-                          <span className="text-[11px] text-slate-500 font-mono block">
+                          <span className="text-[11px] text-muted-foreground font-mono block">
                             {std.email}
                           </span>
                         </div>
@@ -448,7 +448,7 @@ export default function StudentsPage() {
 
                     {/* Department */}
                     <td className="py-3.5 px-4 max-w-xs">
-                      <span className="font-medium text-slate-700 truncate block text-xs">
+                      <span className="font-medium text-foreground truncate block text-xs">
                         {getDeptName(std.departmentId)}
                       </span>
                     </td>
@@ -474,7 +474,7 @@ export default function StudentsPage() {
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-medium">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border font-medium">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Deactivated
                         </span>
                       )}
@@ -485,7 +485,7 @@ export default function StudentsPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => setDetailsStudent(std)}
-                          className="p-1.5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors"
+                          className="p-1.5 text-muted-foreground hover:text-accent hover:bg-teal-50 rounded-lg transition-colors"
                           title="View Student Details"
                           aria-label="View Student Details"
                         >
@@ -494,7 +494,7 @@ export default function StudentsPage() {
 
                         <button
                           onClick={() => handleOpenEditModal(std)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-muted-foreground hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
                           title="Edit Student Profile"
                           aria-label="Edit Student Profile"
                         >
@@ -505,7 +505,7 @@ export default function StudentsPage() {
                           onClick={() => toggleStudentStatus(std.id)}
                           className={`p-1.5 rounded-lg transition-colors ${
                             std.accountStatus === "active"
-                              ? "text-slate-400 hover:text-amber-600 hover:bg-amber-50"
+                              ? "text-muted-foreground hover:text-amber-600 hover:bg-amber-50"
                               : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                           }`}
                           title={std.accountStatus === "active" ? "Deactivate Student" : "Activate Student"}
@@ -520,7 +520,7 @@ export default function StudentsPage() {
                               deleteStudent(std.id);
                             }
                           }}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                           title="Delete Student Record"
                           aria-label="Delete Student Record"
                         >
@@ -538,26 +538,26 @@ export default function StudentsPage() {
 
       {/* -------------------- ADD STUDENT MODAL -------------------- */}
       {addModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
-          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm backdrop-blur-xs animate-in fade-in-50">
+          <div className="bg-card w-full max-w-lg rounded-[16px] border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-start justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-600 flex items-center justify-center shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-[#0B1220]">
+                  <h3 className="text-base sm:text-lg font-bold text-foreground">
                     Add New Student
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Create an enrolled student credential linked to an official department.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setAddModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-muted-foreground hover:text-muted-foreground p-1 rounded-lg"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -574,7 +574,7 @@ export default function StudentsPage() {
             <form onSubmit={handleAddSubmit} className="space-y-4">
               {/* Field 1: Full Name */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Full Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -585,10 +585,10 @@ export default function StudentsPage() {
                     if (addErrors.fullName) setAddErrors((prev) => ({ ...prev, fullName: "" }));
                   }}
                   placeholder="Enter student's full name"
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 ${
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs text-foreground bg-card focus:outline-none focus:ring-2 ${
                     addErrors.fullName
                       ? "border-rose-300 focus:ring-rose-500"
-                      : "border-slate-200 focus:ring-[#14B8A6] focus:border-transparent"
+                      : "border-border focus:ring-accent focus:border-accent focus:border-transparent"
                   }`}
                 />
                 {addErrors.fullName && (
@@ -600,7 +600,7 @@ export default function StudentsPage() {
 
               {/* Field 2: Email Address */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   University Email Address <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
@@ -612,13 +612,13 @@ export default function StudentsPage() {
                       if (addErrors.email) setAddErrors((prev) => ({ ...prev, email: "" }));
                     }}
                     placeholder="student.name@university.edu"
-                    className={`w-full px-3.5 py-2.5 pl-9 rounded-xl border text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 ${
+                    className={`w-full px-3.5 py-2.5 pl-9 rounded-xl border text-xs text-foreground bg-card focus:outline-none focus:ring-2 ${
                       addErrors.email
                         ? "border-rose-300 focus:ring-rose-500"
-                        : "border-slate-200 focus:ring-[#14B8A6] focus:border-transparent"
+                        : "border-border focus:ring-accent focus:border-accent focus:border-transparent"
                     }`}
                   />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
                 </div>
                 {addErrors.email && (
                   <p className="mt-1 text-[11px] text-rose-600 flex items-center gap-1">
@@ -629,7 +629,7 @@ export default function StudentsPage() {
 
               {/* Field 3: Department Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Department <span className="text-rose-500">*</span>
                 </label>
                 {departments.length === 0 ? (
@@ -644,10 +644,10 @@ export default function StudentsPage() {
                         setAddForm({ ...addForm, departmentId: e.target.value });
                         if (addErrors.departmentId) setAddErrors((prev) => ({ ...prev, departmentId: "" }));
                       }}
-                      className={`w-full px-3.5 py-2.5 pl-9 rounded-xl border text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 appearance-none ${
+                      className={`w-full px-3.5 py-2.5 pl-9 rounded-xl border text-xs text-foreground bg-card focus:outline-none focus:ring-2 appearance-none ${
                         addErrors.departmentId
                           ? "border-rose-300 focus:ring-rose-500"
-                          : "border-slate-200 focus:ring-[#14B8A6] focus:border-transparent"
+                          : "border-border focus:ring-accent focus:border-accent focus:border-transparent"
                       }`}
                     >
                       <option value="" disabled>
@@ -659,7 +659,7 @@ export default function StudentsPage() {
                         </option>
                       ))}
                     </select>
-                    <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                    <Building2 className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5 pointer-events-none" />
                   </div>
                 )}
                 {addErrors.departmentId && (
@@ -673,7 +673,7 @@ export default function StudentsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Academic Year */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-foreground mb-1">
                     Academic Year <span className="text-rose-500">*</span>
                   </label>
                   <select
@@ -684,7 +684,7 @@ export default function StudentsPage() {
                         academicYear: Number(e.target.value) as 1 | 2 | 3 | 4,
                       })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border text-xs text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent focus:border-transparent"
                   >
                     <option value={1}>Year 1</option>
                     <option value={2}>Year 2</option>
@@ -695,7 +695,7 @@ export default function StudentsPage() {
 
                 {/* Semester */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-foreground mb-1">
                     Semester <span className="text-rose-500">*</span>
                   </label>
                   <select
@@ -706,7 +706,7 @@ export default function StudentsPage() {
                         semester: Number(e.target.value) as 1 | 2,
                       })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-border text-xs text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent focus:border-transparent"
                   >
                     <option value={1}>Semester 1</option>
                     <option value={2}>Semester 2</option>
@@ -716,7 +716,7 @@ export default function StudentsPage() {
 
               {/* Field 6: Default Password */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1">
                   Default Password <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
@@ -728,17 +728,17 @@ export default function StudentsPage() {
                       if (addErrors.defaultPassword) setAddErrors((prev) => ({ ...prev, defaultPassword: "" }));
                     }}
                     placeholder="Enter default password (minimum 8 characters)"
-                    className={`w-full px-3.5 py-2.5 pl-9 pr-10 rounded-xl border text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 ${
+                    className={`w-full px-3.5 py-2.5 pl-9 pr-10 rounded-xl border text-xs text-foreground bg-card focus:outline-none focus:ring-2 ${
                       addErrors.defaultPassword
                         ? "border-rose-300 focus:ring-rose-500"
-                        : "border-slate-200 focus:ring-[#14B8A6] focus:border-transparent"
+                        : "border-border focus:ring-accent focus:border-accent focus:border-transparent"
                     }`}
                   />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Lock className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
                   <button
                     type="button"
                     onClick={() => setShowAddPassword(!showAddPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-muted-foreground focus:outline-none"
                     aria-label="Toggle password visibility"
                   >
                     {showAddPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -749,14 +749,14 @@ export default function StudentsPage() {
                     <AlertCircle className="w-3 h-3" /> {addErrors.defaultPassword}
                   </p>
                 ) : (
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-1 text-[11px] text-muted-foreground">
                     Set a customized temporary password for this student. Must be at least 8 characters.
                   </p>
                 )}
               </div>
 
               {/* Profile Photo Notice Box */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-start gap-2">
+              <div className="p-3 rounded-xl bg-muted border border-border text-[11px] text-muted-foreground flex items-start gap-2">
                 <Sparkles className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
                 <span>
                   <strong>Profile Photo:</strong> Students upload their own profile photo later upon signing into the student portal. Default initials avatar will be shown initially.
@@ -764,7 +764,7 @@ export default function StudentsPage() {
               </div>
 
               {/* Form Action Buttons */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
                 <Button
                   type="button"
                   variant="outline"
@@ -789,55 +789,55 @@ export default function StudentsPage() {
 
       {/* -------------------- SUCCESS CONFIRMATION MODAL -------------------- */}
       {successCreatedStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
-          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm backdrop-blur-xs animate-in fade-in-50">
+          <div className="bg-card w-full max-w-md rounded-[16px] border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150">
             {/* Header with success badge */}
             <div className="text-center space-y-2">
-              <div className="w-13 h-13 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-xs">
+              <div className="w-13 h-13 rounded-[16px] bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-xs">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-extrabold text-[#0B1220]">
+              <h3 className="text-lg font-extrabold text-foreground">
                 Student Account Created!
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 The student account has been provisioned and is ready for initial onboarding.
               </p>
             </div>
 
             {/* Confirmation Summary Card */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                <span className="text-slate-500 font-medium">Student Full Name</span>
-                <span className="font-bold text-slate-900">{successCreatedStudent.fullName}</span>
+            <div className="p-4 rounded-xl bg-muted border border-border space-y-2.5 text-xs">
+              <div className="flex justify-between items-center py-1 border-b border-border/60">
+                <span className="text-muted-foreground font-medium">Student Full Name</span>
+                <span className="font-bold text-foreground">{successCreatedStudent.fullName}</span>
               </div>
 
-              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                <span className="text-slate-500 font-medium">Email Address</span>
-                <span className="font-mono font-semibold text-slate-900">{successCreatedStudent.email}</span>
+              <div className="flex justify-between items-center py-1 border-b border-border/60">
+                <span className="text-muted-foreground font-medium">Email Address</span>
+                <span className="font-mono font-semibold text-foreground">{successCreatedStudent.email}</span>
               </div>
 
-              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                <span className="text-slate-500 font-medium">Department</span>
-                <span className="font-medium text-slate-800 text-right max-w-[200px] truncate">
+              <div className="flex justify-between items-center py-1 border-b border-border/60">
+                <span className="text-muted-foreground font-medium">Department</span>
+                <span className="font-medium text-foreground text-right max-w-[200px] truncate">
                   {getDeptName(successCreatedStudent.departmentId)}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-                <span className="text-slate-500 font-medium">Academic Standing</span>
+              <div className="flex justify-between items-center py-1 border-b border-border/60">
+                <span className="text-muted-foreground font-medium">Academic Standing</span>
                 <span className="font-semibold text-indigo-700">
                   Year {successCreatedStudent.academicYear} • Semester {successCreatedStudent.semester}
                 </span>
               </div>
 
               <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-medium">Default Password</span>
-                <div className="flex items-center gap-1.5 font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                <span className="text-muted-foreground font-medium">Default Password</span>
+                <div className="flex items-center gap-1.5 font-mono font-bold text-foreground bg-card px-2 py-0.5 rounded border border-border">
                   <span>{successCreatedStudent.defaultPassword || "********"}</span>
                   {successCreatedStudent.defaultPassword && (
                     <button
                       onClick={() => handleCopyPassword(successCreatedStudent.defaultPassword!)}
-                      className="text-slate-400 hover:text-teal-600 p-0.5 transition-colors"
+                      className="text-muted-foreground hover:text-teal-600 p-0.5 transition-colors"
                       title="Copy default password"
                       aria-label="Copy default password"
                     >
@@ -889,17 +889,17 @@ export default function StudentsPage() {
 
       {/* -------------------- STUDENT DETAILS MODAL -------------------- */}
       {detailsStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
-          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm backdrop-blur-xs animate-in fade-in-50">
+          <div className="bg-card w-full max-w-md rounded-[16px] border border-border shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-start justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-3">
                 {detailsStudent.profilePhotoUrl ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={detailsStudent.profilePhotoUrl}
                     alt={detailsStudent.fullName}
-                    className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0 shadow-xs"
+                    className="w-12 h-12 rounded-full object-cover border border-border shrink-0 shadow-xs"
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-indigo-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
@@ -907,17 +907,17 @@ export default function StudentsPage() {
                   </div>
                 )}
                 <div>
-                  <h3 className="text-base font-bold text-[#0B1220]">
+                  <h3 className="text-base font-bold text-foreground">
                     {detailsStudent.fullName}
                   </h3>
-                  <p className="text-xs text-slate-500 font-mono">
+                  <p className="text-xs text-muted-foreground font-mono">
                     {detailsStudent.email}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setDetailsStudent(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-muted-foreground hover:text-muted-foreground p-1 rounded-lg"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -926,36 +926,36 @@ export default function StudentsPage() {
 
             {/* Profile Overview Details */}
             <div className="space-y-2.5 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Department</span>
-                <span className="font-semibold text-slate-900 text-right max-w-[220px] truncate">
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">Department</span>
+                <span className="font-semibold text-foreground text-right max-w-[220px] truncate">
                   {getDeptName(detailsStudent.departmentId)}
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Academic Standing</span>
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">Academic Standing</span>
                 <span className="font-semibold text-indigo-700">
                   Year {detailsStudent.academicYear} • Semester {detailsStudent.semester}
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Account Status</span>
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">Account Status</span>
                 {detailsStudent.accountStatus === "active" ? (
                   <span className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 font-semibold">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Deactivated
                   </span>
                 )}
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex justify-between items-center">
-                <span className="text-slate-500 font-medium">Enrolled Date</span>
-                <span className="font-medium text-slate-700">{detailsStudent.createdAt}</span>
+              <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">Enrolled Date</span>
+                <span className="font-medium text-foreground">{detailsStudent.createdAt}</span>
               </div>
 
               {/* Future Profile Editing Placeholder Section */}
@@ -971,7 +971,7 @@ export default function StudentsPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-2 border-t border-border flex items-center justify-between">
               <Button
                 variant="outline"
                 size="sm"
@@ -999,26 +999,26 @@ export default function StudentsPage() {
 
       {/* -------------------- EDIT STUDENT MODAL -------------------- */}
       {editingStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
-          <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-4 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm backdrop-blur-xs animate-in fade-in-50">
+          <div className="bg-card w-full max-w-md rounded-[16px] border border-border shadow-2xl p-6 sm:p-7 space-y-4 animate-in zoom-in-95 duration-150">
             {/* Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-start justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center">
                   <Edit3 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#0B1220]">
+                  <h3 className="text-base font-bold text-foreground">
                     Edit Student Information
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Update profile, department, or enrollment standing.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setEditingStudent(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-muted-foreground hover:text-muted-foreground p-1 rounded-lg"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -1034,14 +1034,14 @@ export default function StudentsPage() {
 
             <form onSubmit={handleEditSubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-foreground mb-1">
                   Full Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={editForm.fullName}
                   onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                  className="w-full px-3 py-2 rounded-xl border border-border text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                 />
                 {editErrors.fullName && (
                   <p className="mt-1 text-[11px] text-rose-600">{editErrors.fullName}</p>
@@ -1049,14 +1049,14 @@ export default function StudentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-foreground mb-1">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                  className="w-full px-3 py-2 rounded-xl border border-border text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                 />
                 {editErrors.email && (
                   <p className="mt-1 text-[11px] text-rose-600">{editErrors.email}</p>
@@ -1064,13 +1064,13 @@ export default function StudentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-foreground mb-1">
                   Department <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={editForm.departmentId}
                   onChange={(e) => setEditForm({ ...editForm, departmentId: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                  className="w-full px-3 py-2 rounded-xl border border-border text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                 >
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -1082,7 +1082,7 @@ export default function StudentsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-foreground mb-1">
                     Academic Year
                   </label>
                   <select
@@ -1093,7 +1093,7 @@ export default function StudentsPage() {
                         academicYear: Number(e.target.value) as 1 | 2 | 3 | 4,
                       })
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                    className="w-full px-3 py-2 rounded-xl border border-border text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                   >
                     <option value={1}>Year 1</option>
                     <option value={2}>Year 2</option>
@@ -1103,7 +1103,7 @@ export default function StudentsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-foreground mb-1">
                     Semester
                   </label>
                   <select
@@ -1114,7 +1114,7 @@ export default function StudentsPage() {
                         semester: Number(e.target.value) as 1 | 2,
                       })
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                    className="w-full px-3 py-2 rounded-xl border border-border text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                   >
                     <option value={1}>Semester 1</option>
                     <option value={2}>Semester 2</option>
@@ -1123,7 +1123,7 @@ export default function StudentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-foreground mb-1">
                   Account Status
                 </label>
                 <select
@@ -1134,14 +1134,14 @@ export default function StudentsPage() {
                       accountStatus: e.target.value as "active" | "inactive",
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#14B8A6]"
+                  className="w-full px-3 py-2 rounded-xl border border-border text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive / Deactivated</option>
                 </select>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
                 <Button
                   type="button"
                   variant="outline"

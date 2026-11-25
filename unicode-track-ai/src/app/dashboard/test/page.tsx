@@ -522,11 +522,11 @@ export default function EnvironmentTestPage() {
   return (
     <div className="max-w-[1200px] mx-auto py-3 px-2 sm:px-4 space-y-6">
       {/* Breadcrumb Navigation */}
-      <div className="crumb flex items-center gap-2 text-xs sm:text-sm text-slate-400">
+      <div className="crumb flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
         <Link href="/dashboard" className="hover:text-teal-400 transition-colors">
           Dashboard
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
         <span className="text-white font-medium">Run</span>
       </div>
 

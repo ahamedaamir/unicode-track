@@ -446,7 +446,7 @@ export function GroupAssignmentSection({
 
   return (
     <div
-      className={`bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6 ${className}`}
+      className={`bg-card rounded-3xl border border-border shadow-sm p-6 sm:p-7 space-y-6 ${className}`}
     >
       {/* Header & Source Status Banner */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-border">
@@ -463,7 +463,7 @@ export function GroupAssignmentSection({
                 Group Project
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Select your preferred input method to allocate students into group workspaces.
             </p>
           </div>
@@ -492,7 +492,7 @@ export function GroupAssignmentSection({
               Extraction Error
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border">
               No Assignment Uploaded
             </span>
           )}
@@ -502,10 +502,10 @@ export function GroupAssignmentSection({
       {/* Input Method Selector (Exclusive Selection) */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs">
-          <label className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+          <label className="font-bold text-foreground uppercase tracking-wider text-[11px]">
             Input Method <span className="text-rose-500">*</span>
           </label>
-          <span className="text-[10px] text-slate-400 font-medium">
+          <span className="text-[10px] text-muted-foreground font-medium">
             Choose either PDF upload or text roster
           </span>
         </div>
@@ -515,17 +515,17 @@ export function GroupAssignmentSection({
           <button
             type="button"
             onClick={() => handleSwitchMethod("pdf")}
-            className={`p-4 rounded-2xl border-2 text-left flex items-start gap-3 transition-all ${
+            className={`p-4 rounded-[16px] border-2 text-left flex items-start gap-3 transition-all ${
               activeMethod === "pdf"
                 ? "border-teal-500 bg-teal-50/20 shadow-xs ring-2 ring-teal-500/10"
-                : "border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-slate-50 text-slate-600"
+                : "border-border bg-muted hover:border-border hover:bg-muted text-muted-foreground"
             }`}
           >
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                 activeMethod === "pdf"
                   ? "bg-teal-600 text-white shadow-2xs"
-                  : "bg-slate-200 text-slate-600"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               <UploadCloud className="w-5 h-5" />
@@ -534,7 +534,7 @@ export function GroupAssignmentSection({
               <div className="flex items-center justify-between">
                 <h4
                   className={`font-bold text-xs sm:text-sm ${
-                    activeMethod === "pdf" ? "text-slate-900" : "text-slate-700"
+                    activeMethod === "pdf" ? "text-foreground" : "text-foreground"
                   }`}
                 >
                   OPTION 1: Upload Group Assignment PDF
@@ -543,7 +543,7 @@ export function GroupAssignmentSection({
                   <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
                 )}
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
                 Upload official timetable or group allocation document in PDF format.
               </p>
             </div>
@@ -553,17 +553,17 @@ export function GroupAssignmentSection({
           <button
             type="button"
             onClick={() => handleSwitchMethod("text")}
-            className={`p-4 rounded-2xl border-2 text-left flex items-start gap-3 transition-all ${
+            className={`p-4 rounded-[16px] border-2 text-left flex items-start gap-3 transition-all ${
               activeMethod === "text"
                 ? "border-teal-500 bg-teal-50/20 shadow-xs ring-2 ring-teal-500/10"
-                : "border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-slate-50 text-slate-600"
+                : "border-border bg-muted hover:border-border hover:bg-muted text-muted-foreground"
             }`}
           >
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                 activeMethod === "text"
                   ? "bg-teal-600 text-white shadow-2xs"
-                  : "bg-slate-200 text-slate-600"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               <Type className="w-5 h-5" />
@@ -572,7 +572,7 @@ export function GroupAssignmentSection({
               <div className="flex items-center justify-between">
                 <h4
                   className={`font-bold text-xs sm:text-sm ${
-                    activeMethod === "text" ? "text-slate-900" : "text-slate-700"
+                    activeMethod === "text" ? "text-foreground" : "text-foreground"
                   }`}
                 >
                   OPTION 2: Paste Group Assignment Text
@@ -581,7 +581,7 @@ export function GroupAssignmentSection({
                   <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
                 )}
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
                 Paste student IDs, names, and team groups directly into the editor.
               </p>
             </div>
@@ -612,45 +612,45 @@ export function GroupAssignmentSection({
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="p-8 sm:p-10 rounded-3xl border-2 border-dashed border-slate-300 hover:border-teal-500 hover:bg-teal-50/20 bg-slate-50/60 text-center cursor-pointer transition-all space-y-3 group"
+              className="p-8 sm:p-10 rounded-3xl border-2 border-dashed border-border hover:border-teal-500 hover:bg-teal-50/20 bg-muted text-center cursor-pointer transition-all space-y-3 group"
             >
-              <div className="w-14 h-14 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform shadow-2xs">
+              <div className="w-14 h-14 rounded-[16px] bg-teal-500/10 text-teal-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform shadow-2xs">
                 <UploadCloud className="w-7 h-7" />
               </div>
 
               <div>
-                <h4 className="font-extrabold text-sm text-slate-900 group-hover:text-teal-700 transition-colors">
+                <h4 className="font-extrabold text-sm text-foreground group-hover:text-accent transition-colors">
                   Choose Group Assignment PDF or Drag & Drop
                 </h4>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Accepts official PDF documents up to <strong>15 MB</strong>
                 </p>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 shadow-2xs">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-card border border-border rounded-lg text-xs font-semibold text-foreground shadow-2xs">
                 <FileText className="w-3.5 h-3.5 text-teal-600" />
                 <span>Select PDF Document</span>
               </div>
             </div>
           ) : (
             /* Uploaded PDF Document Card */
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-5 rounded-[16px] bg-muted border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-2xs font-mono">
+                <div className="w-12 h-12 rounded-[16px] bg-teal-600 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-2xs font-mono">
                   PDF
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-slate-900 text-sm truncate" title={uploadedFileName}>
+                    <h4 className="font-bold text-foreground text-sm truncate" title={uploadedFileName}>
                       {uploadedFileName}
                     </h4>
-                    <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600">
+                    <span className="text-[10px] font-mono bg-card px-2 py-0.5 rounded border border-border text-muted-foreground">
                       {uploadedFileSize}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                    <Lock className="w-3 h-3 text-slate-400" />
-                    <span>Stored in private bucket: <strong className="font-mono text-slate-700">group-assignments</strong></span>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                    <Lock className="w-3 h-3 text-muted-foreground" />
+                    <span>Stored in private bucket: <strong className="font-mono text-foreground">group-assignments</strong></span>
                   </p>
                 </div>
               </div>
@@ -678,7 +678,7 @@ export function GroupAssignmentSection({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading || isExtracting}
-                  className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-medium transition-colors"
+                  className="px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground rounded-xl text-xs font-medium transition-colors"
                 >
                   Replace
                 </button>
@@ -687,7 +687,7 @@ export function GroupAssignmentSection({
                   type="button"
                   onClick={handleRemoveFile}
                   disabled={isUploading || isExtracting}
-                  className="p-1.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl transition-colors"
+                  className="p-1.5 bg-card border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl transition-colors"
                   title="Remove uploaded document"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -698,7 +698,7 @@ export function GroupAssignmentSection({
 
           {/* Upload Progress Bar */}
           {isUploading && (
-            <div className="space-y-1.5 p-4 rounded-2xl bg-teal-50/50 border border-teal-100 animate-in fade-in-50">
+            <div className="space-y-1.5 p-4 rounded-[16px] bg-teal-50/50 border border-teal-100 animate-in fade-in-50">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-bold text-teal-900 flex items-center gap-1.5">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-600" />
@@ -731,7 +731,7 @@ export function GroupAssignmentSection({
       {activeMethod === "text" && (
         <div className="space-y-4 pt-1 animate-in fade-in-50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-            <span className="text-slate-600 font-medium">
+            <span className="text-muted-foreground font-medium">
               Paste group headers followed by student university IDs and names:
             </span>
 
@@ -739,7 +739,7 @@ export function GroupAssignmentSection({
               <button
                 type="button"
                 onClick={handleLoadExampleFormat}
-                className="text-teal-700 hover:text-teal-800 font-bold hover:underline flex items-center gap-1 text-[11px]"
+                className="text-teal-700 hover:text-accent-hover font-bold hover:underline flex items-center gap-1 text-[11px]"
               >
                 <Sparkles className="w-3 h-3" />
                 <span>Load Template Example</span>
@@ -753,7 +753,7 @@ export function GroupAssignmentSection({
                     setExtractionResult(null);
                     notifyChange({ sourceType: "none", text: undefined });
                   }}
-                  className="text-slate-400 hover:text-rose-600 text-[11px] font-medium"
+                  className="text-muted-foreground hover:text-rose-600 text-[11px] font-medium"
                 >
                   Clear
                 </button>
@@ -775,20 +775,20 @@ export function GroupAssignmentSection({
                   status: e.target.value.trim() ? "pending" : "not_uploaded",
                 });
               }}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-mono text-slate-900 leading-relaxed focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500 transition-all resize-y"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-[16px] text-xs sm:text-sm font-mono text-foreground leading-relaxed focus:bg-muted focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent transition-all resize-y"
             />
           </div>
 
           {/* Format Helper, Counter & Action Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-1">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-[11px]">
+              <span className="px-2.5 py-1 rounded-lg bg-muted text-foreground font-mono text-[11px]">
                 {detected.groupCount} Groups Detected
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-[11px]">
+              <span className="px-2.5 py-1 rounded-lg bg-muted text-foreground font-mono text-[11px]">
                 {detected.studentCount} Students Detected
               </span>
-              <span className="text-[11px] text-slate-400 font-mono">
+              <span className="text-[11px] text-muted-foreground font-mono">
                 {assignmentText.length} chars
               </span>
             </div>
@@ -799,7 +799,7 @@ export function GroupAssignmentSection({
                   type="button"
                   disabled={isSavingText || !assignmentText.trim()}
                   onClick={handleSaveText}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  className="px-3 py-1.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5"
                 >
                   {isSavingText ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   <span>{isSavingText ? "Saving..." : "Save Text"}</span>
@@ -847,19 +847,19 @@ export function GroupAssignmentSection({
       {/* EXTRACTION LOADING STATE                                                */}
       {/* ======================================================================= */}
       {isExtracting && (
-        <div className="p-6 rounded-2xl bg-teal-50/60 border border-teal-200 shadow-2xs space-y-3 animate-in fade-in-50">
+        <div className="p-6 rounded-[16px] bg-teal-50/60 border border-teal-200 shadow-2xs space-y-3 animate-in fade-in-50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
               <RefreshCw className="w-5 h-5 animate-spin" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
                 <span>Gemini AI Group Extraction in Progress</span>
                 <span className="text-[10px] font-mono bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
                   gemini-2.5-flash
                 </span>
               </h4>
-              <p className="text-xs text-slate-600 mt-0.5">{extractionStep}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{extractionStep}</p>
             </div>
           </div>
 
@@ -873,7 +873,7 @@ export function GroupAssignmentSection({
       {/* OCR REQUIRED WARNING BANNER (When PDF has no text layer)                */}
       {/* ======================================================================= */}
       {isOcrRequired && (
-        <div className="p-5 rounded-2xl bg-amber-50 border border-amber-300 shadow-2xs space-y-3 animate-in fade-in-50">
+        <div className="p-5 rounded-[16px] bg-amber-50 border border-amber-300 shadow-2xs space-y-3 animate-in fade-in-50">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
               <AlertTriangle className="w-5 h-5" />
@@ -912,7 +912,7 @@ export function GroupAssignmentSection({
       {/* EXTRACTION GENERAL ERROR & RETRY OPTION                                 */}
       {/* ======================================================================= */}
       {extractionError && !isOcrRequired && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50">
+        <div className="p-4 rounded-[16px] bg-rose-50 border border-rose-200 text-xs text-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in-50">
           <div className="flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
@@ -937,7 +937,7 @@ export function GroupAssignmentSection({
       {/* EXTRACTION PREVIEW & LECTURER REVIEW WORKSPACE                          */}
       {/* ======================================================================= */}
       {extractionResult && (
-        <div className="space-y-4 pt-2 border-t border-slate-200 animate-in fade-in-50">
+        <div className="space-y-4 pt-2 border-t border-border animate-in fade-in-50">
           {/* Header & Metrics Strip */}
           <div className="p-5 rounded-[16px] bg-card text-foreground shadow-md space-y-4 border border-border">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -953,7 +953,7 @@ export function GroupAssignmentSection({
                     Zod Validated
                   </span>
                 </div>
-                <p className="text-xs text-slate-300">
+                <p className="text-xs text-muted-foreground/60">
                   Students matched against database using strict priority (Exact ID &gt; Exact Email &gt; Unique Name).
                 </p>
               </div>
@@ -980,7 +980,7 @@ export function GroupAssignmentSection({
                 <button
                   type="button"
                   onClick={handleClearExtraction}
-                  className="px-3 py-1.5 bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-3 py-1.5 bg-slate-800/60 hover:bg-slate-800 text-muted-foreground hover:text-rose-400 rounded-xl text-xs font-semibold transition-colors"
                 >
                   Clear
                 </button>
@@ -990,27 +990,27 @@ export function GroupAssignmentSection({
             {/* Metrics Pills: 5 Matching Categories */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-3 border-t border-slate-800 text-xs">
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Groups</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Groups</span>
                 <span className="text-base font-bold text-white mt-0.5 block">{extractionResult.totalGroups} Teams</span>
               </div>
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Students</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Students</span>
                 <span className="text-base font-bold text-teal-400 mt-0.5 block">{extractionResult.totalMembers} Total</span>
               </div>
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Matched</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Matched</span>
                 <span className="text-base font-bold text-emerald-400 mt-0.5 block">{extractionResult.matchedCount} Verified</span>
               </div>
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unmatched / Ambiguous</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Unmatched / Ambiguous</span>
                 <span className="text-base font-bold text-amber-400 mt-0.5 block">
                   {extractionResult.unmatchedCount + (extractionResult.ambiguousCount || 0)} Pending
                 </span>
               </div>
               <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Conflicts</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Conflicts</span>
                 <span className={`text-base font-bold mt-0.5 block ${
-                  (extractionResult.duplicateCount || 0) + (extractionResult.invalidCount || 0) > 0 ? "text-rose-400" : "text-slate-400"
+                  (extractionResult.duplicateCount || 0) + (extractionResult.invalidCount || 0) > 0 ? "text-rose-400" : "text-muted-foreground"
                 }`}>
                   {(extractionResult.duplicateCount || 0) + (extractionResult.invalidCount || 0)} Blocking
                 </span>
@@ -1020,7 +1020,7 @@ export function GroupAssignmentSection({
 
           {/* Success Banner if Groups Already Confirmed */}
           {confirmedGroups && confirmedGroups.length > 0 && (
-            <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2 animate-in fade-in-50">
+            <div className="p-5 rounded-[16px] bg-emerald-50 border border-emerald-200 space-y-2 animate-in fade-in-50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -1040,7 +1040,7 @@ export function GroupAssignmentSection({
 
           {/* Warnings Banner (If any) */}
           {extractionResult.warnings && extractionResult.warnings.length > 0 && !showReviewWorkspace && (
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
+            <div className="p-4 rounded-[16px] bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
               <div className="flex items-center gap-2 font-bold text-amber-950">
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>Extraction & Database Matching Warnings ({extractionResult.warnings.length})</span>
@@ -1077,9 +1077,9 @@ export function GroupAssignmentSection({
             /* RENDER MODE B: COLLAPSED PREVIEW ROSTER */
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                   <span>Extracted Groups Roster</span>
-                  <span className="text-[11px] text-slate-500 font-normal">
+                  <span className="text-[11px] text-muted-foreground font-normal">
                     (Click &quot;Open Lecturer Review Screen&quot; above to resolve unmatched students or edit assignments)
                   </span>
                 </h4>
@@ -1093,7 +1093,7 @@ export function GroupAssignmentSection({
                   return (
                     <div
                       key={grp.group_number || gIdx}
-                      className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all space-y-3 shadow-2xs"
+                      className="p-4 rounded-[16px] border border-border bg-card hover:border-border transition-all space-y-3 shadow-2xs"
                     >
                       {/* Group Header */}
                       <div
@@ -1119,22 +1119,22 @@ export function GroupAssignmentSection({
                             {matchedInGroup} / {grp.members.length} matched
                           </span>
                           {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-slate-400" />
+                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
                           ) : (
-                            <ChevronDown className="w-4 h-4 text-slate-400" />
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
                           )}
                         </div>
                       </div>
 
                       {/* Member List with 5 Status Badges */}
                       {isExpanded && (
-                        <div className="pt-2 border-t border-slate-100 space-y-2 text-xs">
+                        <div className="pt-2 border-t border-border space-y-2 text-xs">
                           {grp.members.map((member, mIdx) => (
                             <div
                               key={mIdx}
                               className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
                                 member.status === "Matched"
-                                  ? "bg-slate-50/70 border-slate-200/80"
+                                  ? "bg-muted/40 border-border"
                                   : member.status === "Ambiguous"
                                   ? "bg-purple-50/50 border-purple-200"
                                   : member.status === "Duplicate" || member.status === "Invalid student"
@@ -1144,7 +1144,7 @@ export function GroupAssignmentSection({
                             >
                               <div className="space-y-0.5 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-bold text-slate-900 truncate">
+                                  <span className="font-bold text-foreground truncate">
                                     {member.full_name}
                                   </span>
                                   {mIdx === 0 && (
@@ -1153,9 +1153,9 @@ export function GroupAssignmentSection({
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-mono">
+                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground font-mono">
                                   <span>
-                                    ID: <strong className="text-slate-800">{member.student_id || "None"}</strong>
+                                    ID: <strong className="text-foreground">{member.student_id || "None"}</strong>
                                   </span>
                                   {member.email && (
                                     <>
@@ -1211,7 +1211,7 @@ export function GroupAssignmentSection({
               </div>
 
               {/* Institutional Integrity Notice */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+              <div className="p-4 rounded-[16px] bg-muted border border-border text-xs text-muted-foreground flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
                   <strong>Architectural Notice:</strong> Gemini AI operates strictly in read-only analysis mode and has not created database groups.
@@ -1224,7 +1224,7 @@ export function GroupAssignmentSection({
       )}
 
       {/* Security & Access Policy Footer */}
-      <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-slate-600">
+      <div className="p-3.5 bg-muted border border-border rounded-[16px] flex items-start gap-2.5 text-xs text-muted-foreground">
         <Lock className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
         <p>
           <strong>Security Policy:</strong> Uploaded assignment files are stored in a private Supabase Storage bucket with strict Row Level Security. Only course lecturers can access student allocations.

@@ -886,7 +886,7 @@ export default function LecturerProjectsPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="max-w-[1100px] mx-auto py-12 px-4 text-center text-slate-400 text-sm">
+        <div className="max-w-[1100px] mx-auto py-12 px-4 text-center text-muted-foreground text-sm">
           Loading UniCodeTrack projects...
         </div>
       }

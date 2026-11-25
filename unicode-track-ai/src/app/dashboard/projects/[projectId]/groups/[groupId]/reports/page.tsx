@@ -449,10 +449,10 @@ function ReportsAndEvaluationContent() {
 
   if (!project) {
     return (
-      <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center max-w-xl mx-auto mt-8">
+      <div className="bg-card p-12 rounded-[16px] border border-border text-center max-w-xl mx-auto mt-8">
         <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-        <h3 className="font-bold text-lg text-slate-900">Project Not Found</h3>
-        <p className="text-xs text-slate-500 mt-1 mb-4">The requested project ID does not exist.</p>
+        <h3 className="font-bold text-lg text-foreground">Project Not Found</h3>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">The requested project ID does not exist.</p>
         <Link
           href="/dashboard/projects"
           className="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold"
@@ -466,14 +466,14 @@ function ReportsAndEvaluationContent() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Top Breadcrumb Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
             <Link href="/dashboard/projects" className="hover:text-teal-600 font-medium">
               Projects
             </Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="font-mono text-slate-700">{project.courseCode}</span>
+            <span className="font-mono text-foreground">{project.courseCode}</span>
             <ChevronRight className="w-3.5 h-3.5" />
             <Link
               href={`/dashboard/projects/${projectId}/workspace?groupId=${group.id}`}
@@ -482,7 +482,7 @@ function ReportsAndEvaluationContent() {
               {group.groupName}
             </Link>
             <ChevronRight className="w-3.5 h-3.5" />
-            <span className="font-bold text-slate-900">Reports, C Runner & AI Evaluation</span>
+            <span className="font-bold text-foreground">Reports, C Runner & AI Evaluation</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -491,7 +491,7 @@ function ReportsAndEvaluationContent() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                   Academic Submissions, C Execution & AI Evaluation
                 </h1>
                 {isPast ? (
@@ -504,7 +504,7 @@ function ReportsAndEvaluationContent() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Download uploaded artifacts, run the C source code, trigger Gemini AI multi-document matching, and save verified final marks.
               </p>
             </div>
@@ -515,7 +515,7 @@ function ReportsAndEvaluationContent() {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/dashboard/projects/${projectId}/workspace?groupId=${group.id}`}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Workspace View</span>
@@ -543,33 +543,33 @@ function ReportsAndEvaluationContent() {
       </div>
 
       {/* Target Identity Strip */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-4 rounded-[16px] bg-card border border-border shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-slate-900 text-teal-400 flex items-center justify-center font-bold text-xs shrink-0">
             {isIndividual ? "TG" : "G" + (group.groupNumber || 1)}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-900">{group.groupName}</h2>
+              <h2 className="text-sm font-bold text-foreground">{group.groupName}</h2>
               <span className="text-[10px] font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.2 rounded border border-indigo-200">
                 {isIndividual ? "Personal Project" : "Group Project"}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Course: <strong className="text-slate-800">{project.courseCode}</strong> • Year {project.academicYear}, Semester {project.semester} • {group.members.length} student author(s)
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Course: <strong className="text-foreground">{project.courseCode}</strong> • Year {project.academicYear}, Semester {project.semester} • {group.members.length} student author(s)
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-mono text-slate-600">
+        <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
           <div>
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Connected Repo</span>
-            <span className="font-semibold text-slate-800 truncate max-w-[180px] block">
+            <span className="text-muted-foreground block text-[10px] uppercase font-bold">Connected Repo</span>
+            <span className="font-semibold text-foreground truncate max-w-[180px] block">
               {group.repoName || "cybernova-embedded-c"}
             </span>
           </div>
-          <div className="border-l border-slate-200 pl-4">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Commits</span>
+          <div className="border-l border-border pl-4">
+            <span className="text-muted-foreground block text-[10px] uppercase font-bold">Total Commits</span>
             <span className="font-bold text-teal-700">{group.totalCommits || 32} commits</span>
           </div>
         </div>
@@ -578,26 +578,26 @@ function ReportsAndEvaluationContent() {
       {/* ============================================================== */}
       {/* SECTION 1: ALL UPLOADED REPORTS (Download & Inspect)           */}
       {/* ============================================================== */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+      <div className="bg-card rounded-[16px] border border-border shadow-2xs p-6 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <FileText className="w-4 h-4 text-teal-600" />
               1. All Uploaded Project Reports & Deliverables
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Download student documents, review schemas, or verify milestone alignment before executing grading.
             </p>
           </div>
 
           {/* Report Tab Switcher */}
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+          <div className="inline-flex rounded-xl bg-muted p-1 text-xs font-semibold">
             <button
               onClick={() => setActiveReportTab("proposal")}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeReportTab === "proposal"
-                  ? "bg-white text-slate-900 shadow-2xs font-bold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-card text-foreground shadow-2xs font-bold"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Project Proposal
@@ -606,8 +606,8 @@ function ReportsAndEvaluationContent() {
               onClick={() => setActiveReportTab("er_diagram")}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeReportTab === "er_diagram"
-                  ? "bg-white text-slate-900 shadow-2xs font-bold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-card text-foreground shadow-2xs font-bold"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               ER Diagram & Schema
@@ -616,8 +616,8 @@ function ReportsAndEvaluationContent() {
               onClick={() => setActiveReportTab("final_report")}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeReportTab === "final_report"
-                  ? "bg-white text-slate-900 shadow-2xs font-bold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-card text-foreground shadow-2xs font-bold"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Final Capstone Report
@@ -627,7 +627,7 @@ function ReportsAndEvaluationContent() {
 
         {/* REPORT A: PROJECT PROPOSAL */}
         {activeReportTab === "proposal" && (
-          <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-4">
+          <div className="p-5 rounded-[16px] bg-muted border border-border space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="flex items-start gap-3.5">
                 <div className="w-12 h-12 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
@@ -635,18 +635,18 @@ function ReportsAndEvaluationContent() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-sm text-slate-900">
+                    <h4 className="font-bold text-sm text-foreground">
                       {group.proposal?.title || "Real-Time Embedded Telemetry Pipeline in C"}
                     </h4>
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                       Approved Deliverable
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                  <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
                     {group.proposal?.description ||
                       "System architecture proposal defining circular buffer queue ingestion, multi-sensor packet serialization in C, CRC16 checksum verification, and normalized PostgreSQL data logging."}
                   </p>
-                  <p className="text-[11px] text-slate-400 font-mono mt-2">
+                  <p className="text-[11px] text-muted-foreground font-mono mt-2">
                     File: <strong>{group.proposal?.fileName || "CS492_Group01_Proposal.pdf"}</strong> ({group.proposal?.fileSize || "1.4 MB"}) • Submitted by {group.proposal?.submittedBy || "Alex Chen"}
                   </p>
                 </div>
@@ -671,7 +671,7 @@ function ReportsAndEvaluationContent() {
 
         {/* REPORT B: ER DIAGRAM & SCHEMA */}
         {activeReportTab === "er_diagram" && (
-          <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-4">
+          <div className="p-5 rounded-[16px] bg-muted border border-border space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="flex items-start gap-3.5">
                 <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
@@ -679,17 +679,17 @@ function ReportsAndEvaluationContent() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-sm text-slate-900">
+                    <h4 className="font-bold text-sm text-foreground">
                       Relational Entity-Relationship Diagram (3NF Compliance)
                     </h4>
                     <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
                       PostgreSQL DDL Ready
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                  <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
                     Entities: <code>departments</code>, <code>attendees</code>, <code>symposium_events</code>, <code>event_registrations</code>, <code>sensor_telemetry</code>. Foreign keys enforce referential integrity with ON DELETE CASCADE.
                   </p>
-                  <p className="text-[11px] text-slate-400 font-mono mt-2">
+                  <p className="text-[11px] text-muted-foreground font-mono mt-2">
                     File: <strong>001_relational_schema.sql</strong> (24.8 KB) • Normalization: Third Normal Form (3NF)
                   </p>
                 </div>
@@ -714,7 +714,7 @@ function ReportsAndEvaluationContent() {
 
         {/* REPORT C: FINAL CAPSTONE REPORT */}
         {activeReportTab === "final_report" && (
-          <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-4">
+          <div className="p-5 rounded-[16px] bg-muted border border-border space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="flex items-start gap-3.5">
                 <div className="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
@@ -722,17 +722,17 @@ function ReportsAndEvaluationContent() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-sm text-slate-900">
+                    <h4 className="font-bold text-sm text-foreground">
                       Final Capstone Project Defense & Engineering Report
                     </h4>
                     <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
                       34 Pages • Complete Defense
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                  <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
                     Detailed system defense documenting performance benchmarks, circular queue throughput, memory bounds validation, and relational database testing.
                   </p>
-                  <p className="text-[11px] text-slate-400 font-mono mt-2">
+                  <p className="text-[11px] text-muted-foreground font-mono mt-2">
                     File: <strong>CS492_Final_Capstone_Report.pdf</strong> (3.8 MB) • Submitted on Nov 22, 2026
                   </p>
                 </div>
@@ -759,7 +759,7 @@ function ReportsAndEvaluationContent() {
       {/* ============================================================== */}
       {/* SECTION 2: RUN C LANGUAGE PROJECT (Local Machine Simulator)    */}
       {/* ============================================================== */}
-      <div className="bg-slate-950 rounded-2xl border border-slate-800 shadow-md p-6 space-y-4 text-white">
+      <div className="bg-slate-950 rounded-[16px] border border-slate-800 shadow-md p-6 space-y-4 text-white">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
           <div>
             <div className="flex items-center gap-2">
@@ -770,7 +770,7 @@ function ReportsAndEvaluationContent() {
                 2. Run Project Console (C Language Local Machine Execution)
               </h3>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Admin & Faculty console: Execute student C language project code locally, inspect stdout/stderr, and test sensor queues.
             </p>
           </div>
@@ -790,20 +790,20 @@ function ReportsAndEvaluationContent() {
 
         {/* Console Arguments & Configuration */}
         <div className="flex flex-col sm:flex-row items-center gap-3 text-xs">
-          <span className="text-slate-400 font-mono shrink-0">Command line arguments:</span>
+          <span className="text-muted-foreground font-mono shrink-0">Command line arguments:</span>
           <input
             type="text"
             value={customArgs}
             onChange={(e) => setCustomArgs(e.target.value)}
             placeholder="e.g. --buffer-size 8 --crc16-check --verbose"
-            className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-teal-300 font-mono focus:outline-hidden focus:border-teal-500"
+            className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-teal-300 font-mono focus:outline-hidden focus:border-accent"
           />
-          <span className="text-[11px] text-slate-500">gcc 14.2.0 • ISO C17</span>
+          <span className="text-[11px] text-muted-foreground">gcc 14.2.0 • ISO C17</span>
         </div>
 
         {/* Terminal Window */}
         <div className="bg-[#0b0f19] border border-slate-800/90 rounded-xl p-4 font-mono text-xs space-y-1.5 overflow-x-auto min-h-[200px] shadow-inner">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80 text-[10px] text-slate-500">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80 text-[10px] text-muted-foreground">
             <span>Terminal: bash (local simulated runner)</span>
             <span>File: src/main.c</span>
           </div>
@@ -822,7 +822,7 @@ function ReportsAndEvaluationContent() {
                     ? "text-amber-400 font-semibold"
                     : isPass
                     ? "text-emerald-400"
-                    : "text-slate-300"
+                    : "text-muted-foreground/60"
                 }
               >
                 {line}
@@ -835,14 +835,14 @@ function ReportsAndEvaluationContent() {
       {/* ============================================================== */}
       {/* SECTION 3: GEMINI AI EVALUATION & DATABASE PERSISTENCE         */}
       {/* ============================================================== */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+      <div className="bg-card rounded-[16px] border border-border shadow-2xs p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
           <div>
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-600" />
               3. Gemini AI Project Evaluation & Scoring Console
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Cross-reference project proposal vs C source code vs ER diagrams vs final report to calculate final marks.
             </p>
           </div>
@@ -876,7 +876,7 @@ function ReportsAndEvaluationContent() {
                       setEditableFinalMarks(Number(e.target.value));
                       setIsSavedToDb(false);
                     }}
-                    className="w-20 font-mono text-3xl font-extrabold text-purple-900 bg-white border border-purple-300 rounded-lg px-2 py-0.5 focus:outline-hidden focus:ring-2 focus:ring-purple-500"
+                    className="w-20 font-mono text-3xl font-extrabold text-purple-900 bg-card border border-purple-300 rounded-lg px-2 py-0.5 focus:outline-hidden focus:ring-2 focus:ring-purple-500"
                   />
                   <span className="text-sm font-bold text-purple-700">/ 100</span>
                   <span className="text-[10px] text-purple-600 ml-1 font-semibold">(Editable)</span>
@@ -902,19 +902,19 @@ function ReportsAndEvaluationContent() {
 
             {/* Criteria Scores Grid */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                 Standard Rubric Criteria Breakdown
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {evaluationData.criteriaScores.map((c, idx) => (
-                  <div key={idx} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1 text-xs">
+                  <div key={idx} className="p-3.5 rounded-xl border border-border bg-muted space-y-1 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">{c.criterion}</span>
+                      <span className="font-bold text-foreground">{c.criterion}</span>
                       <span className="font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                         {c.awardedMarks} / {c.maxMarks}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-600">{c.feedback}</p>
+                    <p className="text-[11px] text-muted-foreground">{c.feedback}</p>
                   </div>
                 ))}
               </div>
@@ -922,7 +922,7 @@ function ReportsAndEvaluationContent() {
 
             {/* Editable Project Summary */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-foreground uppercase tracking-wider">
                 Academic Project Summary & Lecturer Feedback (Stored in Database)
               </label>
               <textarea
@@ -932,15 +932,15 @@ function ReportsAndEvaluationContent() {
                   setEditableSummary(e.target.value);
                   setIsSavedToDb(false);
                 }}
-                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                className="w-full p-3.5 bg-muted border border-border rounded-xl text-xs text-foreground leading-relaxed focus:bg-muted focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-muted-foreground">
                 You can edit both the marks and this summary directly before committing to the database.
               </p>
             </div>
 
             {/* SAVE BUTTON */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border">
               <div className="flex items-center gap-2">
                 {isSavedToDb ? (
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
@@ -975,7 +975,7 @@ export default function ReportsAndEvaluationPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-xs text-slate-500 font-mono">
+        <div className="p-12 text-center text-xs text-muted-foreground font-mono">
           Loading Reports & Evaluation Console...
         </div>
       }

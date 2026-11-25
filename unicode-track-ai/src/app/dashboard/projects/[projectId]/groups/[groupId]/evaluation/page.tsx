@@ -446,10 +446,10 @@ function EvaluationReviewContent() {
 
   if (!project || !group) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+      <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
         <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-slate-900">Evaluation Records Not Found</h2>
-        <p className="text-sm text-slate-500 mt-2 mb-6">
+        <h2 className="text-xl font-bold text-foreground">Evaluation Records Not Found</h2>
+        <p className="text-sm text-muted-foreground mt-2 mb-6">
           The requested group could not be located in project records.
         </p>
         <Link
@@ -477,25 +477,25 @@ function EvaluationReviewContent() {
               <ArrowLeft className="w-3.5 h-3.5" /> Group Review
             </Link>
             <span>/</span>
-            <span className="text-slate-500">{project.courseCode}</span>
+            <span className="text-muted-foreground">{project.courseCode}</span>
             <span>/</span>
-            <span className="text-slate-900">{group.groupName}</span>
+            <span className="text-foreground">{group.groupName}</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-3">
             <Sparkles className="w-7 h-7 text-teal-600" />
             AI Code Review & Rubric Evaluation
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Gemini 2.5 Flash academic code evaluation against rubric criteria for{" "}
-            <span className="font-semibold text-slate-800">{group.groupName}</span>.
+            <span className="font-semibold text-foreground">{group.groupName}</span>.
           </p>
         </div>
 
         {/* Global Action Header Controls */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <Link href={`/dashboard/projects/${projectId}/evaluation/criteria`}>
-            <Button variant="outline" className="flex items-center gap-1.5 text-xs border-slate-200">
-              <Sliders className="w-3.5 h-3.5 text-slate-600" /> Edit Rubric
+            <Button variant="outline" className="flex items-center gap-1.5 text-xs border-border">
+              <Sliders className="w-3.5 h-3.5 text-muted-foreground" /> Edit Rubric
             </Button>
           </Link>
 
@@ -536,7 +536,7 @@ function EvaluationReviewContent() {
 
       {/* Progress Message Banner during Gemini Analysis */}
       {isAnalyzing && (
-        <div className="p-4 bg-teal-50 border border-teal-200 rounded-2xl flex items-center gap-3 text-teal-900 animate-pulse">
+        <div className="p-4 bg-teal-50 border border-teal-200 rounded-[16px] flex items-center gap-3 text-teal-900 animate-pulse">
           <Sparkles className="w-5 h-5 text-teal-600 animate-spin shrink-0" />
           <div>
             <p className="text-sm font-bold">{analysisProgress}</p>
@@ -550,10 +550,10 @@ function EvaluationReviewContent() {
       {/* Top Metadata & Summary Score Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Total Score & Letter Grade Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+        <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Evaluation Score
               </span>
               <span
@@ -564,21 +564,21 @@ function EvaluationReviewContent() {
             </div>
 
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-4xl font-black text-slate-900">
+              <span className="text-4xl font-black text-foreground">
                 {evaluation ? evaluation.totalScore : "--"}
               </span>
-              <span className="text-slate-400 font-semibold text-lg">
+              <span className="text-muted-foreground font-semibold text-lg">
                 / {evaluation ? evaluation.maxScore : rubric.totalMarks}
               </span>
             </div>
 
             {/* Percentage Bar */}
             <div className="mt-3">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-600 mb-1">
+              <div className="flex items-center justify-between text-xs font-bold text-muted-foreground mb-1">
                 <span>Total Achievement</span>
                 <span>{evaluation ? `${evaluation.percentage}%` : "0%"}</span>
               </div>
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-500"
                   style={{ width: `${evaluation ? evaluation.percentage : 0}%` }}
@@ -587,7 +587,7 @@ function EvaluationReviewContent() {
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between">
+          <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground flex items-center justify-between">
             <span>Status:</span>
             {evaluation?.status === "published" ? (
               <span className="font-bold text-emerald-600 flex items-center gap-1">
@@ -602,29 +602,29 @@ function EvaluationReviewContent() {
                 <Sparkles className="w-3.5 h-3.5" /> AI Completed
               </span>
             ) : (
-              <span className="font-bold text-slate-400">Not Evaluated</span>
+              <span className="font-bold text-muted-foreground">Not Evaluated</span>
             )}
           </div>
         </div>
 
         {/* Group & Repository Context Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-3 flex flex-col justify-between">
+        <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm lg:col-span-3 flex flex-col justify-between">
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">{group.groupName}</h3>
-                <p className="text-xs text-slate-500">
-                  Course: <span className="font-semibold text-slate-700">{project.courseCode}</span> •{" "}
+                <h3 className="text-lg font-bold text-foreground">{group.groupName}</h3>
+                <p className="text-xs text-muted-foreground">
+                  Course: <span className="font-semibold text-foreground">{project.courseCode}</span> •{" "}
                   {group.members.length} Student Members
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-muted rounded-xl text-xs font-semibold text-foreground">
                   <GitBranch className="w-3.5 h-3.5 text-teal-600" />
                   <span>{group.defaultBranch || "main"}</span>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-muted rounded-xl text-xs font-semibold text-foreground">
                   <GitCommit className="w-3.5 h-3.5 text-teal-600" />
                   <span>Commit: {evaluation?.commitSha?.slice(0, 7) || "HEAD"}</span>
                 </div>
@@ -632,8 +632,8 @@ function EvaluationReviewContent() {
             </div>
 
             {/* AI Executive Summary */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed">
-              <strong className="text-slate-900 block mb-1 flex items-center gap-1.5 font-semibold">
+            <div className="p-3.5 bg-muted rounded-xl border border-border text-xs text-foreground leading-relaxed">
+              <strong className="text-foreground block mb-1 flex items-center gap-1.5 font-semibold">
                 <Sparkles className="w-3.5 h-3.5 text-teal-600" />
                 Gemini Academic Code Critique:
               </strong>
@@ -643,20 +643,20 @@ function EvaluationReviewContent() {
           </div>
 
           {/* Members list */}
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-2 overflow-x-auto">
-              <span className="font-semibold text-slate-600">Roster:</span>
+              <span className="font-semibold text-muted-foreground">Roster:</span>
               {group.members.map((m) => (
                 <span
                   key={m.studentId}
-                  className="px-2 py-0.5 bg-slate-100 rounded-md font-medium text-slate-700 shrink-0"
+                  className="px-2 py-0.5 bg-muted rounded-md font-medium text-foreground shrink-0"
                 >
                   {m.fullName}
                 </span>
               ))}
             </div>
             {evaluation?.evaluatedAt && (
-              <span className="text-[11px] text-slate-400 shrink-0">
+              <span className="text-[11px] text-muted-foreground shrink-0">
                 Evaluated {new Date(evaluation.evaluatedAt).toLocaleDateString()}
               </span>
             )}
@@ -665,13 +665,13 @@ function EvaluationReviewContent() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200">
+      <div className="flex items-center gap-2 border-b border-border">
         <button
           onClick={() => setActiveTab("criteria")}
           className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
             activeTab === "criteria"
               ? "border-teal-600 text-teal-700"
-              : "border-transparent text-slate-500 hover:text-slate-900"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
           <BookOpen className="w-4 h-4" />
@@ -683,7 +683,7 @@ function EvaluationReviewContent() {
           className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
             activeTab === "requirements"
               ? "border-teal-600 text-teal-700"
-              : "border-transparent text-slate-500 hover:text-slate-900"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
           <CheckCircle2 className="w-4 h-4" />
@@ -695,7 +695,7 @@ function EvaluationReviewContent() {
           className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
             activeTab === "github"
               ? "border-teal-600 text-teal-700"
-              : "border-transparent text-slate-500 hover:text-slate-900"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
           <GitCommit className="w-4 h-4" />
@@ -707,7 +707,7 @@ function EvaluationReviewContent() {
           className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
             activeTab === "er_diagram"
               ? "border-teal-600 text-teal-700"
-              : "border-transparent text-slate-500 hover:text-slate-900"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
           <Database className="w-4 h-4" />
@@ -719,7 +719,7 @@ function EvaluationReviewContent() {
           className={`pb-3 px-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
             activeTab === "feedback"
               ? "border-teal-600 text-teal-700"
-              : "border-transparent text-slate-500 hover:text-slate-900"
+              : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
           <Send className="w-4 h-4" />
@@ -730,12 +730,12 @@ function EvaluationReviewContent() {
       {/* TAB 1: Criterion Breakdown */}
       {activeTab === "criteria" && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5 font-medium">
               <Info className="w-4 h-4 text-teal-600" />
               Lecturers can override AI-recommended scores directly in each criterion input. Total marks update dynamically.
             </span>
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-foreground">
               Rubric Total: {evaluation ? evaluation.totalScore : "--"} / {rubric.totalMarks}
             </span>
           </div>
@@ -755,17 +755,17 @@ function EvaluationReviewContent() {
             }))).map((scoreItem, idx) => (
               <div
                 key={scoreItem.criterionId || idx}
-                className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-slate-300 transition-all space-y-4"
+                className="bg-card rounded-[16px] border border-border p-6 shadow-sm hover:border-border transition-all space-y-4"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 font-bold text-xs flex items-center justify-center border border-teal-100">
                       {idx + 1}
                     </span>
                     <div>
-                      <h3 className="font-bold text-slate-900 text-base">{scoreItem.criterionName}</h3>
-                      <p className="text-xs text-slate-500">
-                        Maximum: <span className="font-semibold text-slate-700">{scoreItem.maxMarks} Marks</span>
+                      <h3 className="font-bold text-foreground text-base">{scoreItem.criterionName}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Maximum: <span className="font-semibold text-foreground">{scoreItem.maxMarks} Marks</span>
                       </p>
                     </div>
                   </div>
@@ -773,7 +773,7 @@ function EvaluationReviewContent() {
                   <div className="flex items-center gap-4">
                     {/* AI Score Badge */}
                     <div className="text-right">
-                      <span className="text-[11px] font-semibold text-slate-400 block uppercase">AI Suggested</span>
+                      <span className="text-[11px] font-semibold text-muted-foreground block uppercase">AI Suggested</span>
                       <span className="text-sm font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
                         {scoreItem.aiScore} / {scoreItem.maxMarks}
                       </span>
@@ -781,7 +781,7 @@ function EvaluationReviewContent() {
 
                     {/* Lecturer Score Input */}
                     <div className="text-right">
-                      <label className="text-[11px] font-bold text-slate-600 block uppercase">Approved Mark</label>
+                      <label className="text-[11px] font-bold text-muted-foreground block uppercase">Approved Mark</label>
                       <input
                         type="number"
                         step="0.5"
@@ -789,22 +789,22 @@ function EvaluationReviewContent() {
                         max={scoreItem.maxMarks}
                         value={scoreItem.finalScore}
                         onChange={(e) => handleScoreChange(scoreItem.criterionId, e.target.value)}
-                        className="w-20 px-3 py-1 bg-teal-50/50 border border-teal-200 rounded-lg text-sm font-black text-teal-800 text-center focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-20 px-3 py-1 bg-teal-50/50 border border-teal-200 rounded-lg text-sm font-black text-teal-800 text-center focus:bg-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Explanation */}
-                <div className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                  <strong className="text-slate-900 font-semibold block mb-1">Pedagogical Evaluation:</strong>
+                <div className="text-xs text-foreground leading-relaxed bg-muted p-3.5 rounded-xl border border-border">
+                  <strong className="text-foreground font-semibold block mb-1">Pedagogical Evaluation:</strong>
                   {scoreItem.explanation}
                 </div>
 
                 {/* Evidence Section */}
                 {scoreItem.evidence && scoreItem.evidence.length > 0 && (
                   <div className="space-y-1.5">
-                    <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                       <FileCode2 className="w-3.5 h-3.5 text-teal-600" />
                       Repository Evidence & Code Citations:
                     </span>
@@ -813,20 +813,20 @@ function EvaluationReviewContent() {
                         <div
                           key={evIdx}
                           onClick={() => setInspectingEvidence(ev)}
-                          className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-teal-50/50 border border-slate-200 hover:border-teal-300 rounded-xl cursor-pointer transition-all text-xs"
+                          className="flex items-center justify-between p-2.5 bg-muted hover:bg-teal-50/50 border border-border hover:border-teal-300 rounded-xl cursor-pointer transition-all text-xs"
                         >
                           <div className="truncate mr-2">
                             <span className="font-mono font-bold text-teal-700">{ev.file}</span>
                             {ev.functionName && (
-                              <span className="text-slate-500 font-mono ml-1">→ {ev.functionName}()</span>
+                              <span className="text-muted-foreground font-mono ml-1">→ {ev.functionName}()</span>
                             )}
                             {ev.lineRange && (
-                              <span className="text-slate-400 font-mono text-[11px] ml-1">
+                              <span className="text-muted-foreground font-mono text-[11px] ml-1">
                                 (L{ev.lineRange})
                               </span>
                             )}
                           </div>
-                          <button className="flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-teal-800 shrink-0">
+                          <button className="flex items-center gap-1 text-[11px] font-semibold text-teal-600 hover:text-accent-hover shrink-0">
                             <Eye className="w-3.5 h-3.5" /> View
                           </button>
                         </div>
@@ -841,7 +841,7 @@ function EvaluationReviewContent() {
                     <strong className="font-semibold block mb-1 flex items-center gap-1.5 text-amber-800">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600" /> Actionable Recommendations:
                     </strong>
-                    <ul className="list-disc list-inside space-y-0.5 text-slate-700">
+                    <ul className="list-disc list-inside space-y-0.5 text-foreground">
                       {scoreItem.suggestions.map((s, sIdx) => (
                         <li key={sIdx}>{s}</li>
                       ))}
@@ -856,27 +856,27 @@ function EvaluationReviewContent() {
 
       {/* TAB 2: Requirements Coverage */}
       {activeTab === "requirements" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+        <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-teal-600" />
               Requirements Specification Coverage
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Gemini comparison between declared academic project requirements and actual implemented C codebase routines.
             </p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-y border-slate-200">
+              <thead className="bg-muted text-muted-foreground font-bold uppercase tracking-wider border-y border-border">
                 <tr>
                   <th className="py-3 px-4">Academic Requirement</th>
                   <th className="py-3 px-4">Implementation Status</th>
                   <th className="py-3 px-4">Evidence & Explanation</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {(evaluation?.requirementsCoverage || [
                   {
                     requirement: "FR-1: Real-time Circular Telemetry Ingestion Buffer",
@@ -909,8 +909,8 @@ function EvaluationReviewContent() {
                     explanation: "Bounded static array allocations; clean buffer lifecycle.",
                   },
                 ]).map((req, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3 px-4 font-bold text-slate-900 max-w-xs">{req.requirement}</td>
+                  <tr key={idx} className="hover:bg-muted transition-colors">
+                    <td className="py-3 px-4 font-bold text-foreground max-w-xs">{req.requirement}</td>
                     <td className="py-3 px-4">
                       {req.status === "Implemented" ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -925,12 +925,12 @@ function EvaluationReviewContent() {
                           <AlertCircle className="w-3.5 h-3.5" /> Missing
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-muted text-foreground">
                           <Info className="w-3.5 h-3.5" /> Unable to verify
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 leading-relaxed">{req.explanation}</td>
+                    <td className="py-3 px-4 text-muted-foreground leading-relaxed">{req.explanation}</td>
                   </tr>
                 ))}
               </tbody>
@@ -943,7 +943,7 @@ function EvaluationReviewContent() {
       {activeTab === "github" && (
         <div className="space-y-6">
           {/* Academic Caveat Notice */}
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-3 text-blue-900 text-xs">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-[16px] flex items-start gap-3 text-blue-900 text-xs">
             <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
             <div>
               <strong className="font-bold text-blue-950 block mb-0.5">Academic Collaboration Policy Notice:</strong>
@@ -952,56 +952,56 @@ function EvaluationReviewContent() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <GitBranch className="w-4 h-4 text-teal-600" />
                 Repository Velocity
               </h3>
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Repository Name</span>
-                  <span className="font-mono font-semibold text-slate-900">{group.repoName || "cybernova-event-hub"}</span>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Repository Name</span>
+                  <span className="font-mono font-semibold text-foreground">{group.repoName || "cybernova-event-hub"}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Total Commits</span>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Total Commits</span>
                   <span className="font-bold text-teal-700">{group.totalCommits || 80} commits</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Branches</span>
-                  <span className="font-semibold text-slate-900">{group.branches?.length || 3} active</span>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Branches</span>
+                  <span className="font-semibold text-foreground">{group.branches?.length || 3} active</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Default Branch</span>
-                  <span className="font-mono font-semibold text-slate-900">{group.defaultBranch || "main"}</span>
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Default Branch</span>
+                  <span className="font-mono font-semibold text-foreground">{group.defaultBranch || "main"}</span>
                 </div>
               </div>
             </div>
 
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <div className="lg:col-span-2 bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-teal-600" />
                 Gemini Qualitative Git Analysis
               </h3>
-              <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <p className="text-xs text-foreground leading-relaxed bg-muted p-4 rounded-xl border border-border">
                 {evaluation?.gitTelemetryAnalysis ||
                   "Repository exhibits regular commit velocity across development phases. Commits are distributed across team members with descriptive commit messages following conventional commits."}
               </p>
 
               {/* Contributor Distribution */}
               <div>
-                <h4 className="text-xs font-bold text-slate-700 mb-2">Member Contribution Breakdown</h4>
+                <h4 className="text-xs font-bold text-foreground mb-2">Member Contribution Breakdown</h4>
                 <div className="space-y-2">
                   {group.members.map((m) => {
                     const pct = Math.round((m.commitsCount / (group.totalCommits || 80)) * 100);
                     return (
                       <div key={m.studentId} className="space-y-1">
                         <div className="flex justify-between text-xs">
-                          <span className="font-semibold text-slate-800">{m.fullName}</span>
-                          <span className="text-slate-500 font-mono">
+                          <span className="font-semibold text-foreground">{m.fullName}</span>
+                          <span className="text-muted-foreground font-mono">
                             {m.commitsCount} commits ({pct}%)
                           </span>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-teal-500" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
@@ -1019,7 +1019,7 @@ function EvaluationReviewContent() {
         <div className="space-y-6">
           {/* ER Progress Banner */}
           {isAnalyzingER && (
-            <div className="p-4 bg-teal-50 border border-teal-200 rounded-2xl flex items-center gap-3 text-teal-900 animate-pulse">
+            <div className="p-4 bg-teal-50 border border-teal-200 rounded-[16px] flex items-center gap-3 text-teal-900 animate-pulse">
               <Sparkles className="w-5 h-5 text-teal-600 animate-spin shrink-0" />
               <div>
                 <p className="text-sm font-bold">{erAnalysisProgress}</p>
@@ -1031,8 +1031,8 @@ function EvaluationReviewContent() {
           )}
 
           {/* Submission Overview Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border">
               <div>
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                   <span className="text-xs font-bold text-teal-600 uppercase tracking-wider">
@@ -1041,11 +1041,11 @@ function EvaluationReviewContent() {
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">
                     Version {currentERSubmission?.version || 1}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 uppercase">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted text-foreground uppercase">
                     {currentERSubmission?.fileType || "pdf"}
                   </span>
                   {currentERSubmission?.fileSize && (
-                    <span className="text-xs text-slate-400 font-mono">
+                    <span className="text-xs text-muted-foreground font-mono">
                       {currentERSubmission.fileSize}
                     </span>
                   )}
@@ -1073,21 +1073,21 @@ function EvaluationReviewContent() {
                   )}
                 </div>
 
-                <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <h3 className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
                   <Database className="w-5 h-5 text-teal-600" />
                   {currentERSubmission?.fileName || "CS492_Group01_ER_Diagram_v1.pdf"}
                 </h3>
 
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Submitted by{" "}
-                  <span className="font-semibold text-slate-800">
+                  <span className="font-semibold text-foreground">
                     {currentERSubmission?.submittedByName || "Alex Chen"}
                   </span>{" "}
                   • {currentERSubmission?.submittedAt ? new Date(currentERSubmission.submittedAt).toLocaleString() : "Recently"}
                 </p>
 
                 {currentERSubmission?.versionNote && (
-                  <p className="text-xs text-slate-600 mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 italic">
+                  <p className="text-xs text-muted-foreground mt-2 bg-muted p-2.5 rounded-xl border border-border italic">
                     &ldquo;{currentERSubmission.versionNote}&rdquo;
                   </p>
                 )}
@@ -1098,7 +1098,7 @@ function EvaluationReviewContent() {
                 <a
                   href={currentERSubmission?.fileUrl || "#"}
                   download={currentERSubmission?.fileName || "er-diagram.pdf"}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all border border-slate-200"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold transition-all border border-border"
                 >
                   <Download className="w-3.5 h-3.5" /> Download Diagram
                 </a>
@@ -1188,21 +1188,21 @@ function EvaluationReviewContent() {
               </div>
 
               {/* Normalization & Key Metrics */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-between">
+              <div className="p-4 bg-muted rounded-xl border border-border flex flex-col justify-between">
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                     Database Normalization
                   </span>
                   <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold border border-emerald-200">
                     3NF (Normalized)
                   </span>
                 </div>
-                <div className="flex items-center gap-2 mt-2 text-xs text-slate-600">
-                  <span className="font-semibold text-slate-800">
+                <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">
                     {currentERSubmission?.aiAnalysis?.issues?.length || 3}
                   </span>{" "}
                   Issues Found •{" "}
-                  <span className="font-semibold text-slate-800">
+                  <span className="font-semibold text-foreground">
                     {currentERSubmission?.aiAnalysis?.criterionEvaluations?.length || 7}
                   </span>{" "}
                   Criteria Evaluated
@@ -1210,12 +1210,12 @@ function EvaluationReviewContent() {
               </div>
 
               {/* Status & Publication Control */}
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-between">
+              <div className="p-4 bg-muted rounded-xl border border-border flex flex-col justify-between">
                 <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                     Workspace Visibility
                   </span>
-                  <p className="text-xs font-semibold text-slate-800">
+                  <p className="text-xs font-semibold text-foreground">
                     {currentERSubmission?.status === "published"
                       ? "Visible to Student Group"
                       : "Internal Faculty Draft"}
@@ -1226,21 +1226,21 @@ function EvaluationReviewContent() {
                     type="checkbox"
                     checked={allowStudentAIFeedback}
                     onChange={(e) => setAllowStudentAIFeedback(e.target.checked)}
-                    className="w-3.5 h-3.5 text-teal-600 rounded border-slate-300 focus:ring-teal-500"
+                    className="w-3.5 h-3.5 text-teal-600 rounded border-border focus:ring-accent focus:border-accent"
                   />
-                  <span className="text-[11px] text-slate-600">Students can view AI analysis</span>
+                  <span className="text-[11px] text-muted-foreground">Students can view AI analysis</span>
                 </label>
               </div>
             </div>
 
             {/* Sub-Metrics Progress Bars */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-border">
               <div>
-                <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                <div className="flex justify-between text-xs font-bold text-muted-foreground mb-1">
                   <span>Diagram Completeness</span>
                   <span>{currentERSubmission?.aiAnalysis?.completenessScore || 90}%</span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-teal-500"
                     style={{ width: `${currentERSubmission?.aiAnalysis?.completenessScore || 90}%` }}
@@ -1249,11 +1249,11 @@ function EvaluationReviewContent() {
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                <div className="flex justify-between text-xs font-bold text-muted-foreground mb-1">
                   <span>Key & Cardinality Correctness</span>
                   <span>{currentERSubmission?.aiAnalysis?.overallCorrectnessScore || 85}%</span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-500"
                     style={{ width: `${currentERSubmission?.aiAnalysis?.overallCorrectnessScore || 85}%` }}
@@ -1262,11 +1262,11 @@ function EvaluationReviewContent() {
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                <div className="flex justify-between text-xs font-bold text-muted-foreground mb-1">
                   <span>SQL Implementation Consistency</span>
                   <span>{currentERSubmission?.aiAnalysis?.implementationConsistencyScore || 80}%</span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500"
                     style={{ width: `${currentERSubmission?.aiAnalysis?.implementationConsistencyScore || 80}%` }}
@@ -1276,8 +1276,8 @@ function EvaluationReviewContent() {
             </div>
 
             {/* AI Executive Pedagogical Summary */}
-            <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 leading-relaxed">
-              <strong className="text-slate-900 block mb-1 flex items-center gap-1.5 font-semibold">
+            <div className="mt-4 p-4 bg-muted rounded-xl border border-border text-xs text-foreground leading-relaxed">
+              <strong className="text-foreground block mb-1 flex items-center gap-1.5 font-semibold">
                 <Sparkles className="w-3.5 h-3.5 text-teal-600" />
                 Gemini ER & Database Architecture Evaluation:
               </strong>
@@ -1292,19 +1292,19 @@ function EvaluationReviewContent() {
             (currentERSubmission.aiAnalysis.incorrectKeys && currentERSubmission.aiAnalysis.incorrectKeys.length > 0) ||
             (currentERSubmission.aiAnalysis.cardinalityProblems && currentERSubmission.aiAnalysis.cardinalityProblems.length > 0)
           ) && (
-            <div className="bg-white rounded-2xl border border-amber-200 p-6 shadow-sm space-y-3">
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card rounded-[16px] border border-amber-200 p-6 shadow-sm space-y-3">
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600" />
                 Missing or Incomplete Database Elements Checklist
               </h4>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Elements specified in academic rubric or SQL requirements that were omitted or incomplete in the submitted ER diagram:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
                 {currentERSubmission.aiAnalysis.missingEntities?.map((elem: string, idx: number) => (
                   <div
                     key={`me-${idx}`}
-                    className="p-3 bg-amber-50/50 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-slate-700"
+                    className="p-3 bg-amber-50/50 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-foreground"
                   >
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <span>Missing Entity: <strong className="text-amber-900">{elem}</strong></span>
@@ -1313,7 +1313,7 @@ function EvaluationReviewContent() {
                 {currentERSubmission.aiAnalysis.incorrectKeys?.map((elem: string, idx: number) => (
                   <div
                     key={`ik-${idx}`}
-                    className="p-3 bg-amber-50/50 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-slate-700"
+                    className="p-3 bg-amber-50/50 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-foreground"
                   >
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <span>Key Discrepancy: <strong className="text-amber-900">{elem}</strong></span>
@@ -1322,7 +1322,7 @@ function EvaluationReviewContent() {
                 {currentERSubmission.aiAnalysis.cardinalityProblems?.map((elem: string, idx: number) => (
                   <div
                     key={`cp-${idx}`}
-                    className="p-3 bg-amber-50/50 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-slate-700"
+                    className="p-3 bg-amber-50/50 rounded-xl border border-amber-100 flex items-start gap-2.5 text-xs text-foreground"
                   >
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <span>Cardinality Concern: <strong className="text-amber-900">{elem}</strong></span>
@@ -1333,18 +1333,18 @@ function EvaluationReviewContent() {
           )}
 
           {/* Issues List with Severity Badges & SQL Code Evidence */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
               <div>
-                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-teal-600" />
                   Identified ER Issues & Architectural Deficiencies
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Categorized by severity and verified against the GitHub DDL implementation.
                 </p>
               </div>
-              <span className="text-xs font-bold text-slate-500">
+              <span className="text-xs font-bold text-muted-foreground">
                 {currentERSubmission?.aiAnalysis?.issues?.length || 3} Issues Reported
               </span>
             </div>
@@ -1401,12 +1401,12 @@ function EvaluationReviewContent() {
                     ? "bg-amber-50 text-amber-700 border-amber-200"
                     : issue.severity === "Minor"
                     ? "bg-blue-50 text-blue-700 border-blue-200"
-                    : "bg-slate-100 text-slate-700 border-slate-200";
+                    : "bg-muted text-foreground border-border";
 
                 return (
                   <div
                     key={issue.id || idx}
-                    className="p-4 bg-slate-50 hover:bg-slate-50/80 rounded-xl border border-slate-200 transition-all space-y-2.5"
+                    className="p-4 bg-muted hover:bg-muted rounded-xl border border-border transition-all space-y-2.5"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -1415,11 +1415,11 @@ function EvaluationReviewContent() {
                         >
                           {issue.severity}
                         </span>
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-mono bg-white text-slate-600 border border-slate-200 uppercase">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-mono bg-card text-muted-foreground border border-border uppercase">
                           {issue.category}
                         </span>
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-600">
-                          Status: <strong className="text-slate-800">{issue.status}</strong>
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-muted text-muted-foreground">
+                          Status: <strong className="text-foreground">{issue.status}</strong>
                         </span>
                       </div>
 
@@ -1434,10 +1434,10 @@ function EvaluationReviewContent() {
                       )}
                     </div>
 
-                    <h5 className="font-bold text-slate-900 text-sm">{issue.title}</h5>
-                    <p className="text-xs text-slate-600 leading-relaxed">{issue.explanation}</p>
+                    <h5 className="font-bold text-foreground text-sm">{issue.title}</h5>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{issue.explanation}</p>
 
-                    <div className="p-2.5 bg-white rounded-lg border border-slate-200 text-xs text-slate-700">
+                    <div className="p-2.5 bg-card rounded-lg border border-border text-xs text-foreground">
                       <strong className="text-teal-700 font-semibold block mb-0.5">
                         Academic Recommendation:
                       </strong>
@@ -1450,19 +1450,19 @@ function EvaluationReviewContent() {
           </div>
 
           {/* Rubric Marks Editor */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <div>
-                <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <h4 className="text-base font-bold text-foreground flex items-center gap-2">
                   <Sliders className="w-4 h-4 text-teal-600" />
                   ER Diagram & Database Rubric Evaluation
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Lecturer approved marks are bounded 0 to maxMarks. Total score dynamically recalculates.
                 </p>
               </div>
               <div className="text-right">
-                <span className="text-xs text-slate-500 block">Total Approved Score</span>
+                <span className="text-xs text-muted-foreground block">Total Approved Score</span>
                 <span className="text-lg font-black text-teal-700">
                   {currentERTotalApprovedMarks} / {maxERTotalMarks}
                 </span>
@@ -1485,7 +1485,7 @@ function EvaluationReviewContent() {
                 return (
                   <div
                     key={criterion.id || idx}
-                    className="p-5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-3"
+                    className="p-5 bg-muted rounded-xl border border-border space-y-3"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
@@ -1493,9 +1493,9 @@ function EvaluationReviewContent() {
                           {idx + 1}
                         </span>
                         <div>
-                          <h5 className="font-bold text-slate-900 text-sm">{criterion.name}</h5>
-                          <span className="text-xs text-slate-500">
-                            Maximum Marks: <strong className="text-slate-700">{criterion.maxMarks}</strong>
+                          <h5 className="font-bold text-foreground text-sm">{criterion.name}</h5>
+                          <span className="text-xs text-muted-foreground">
+                            Maximum Marks: <strong className="text-foreground">{criterion.maxMarks}</strong>
                           </span>
                         </div>
                       </div>
@@ -1503,7 +1503,7 @@ function EvaluationReviewContent() {
                       <div className="flex items-center gap-4">
                         {/* AI Suggested Mark */}
                         <div className="text-right">
-                          <span className="text-[10px] font-semibold text-slate-400 block uppercase">
+                          <span className="text-[10px] font-semibold text-muted-foreground block uppercase">
                             AI Suggested
                           </span>
                           <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">
@@ -1513,7 +1513,7 @@ function EvaluationReviewContent() {
 
                         {/* Approved Mark Input */}
                         <div className="text-right">
-                          <label className="text-[10px] font-bold text-slate-600 block uppercase">
+                          <label className="text-[10px] font-bold text-muted-foreground block uppercase">
                             Approved Mark
                           </label>
                           <input
@@ -1523,14 +1523,14 @@ function EvaluationReviewContent() {
                             max={criterion.maxMarks}
                             value={currentMark}
                             onChange={(e) => handleERCriterionMarkChange(criterion.id, e.target.value)}
-                            className="w-20 px-3 py-1 bg-white border border-teal-200 rounded-lg text-sm font-black text-teal-800 text-center focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
+                            className="w-20 px-3 py-1 bg-card border border-teal-200 rounded-lg text-sm font-black text-teal-800 text-center focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent shadow-sm"
                           />
                         </div>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed bg-white p-3 rounded-lg border border-slate-100">
-                      <strong className="text-slate-800 font-semibold block mb-0.5">
+                    <p className="text-xs text-muted-foreground leading-relaxed bg-card p-3 rounded-lg border border-border">
+                      <strong className="text-foreground font-semibold block mb-0.5">
                         Pedagogical Critique:
                       </strong>
                       {pedagogicalComment}
@@ -1542,13 +1542,13 @@ function EvaluationReviewContent() {
           </div>
 
           {/* Lecturer Qualitative Feedback & Publication Controls */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-4">
             <div>
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Send className="w-4 h-4 text-teal-600" />
                 Lecturer Official Evaluation Comments & Decision
               </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 These comments and final approved marks will be delivered to the student group workspace upon publication.
               </p>
             </div>
@@ -1557,16 +1557,16 @@ function EvaluationReviewContent() {
               rows={4}
               value={erQualitativeComments}
               onChange={(e) => setErQualitativeComments(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none leading-relaxed"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm text-foreground focus:bg-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent resize-none leading-relaxed"
               placeholder="Enter constructive faculty feedback, database design recommendations, or defense notes..."
             />
 
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-4 bg-muted rounded-xl border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-xs font-bold text-slate-900 block">
+                <span className="text-xs font-bold text-foreground block">
                   Evaluation Status & Student Release
                 </span>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Total Approved Marks: <strong className="text-teal-700">{currentERTotalApprovedMarks} / {maxERTotalMarks}</strong>
                 </p>
               </div>
@@ -1600,34 +1600,34 @@ function EvaluationReviewContent() {
 
       {/* TAB 4: Lecturer Feedback & Publishing */}
       {activeTab === "feedback" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+        <div className="bg-card rounded-[16px] border border-border p-6 shadow-sm space-y-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <Send className="w-5 h-5 text-teal-600" />
               Lecturer Official Feedback & Publishing
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Add qualitative feedback comments and finalize approval before publishing marks to the group workspace.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-2">
+            <label className="block text-xs font-semibold text-foreground mb-2">
               Lecturer Qualitative Comments & Instructions (Visible to Students upon Publishing)
             </label>
             <textarea
               rows={4}
               value={lecturerComments}
               onChange={(e) => setLecturerComments(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none leading-relaxed"
+              className="w-full px-4 py-3 bg-muted border border-border rounded-xl text-sm text-foreground focus:bg-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent resize-none leading-relaxed"
               placeholder="Provide faculty feedback, defense scheduling notes, and constructive guidance..."
             />
           </div>
 
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 bg-muted rounded-[16px] border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Publication Security Control</span>
-              <p className="text-xs text-slate-500">
+              <span className="text-xs font-bold text-foreground block">Publication Security Control</span>
+              <p className="text-xs text-muted-foreground">
                 Students will only see final approved marks after you click &ldquo;Publish to Students&rdquo;.
               </p>
             </div>
@@ -1653,19 +1653,19 @@ function EvaluationReviewContent() {
 
       {/* Code Evidence Inspection Modal */}
       {inspectingEvidence && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-[16px] border border-border max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-mono">
                 <FileCode2 className="w-4 h-4 text-teal-400" />
                 <span className="font-bold text-teal-300">{inspectingEvidence.file}</span>
                 {inspectingEvidence.lineRange && (
-                  <span className="text-slate-400">Lines {inspectingEvidence.lineRange}</span>
+                  <span className="text-muted-foreground">Lines {inspectingEvidence.lineRange}</span>
                 )}
               </div>
               <button
                 onClick={() => setInspectingEvidence(null)}
-                className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-800"
+                className="text-muted-foreground hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-800"
               >
                 ✕ Close
               </button>
@@ -1673,16 +1673,16 @@ function EvaluationReviewContent() {
 
             <div className="p-6 space-y-4">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
                   Referenced Function / Routine
                 </h4>
-                <p className="font-mono text-sm font-bold text-slate-900">
+                <p className="font-mono text-sm font-bold text-foreground">
                   {inspectingEvidence.functionName ? `${inspectingEvidence.functionName}()` : "Global Scope"}
                 </p>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
                   Code Snippet / Architectural Context
                 </h4>
                 <div className="p-3 bg-slate-950 text-slate-100 rounded-xl font-mono text-xs overflow-x-auto">
@@ -1705,8 +1705,8 @@ function EvaluationReviewContent() {
 
       {/* ER Diagram Issue SQL Schema Evidence Modal */}
       {inspectingERIssue && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-[16px] border border-border max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-mono">
                 <FileCode className="w-4 h-4 text-teal-400" />
@@ -1714,12 +1714,12 @@ function EvaluationReviewContent() {
                   {inspectingERIssue.relevantCodeFile || "database/schema.sql"}
                 </span>
                 {inspectingERIssue.codeLineRange && (
-                  <span className="text-slate-400">Lines {inspectingERIssue.codeLineRange}</span>
+                  <span className="text-muted-foreground">Lines {inspectingERIssue.codeLineRange}</span>
                 )}
               </div>
               <button
                 onClick={() => setInspectingERIssue(null)}
-                className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-800"
+                className="text-muted-foreground hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-slate-800"
               >
                 ✕ Close
               </button>
@@ -1739,16 +1739,16 @@ function EvaluationReviewContent() {
                   >
                     {inspectingERIssue.severity}
                   </span>
-                  <span className="text-xs text-slate-500 font-mono uppercase">
+                  <span className="text-xs text-muted-foreground font-mono uppercase">
                     {inspectingERIssue.category} • {inspectingERIssue.status}
                   </span>
                 </div>
-                <h4 className="font-bold text-slate-900 text-sm">{inspectingERIssue.title}</h4>
-                <p className="text-xs text-slate-600 mt-1">{inspectingERIssue.explanation}</p>
+                <h4 className="font-bold text-foreground text-sm">{inspectingERIssue.title}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{inspectingERIssue.explanation}</p>
               </div>
 
               <div>
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
                   SQL Schema Code Evidence
                 </h5>
                 <div className="p-3 bg-slate-950 text-slate-100 rounded-xl font-mono text-xs overflow-x-auto max-h-60 leading-relaxed">
@@ -1782,7 +1782,7 @@ function EvaluationReviewContent() {
 
 export default function LecturerEvaluationPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-slate-500 font-medium">Loading AI Evaluation...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-muted-foreground font-medium">Loading AI Evaluation...</div>}>
       <EvaluationReviewContent />
     </Suspense>
   );

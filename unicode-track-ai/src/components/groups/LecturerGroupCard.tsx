@@ -92,7 +92,7 @@ export function LecturerGroupCard({
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between overflow-hidden group ${className}`}
+      className={`bg-card rounded-[16px] border border-border shadow-2xs hover:shadow-md hover:border-border transition-all duration-200 flex flex-col justify-between overflow-hidden group ${className}`}
     >
       {/* Top Header: Group Name / Number & Submission Status */}
       <div className="p-5 sm:p-6 space-y-4">
@@ -132,7 +132,7 @@ export function LecturerGroupCard({
                 Changes Requested
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground border border-border">
                 Proposal Pending
               </span>
             )}
@@ -153,12 +153,12 @@ export function LecturerGroupCard({
 
         {/* 2. Project Title */}
         <div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
             Academic Project
           </span>
           <Link
             href={`/dashboard/projects/${projectId}`}
-            className="font-bold text-sm sm:text-base text-slate-900 hover:text-teal-600 transition-colors line-clamp-1 mt-0.5"
+            className="font-bold text-sm sm:text-base text-foreground hover:text-teal-600 transition-colors line-clamp-1 mt-0.5"
             title={project?.title || "Academic Project"}
           >
             {project?.title || "Academic Capstone Project"}
@@ -171,20 +171,20 @@ export function LecturerGroupCard({
             <BookOpen className="w-3.5 h-3.5" />
             {project?.courseCode || "Course"} {courseName ? `• ${courseName}` : ""}
           </span>
-          <span className="inline-flex items-center gap-1 text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 font-medium">
-            <GraduationCap className="w-3.5 h-3.5 text-slate-500" />
+          <span className="inline-flex items-center gap-1 text-muted-foreground bg-muted px-2.5 py-1 rounded-lg border border-border font-medium">
+            <GraduationCap className="w-3.5 h-3.5 text-muted-foreground" />
             Year {project?.academicYear || 4} • Semester {project?.semester || 2}
           </span>
         </div>
 
         {/* 3 & 4. Group Members: Student Names and University IDs */}
-        <div className="space-y-2 pt-2 border-t border-slate-100">
+        <div className="space-y-2 pt-2 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-muted-foreground" />
               Group Members ({group.members.length})
             </span>
-            <span className="text-[11px] text-slate-500 font-medium">
+            <span className="text-[11px] text-muted-foreground font-medium">
               Lead: {group.members.find((m) => m.role === "Team Lead")?.fullName || group.members[0]?.fullName}
             </span>
           </div>
@@ -199,20 +199,20 @@ export function LecturerGroupCard({
                   key={member.email || idx}
                   className={`p-2 rounded-xl border flex items-center justify-between text-xs transition-colors ${isLead
                     ? "bg-teal-50/40 border-teal-200/90"
-                    : "bg-slate-50/70 border-slate-200/80"
+                    : "bg-muted/40 border-border"
                     }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div
                       className={`w-7 h-7 rounded-full font-bold flex items-center justify-center text-[10px] shrink-0 ${isLead
                         ? "bg-teal-600 text-white shadow-2xs"
-                        : "bg-slate-200 text-slate-700"
+                        : "bg-muted text-foreground"
                         }`}
                     >
                       {member.fullName.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-slate-900 truncate text-xs flex items-center gap-1">
+                      <p className="font-semibold text-foreground truncate text-xs flex items-center gap-1">
                         <span className="truncate">{member.fullName}</span>
                         {isLead && (
                           <span title="Team Lead">
@@ -220,14 +220,14 @@ export function LecturerGroupCard({
                           </span>
                         )}
                       </p>
-                      <p className="text-[10px] font-mono text-slate-500 truncate">
-                        ID: <strong className="text-slate-700">{universityId}</strong>
+                      <p className="text-[10px] font-mono text-muted-foreground truncate">
+                        ID: <strong className="text-foreground">{universityId}</strong>
                       </p>
                     </div>
                   </div>
 
                   {member.githubUsername && (
-                    <span className="text-[10px] text-slate-400 font-mono hidden sm:inline truncate max-w-[80px]">
+                    <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline truncate max-w-[80px]">
                       @{member.githubUsername}
                     </span>
                   )}
@@ -238,7 +238,7 @@ export function LecturerGroupCard({
         </div>
 
         {/* 6. Group Progress */}
-        <div className="space-y-1.5 pt-2 border-t border-slate-100">
+        <div className="space-y-1.5 pt-2 border-t border-border">
           <div className="flex items-center justify-between text-xs font-semibold">
             <span className="text-muted-foreground flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5 text-accent" />
@@ -246,7 +246,7 @@ export function LecturerGroupCard({
             </span>
             <span className="font-bold text-foreground font-mono">{group.progress || 0}%</span>
           </div>
-          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
             <div
               className="bg-[#14B8A6] h-full rounded-full transition-all duration-500"
               style={{ width: `${group.progress || 0}%` }}
@@ -255,9 +255,9 @@ export function LecturerGroupCard({
         </div>
 
         {/* 8. GitHub Repository */}
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+        <div className="p-3 rounded-xl bg-muted border border-border space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800 flex items-center gap-1.5">
+            <span className="font-bold text-foreground flex items-center gap-1.5">
               <FolderGit2 className="w-3.5 h-3.5 text-teal-600" />
               GitHub Repository
             </span>
@@ -280,23 +280,23 @@ export function LecturerGroupCard({
                 href={group.repoUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-teal-700 hover:text-teal-800 hover:underline flex items-center gap-1 truncate max-w-[240px]"
+                className="text-teal-700 hover:text-accent-hover hover:underline flex items-center gap-1 truncate max-w-[240px]"
                 title={group.repoUrl}
               >
                 <span className="truncate">{repoName}</span>
                 <ExternalLink className="w-3 h-3 shrink-0" />
               </a>
             ) : (
-              <span className="text-slate-400 italic">No repo connected yet</span>
+              <span className="text-muted-foreground italic">No repo connected yet</span>
             )}
 
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 shrink-0">
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground shrink-0">
               <span className="flex items-center gap-1">
-                <GitBranch className="w-3 h-3 text-slate-400" />
+                <GitBranch className="w-3 h-3 text-muted-foreground" />
                 {group.defaultBranch || "main"}
               </span>
               <span>•</span>
-              <span className="font-bold text-slate-800">
+              <span className="font-bold text-foreground">
                 {group.totalCommits || 0} commits
               </span>
             </div>
@@ -307,34 +307,34 @@ export function LecturerGroupCard({
         <div className="p-3 rounded-xl bg-teal-50/30 border border-teal-100 flex items-start gap-2.5 text-xs">
           <Clock className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-slate-900 truncate">
+            <p className="font-semibold text-foreground truncate">
               {latestActivity.description}
             </p>
-            <p className="text-[10px] text-slate-500 mt-0.5">
-              by <strong className="text-slate-700">{latestActivity.author}</strong> • {latestActivity.timestamp}
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              by <strong className="text-foreground">{latestActivity.author}</strong> • {latestActivity.timestamp}
             </p>
           </div>
         </div>
       </div>
 
       {/* Bottom Action Footer */}
-      <div className="p-4 bg-slate-50/80 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div className="p-4 bg-muted border-t border-border flex flex-wrap items-center justify-between gap-2 text-xs">
         {group.repoUrl ? (
           <a
             href={group.repoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold transition-colors"
             title="Open group GitHub repository directly"
           >
             <FolderGit2 className="w-3.5 h-3.5 text-teal-600" />
             <span>Open on GitHub</span>
-            <ExternalLink className="w-3 h-3 text-slate-400" />
+            <ExternalLink className="w-3 h-3 text-muted-foreground" />
           </a>
         ) : (
           <Link
             href={`/dashboard/projects/${projectId}/workspace`}
-            className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+            className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
           >
             Open Workspace
           </Link>

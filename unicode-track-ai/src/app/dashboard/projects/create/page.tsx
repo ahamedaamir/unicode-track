@@ -7,7 +7,7 @@ export default function CreateProjectPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-[1100px] mx-auto py-12 px-4 text-center text-slate-400 text-sm font-sans">
+        <div className="max-w-[1100px] mx-auto py-12 px-4 text-center text-muted-foreground text-sm font-sans">
           Loading project creation wizard...
         </div>
       }
