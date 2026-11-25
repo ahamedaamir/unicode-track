@@ -13,27 +13,27 @@ function ToastBanner() {
   if (!toast) return null;
 
   const bgStyles = {
-    success: "bg-emerald-50 text-emerald-900 border-emerald-200",
-    error: "bg-rose-50 text-rose-900 border-rose-200",
-    info: "bg-teal-50 text-teal-900 border-teal-200",
+    success: "bg-success-soft text-success border-accent-border",
+    error: "bg-danger-soft text-danger border-red-900/60",
+    info: "bg-accent-soft text-accent border-accent-border",
   };
 
   const icons = {
-    success: <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />,
-    error: <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />,
-    info: <Info className="w-4 h-4 text-teal-600 shrink-0" />,
+    success: <CheckCircle2 className="w-4 h-4 text-success shrink-0" />,
+    error: <AlertCircle className="w-4 h-4 text-danger shrink-0" />,
+    info: <Info className="w-4 h-4 text-accent shrink-0" />,
   };
 
   return (
     <div className="fixed bottom-5 right-5 z-50 max-w-md animate-in slide-in-from-bottom-3 duration-200">
-      <div className={`p-3.5 rounded-xl border shadow-lg flex items-center justify-between gap-3 text-xs font-medium ${bgStyles[toast.type]}`}>
+      <div className={`p-3.5 rounded-[12px] border shadow-2xl flex items-center justify-between gap-3 text-xs font-medium ${bgStyles[toast.type]}`}>
         <div className="flex items-center gap-2">
           {icons[toast.type]}
           <span>{toast.message}</span>
         </div>
         <button
           onClick={dismissToast}
-          className="p-1 hover:opacity-75 focus:outline-none"
+          className="p-1 hover:opacity-75 focus:outline-none cursor-pointer"
           aria-label="Dismiss message"
         >
           <X className="w-3.5 h-3.5" />
@@ -51,14 +51,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isLecturer = activeRole === "lecturer";
-  const isDarkPage =
-    isLecturer ||
-    pathname.startsWith("/dashboard/projects") ||
-    pathname.startsWith("/dashboard/evaluation") ||
-    pathname.startsWith("/dashboard/hackathons") ||
-    pathname.startsWith("/dashboard/test") ||
-    pathname.startsWith("/dashboard/quizzes") ||
-    pathname.startsWith("/dashboard/profile");
 
   useEffect(() => {
     try {
@@ -81,13 +73,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <div
-      className={`min-h-screen flex ${
-        isDarkPage ? "bg-[#070b13] text-slate-100" : "bg-[#F8FAFC] text-[#0B1220]"
-      } font-sans antialiased`}
-    >
+    <div className="min-h-screen flex bg-background text-foreground font-sans antialiased">
       {/* Sidebar */}
-      <Suspense fallback={<div className="w-20 md:w-64 bg-[#0B1220] shrink-0" />}>
+      <Suspense fallback={<div className="w-20 md:w-[252px] bg-background border-r border-border shrink-0" />}>
         <AdminSidebar
           collapsed={collapsed}
           setCollapsed={setCollapsed}
@@ -98,45 +86,39 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header Bar for dark / lecturer / student pages where AdminTopNavbar is suppressed */}
-        {isDarkPage && (
-          <header className="md:hidden sticky top-0 z-40 h-14 bg-[#0b1220]/95 backdrop-blur-md border-b border-slate-800 px-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setMobileOpen(true)}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none"
-                aria-label="Open navigation menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-white">
-                  <Code2 className="w-4 h-4 text-teal-400" />
-                </div>
-                <span className="text-sm font-bold text-white tracking-tight">UniCodeTrack</span>
-                <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
-                  AI
-                </span>
-              </Link>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                {isLecturer ? "Lecturer" : activeRole === "student" ? "Student" : "Admin"}
+        {/* Mobile Header Bar */}
+        <header className="md:hidden sticky top-0 z-40 h-14 bg-background/95 backdrop-blur-md border-b border-border px-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="p-2 rounded-[8px] text-muted-foreground hover:text-foreground hover:bg-muted focus:outline-none"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-7 h-7 rounded-[8px] bg-accent-soft border border-accent-border text-accent">
+                <Code2 className="w-4 h-4 text-accent" />
+              </div>
+              <span className="text-sm font-bold text-foreground tracking-tight">UniCodeTrack</span>
+              <span className="text-[9px] font-semibold px-1 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-border">
+                AI
               </span>
-            </div>
-          </header>
-        )}
+            </Link>
+          </div>
 
-        <Suspense fallback={<div className="h-16 bg-white border-b border-slate-200" />}>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+              {isLecturer ? "Lecturer" : activeRole === "student" ? "Student" : "Admin"}
+            </span>
+          </div>
+        </header>
+
+        <Suspense fallback={<div className="h-16 bg-background border-b border-border" />}>
           <AdminTopNavbar onToggleMobileMenu={() => setMobileOpen(!mobileOpen)} />
         </Suspense>
-        <main
-          className={`flex-1 p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl w-full mx-auto ${
-            isDarkPage ? "bg-[#070b13] text-slate-100" : ""
-          }`}
-        >
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-5">
           {children}
         </main>
       </div>
@@ -150,7 +132,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <AdminDataProvider>
-      <Suspense fallback={<div className="min-h-screen bg-[#070b13]" />}>
+      <Suspense fallback={<div className="min-h-screen bg-background" />}>
         <DashboardShell>{children}</DashboardShell>
       </Suspense>
     </AdminDataProvider>

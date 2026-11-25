@@ -18,13 +18,12 @@ import {
   ShieldCheck,
   X,
   FolderGit2,
-  FilePlus2,
   User,
   CheckSquare,
   Inbox,
-  FileText,
   Terminal,
-  FileQuestion
+  FileQuestion,
+  Trophy
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -44,12 +43,9 @@ export function AdminSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const {
-    departments,
-    courses,
     lecturers,
     students,
     projects,
-    groups,
     activeRole,
     activeLecturerEmail,
     activeStudentEmail,
@@ -58,10 +54,6 @@ export function AdminSidebar({
 
   const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
   const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || students[0];
-  const lecturerCourseCount = currentLecturer ? currentLecturer.assignedCourses.length : 2;
-  const lecturerProjectsCount = projects.filter((p) =>
-    !currentLecturer || currentLecturer.assignedCourses.includes(p.courseCode)
-  ).length;
   const studentProjects = getProjectsForStudent(activeStudentEmail);
 
   const studentNavigation = [
@@ -75,13 +67,13 @@ export function AdminSidebar({
       name: "My Projects",
       href: "/dashboard/projects",
       icon: FolderGit2,
-      count: studentProjects.length,
+      count: studentProjects.length > 0 ? studentProjects.length : undefined,
     },
     {
       name: "My Courses",
       href: "/dashboard/courses",
       icon: BookOpen,
-      count: 2,
+      count: undefined,
     },
     {
       name: "Submissions",
@@ -149,7 +141,7 @@ export function AdminSidebar({
     {
       name: "Hackathon",
       href: "/dashboard/hackathons",
-      icon: Sparkles,
+      icon: Trophy,
       count: undefined,
     },
     {
@@ -171,31 +163,37 @@ export function AdminSidebar({
       name: "Departments",
       href: "/dashboard/departments",
       icon: Building2,
-      count: departments.length,
+      count: undefined,
     },
     {
       name: "Courses",
       href: "/dashboard/courses",
       icon: BookOpen,
-      count: courses.length,
+      count: undefined,
     },
     {
       name: "Lecturers",
       href: "/dashboard/lecturers",
       icon: Users,
-      count: lecturers.length,
+      count: undefined,
     },
     {
       name: "Students",
       href: "/dashboard/students",
       icon: GraduationCap,
-      count: students.length,
+      count: undefined,
     },
     {
       name: "Projects",
       href: "/dashboard/projects",
       icon: FolderGit2,
-      count: projects.length,
+      count: undefined,
+    },
+    {
+      name: "Evaluations",
+      href: "/dashboard/evaluation",
+      icon: CheckSquare,
+      count: undefined,
     },
     {
       name: "Run",
@@ -228,30 +226,30 @@ export function AdminSidebar({
   };
 
   const navContent = (
-    <div className="flex flex-col h-full bg-[#0B1220] text-slate-300 border-r border-slate-800">
+    <div className="flex flex-col h-full bg-background text-muted-foreground border-r border-border">
       {/* Brand Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800/80">
+      <div className="flex items-center justify-between h-16 px-4 border-b border-border">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 overflow-hidden focus:outline-none"
         >
-          <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 text-white shrink-0">
-            <Code2 className="w-5 h-5 text-teal-400" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#14B8A6] flex items-center justify-center ring-2 ring-[#0B1220]">
-              <Sparkles className="w-1.5 h-1.5 text-white" />
+          <div className="relative flex items-center justify-center w-9 h-9 rounded-[10px] bg-accent-soft border border-accent-border text-accent shrink-0">
+            <Code2 className="w-5 h-5 text-accent" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent flex items-center justify-center ring-2 ring-background">
+              <Sparkles className="w-1.5 h-1.5 text-background" />
             </div>
           </div>
           {(!collapsed || mobileOpen) && (
             <div className="flex flex-col leading-tight">
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold text-white tracking-tight">
+                <span className="text-base font-bold text-foreground tracking-tight">
                   UniCodeTrack
                 </span>
-                <span className="text-[10px] font-semibold px-1 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-border">
                   AI
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 tracking-wide font-medium">
+              <span className="text-[10px] text-muted-foreground tracking-wide font-medium">
                 {isStudent ? "Student Workspace" : isLecturer ? "Lecturer Dashboard" : "Admin Workspace"}
               </span>
             </div>
@@ -262,7 +260,7 @@ export function AdminSidebar({
         {mobileOpen && (
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 md:hidden"
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-[8px] hover:bg-muted md:hidden cursor-pointer"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -272,7 +270,7 @@ export function AdminSidebar({
         {/* Desktop Collapse Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden md:flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="hidden md:flex items-center justify-center w-7 h-7 rounded-[8px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -280,10 +278,10 @@ export function AdminSidebar({
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-2.5 py-4 space-y-1 overflow-y-auto">
-        {!isLecturer && (
-          <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            {(!collapsed || mobileOpen) ? (isStudent ? "My Learning" : "Administration") : "Menu"}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {!isLecturer && (!collapsed || mobileOpen) && (
+          <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+            {isStudent ? "My Learning" : "Administration"}
           </div>
         )}
         {navigation.map((item) => {
@@ -293,28 +291,31 @@ export function AdminSidebar({
               key={item.name}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all group relative ${isActive
-                ? "bg-[#14B8A6] text-white shadow-xs font-semibold"
-                : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-                }`}
+              className={`flex items-center gap-3 px-3 py-2 rounded-[10px] text-xs sm:text-sm font-medium transition-all group relative ${
+                isActive
+                  ? "bg-muted text-foreground border border-border/70 font-semibold shadow-2xs"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
               title={collapsed ? item.name : undefined}
             >
-              {(!isLecturer || collapsed) && (
-                <item.icon
-                  className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-white" : "text-slate-400 group-hover:text-teal-400"
-                    }`}
-                />
+              {/* Active Dot Marker */}
+              {isActive ? (
+                <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(45,212,191,0.8)] shrink-0" />
+              ) : (
+                <span className="w-1.5 h-1.5 rounded-full bg-transparent shrink-0" />
               )}
+
+              <item.icon
+                className={`w-4 h-4 shrink-0 transition-transform ${
+                  isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground"
+                }`}
+              />
+
               {(!collapsed || mobileOpen) && (
                 <span className="flex-1 truncate">{item.name}</span>
               )}
               {(!collapsed || mobileOpen) && item.count !== undefined && (
-                <span
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isActive
-                    ? "bg-teal-700/80 text-white"
-                    : "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
-                    }`}
-                >
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
                   {item.count}
                 </span>
               )}
@@ -323,52 +324,52 @@ export function AdminSidebar({
         })}
       </nav>
 
-      {/* Bottom Profile */}
-      <div className="p-3 border-t border-slate-800/80 space-y-2">
+      {/* Pinned Bottom User Card */}
+      <div className="p-3 border-t border-border space-y-2">
         {isLecturer ? (
           <div
-            className={`p-3 rounded-xl bg-slate-900/90 border border-slate-800 ${
+            className={`p-2.5 rounded-[12px] bg-card border border-border ${
               collapsed && !mobileOpen ? "text-center" : ""
             }`}
           >
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0">
-                <p className="text-xs font-bold text-white truncate">
+                <p className="text-xs font-semibold text-foreground truncate">
                   {currentLecturer?.name?.toLowerCase().includes("check")
                     ? "Dr. Check Lecturer"
                     : currentLecturer?.name || "Dr. Check Lecturer"}
                 </p>
-                <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5 font-medium">
                   Senior Lecturer · Faculty
                 </p>
               </div>
             )}
             {collapsed && !mobileOpen && (
-              <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center mx-auto">
+              <div className="w-7 h-7 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center mx-auto">
                 DC
               </div>
             )}
           </div>
         ) : (
           <div
-            className={`flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/80 border border-slate-800 ${
+            className={`flex items-center gap-2.5 p-2 rounded-[12px] bg-card border border-border ${
               collapsed && !mobileOpen ? "justify-center" : ""
             }`}
           >
-            <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 border border-teal-500/30 font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center shrink-0">
               {isStudent ? "AC" : "AV"}
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
-                  <p className="text-xs font-bold text-white truncate">
+                  <p className="text-xs font-semibold text-foreground truncate">
                     {isStudent
                       ? currentStudent?.fullName || "Alex Chen"
                       : "Dr. Arthur Vance"}
                   </p>
-                  <ShieldCheck className="w-3 h-3 text-teal-400 shrink-0" />
+                  <ShieldCheck className="w-3 h-3 text-accent shrink-0" />
                 </div>
-                <p className="text-[10px] text-slate-400 truncate">
+                <p className="text-[10px] text-muted-foreground truncate">
                   {isStudent
                     ? "Student • Software Engineering"
                     : "University Administrator"}
@@ -380,11 +381,12 @@ export function AdminSidebar({
 
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-colors ${collapsed && !mobileOpen ? "justify-center" : ""
-            }`}
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-[8px] text-xs font-medium text-danger hover:bg-danger-soft transition-colors cursor-pointer ${
+            collapsed && !mobileOpen ? "justify-center" : ""
+          }`}
           title="Sign Out"
         >
-          <LogOut className="w-4 h-4 shrink-0" />
+          <LogOut className="w-3.5 h-3.5 shrink-0" />
           {(!collapsed || mobileOpen) && <span>Logout</span>}
         </button>
       </div>
@@ -393,12 +395,16 @@ export function AdminSidebar({
 
   return (
     <>
-      {/* Desktop Persistent Sidebar */}
+      {/* Desktop Persistent Sidebar (~252px wide) */}
       <aside
-        className={`hidden md:block shrink-0 transition-all duration-200 z-30 ${collapsed ? "w-16" : "w-64"
-          }`}
+        className={`hidden md:block shrink-0 transition-all duration-200 z-30 ${
+          collapsed ? "w-16" : "w-[252px]"
+        }`}
       >
-        <div className="fixed top-0 bottom-0 left-0 transition-all duration-200 z-30" style={{ width: collapsed ? "4rem" : "16rem" }}>
+        <div
+          className="fixed top-0 bottom-0 left-0 transition-all duration-200 z-30"
+          style={{ width: collapsed ? "4rem" : "252px" }}
+        >
           {navContent}
         </div>
       </aside>
@@ -407,10 +413,10 @@ export function AdminSidebar({
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-64 max-w-[80vw] h-full z-50 shadow-2xl animate-in slide-in-from-left duration-200">
+          <div className="relative w-[252px] max-w-[80vw] h-full z-50 shadow-2xl animate-in slide-in-from-left duration-200">
             {navContent}
           </div>
         </div>

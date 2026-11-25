@@ -97,16 +97,16 @@ export function LecturerGroupCard({
       {/* Top Header: Group Name / Number & Submission Status */}
       <div className="p-5 sm:p-6 space-y-4">
         {/* Top Tag Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-border">
           <div className="flex items-center gap-2">
             {/* 1. Group Name or Number */}
-            <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+            <span className="w-7 h-7 rounded-lg bg-muted text-accent border border-border font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
               #{group.groupNumber || "1"}
             </span>
             <div>
               <Link
                 href={`/dashboard/projects/${projectId}/groups/${group.id}`}
-                className="font-extrabold text-sm sm:text-base text-[#0B1220] hover:text-teal-600 transition-colors tracking-tight line-clamp-1"
+                className="font-extrabold text-sm sm:text-base text-foreground hover:text-accent transition-colors tracking-tight line-clamp-1"
                 title={`Open review page for ${group.groupName}`}
               >
                 {group.groupName}
@@ -242,11 +242,11 @@ export function LecturerGroupCard({
         {/* 6. Group Progress */}
         <div className="space-y-1.5 pt-2 border-t border-slate-100">
           <div className="flex items-center justify-between text-xs font-semibold">
-            <span className="text-slate-600 flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-teal-600" />
+            <span className="text-muted-foreground flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-accent" />
               Milestone & Sprint Progress
             </span>
-            <span className="font-bold text-[#0B1220]">{group.progress || 0}%</span>
+            <span className="font-bold text-foreground font-mono">{group.progress || 0}%</span>
           </div>
           <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
             <div

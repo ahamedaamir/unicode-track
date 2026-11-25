@@ -843,7 +843,7 @@ export default function EvaluationsAndMarksPage() {
               <div
                 key={b}
                 className={`proj-card proj-tile ${
-                  isAvailable ? "" : "opacity-45 cursor-not-allowed hover:border-[#1e293b]"
+                  isAvailable ? "" : "opacity-45 cursor-not-allowed hover:border-border"
                 }`}
                 onClick={() => {
                   if (isAvailable) navigateTo({ b });
@@ -1072,8 +1072,8 @@ export default function EvaluationsAndMarksPage() {
     // Left Column: Requirements List
     const leftColumn = (
       <div className="proj-card">
-        <b className="text-base text-white block">Requirements</b>
-        <p className="text-xs text-slate-400 my-1 mb-3">
+        <b className="text-base text-foreground block">Requirements</b>
+        <p className="text-xs text-muted-foreground my-1 mb-3">
           Set when the project was created. Edits apply to every{" "}
           {isGroup ? "group" : "student"} in this project.
         </p>
@@ -1082,7 +1082,7 @@ export default function EvaluationsAndMarksPage() {
           {currentProject.reqs.map((req, i) => (
             <div key={i} className="proj-row">
               <input
-                className="proj-in flex-1 text-xs py-1.5 px-2 bg-[#0e1626] border border-[#1e293b] text-white rounded-lg focus:outline-none focus:border-teal-500"
+                className="proj-in flex-1 text-xs py-1.5 px-2 bg-muted border border-border text-foreground rounded-[10px] focus:outline-none focus:border-accent"
                 value={req.t}
                 disabled={isReadOnly}
                 onChange={(e) => handleUpdateReqTitle(i, e.target.value)}
@@ -1091,14 +1091,14 @@ export default function EvaluationsAndMarksPage() {
                 type="number"
                 min="0"
                 max="100"
-                className="proj-in w-20 text-xs py-1.5 px-2 bg-[#0e1626] border border-[#1e293b] text-white rounded-lg text-center font-mono focus:outline-none focus:border-teal-500"
+                className="proj-in w-20 text-xs py-1.5 px-2 bg-muted border border-border text-foreground rounded-[10px] text-center font-mono focus:outline-none focus:border-accent"
                 value={req.m}
                 disabled={isReadOnly}
                 onChange={(e) => handleUpdateReqMark(i, Number(e.target.value))}
               />
               {!isReadOnly && currentProject.reqs.length > 1 && (
                 <button
-                  className="proj-btn py-1 px-2 text-xs hover:text-rose-400"
+                  className="proj-btn py-1 px-2 text-xs hover:text-danger"
                   onClick={() => handleDeleteRequirement(i)}
                   title="Remove requirement"
                 >
@@ -1119,12 +1119,12 @@ export default function EvaluationsAndMarksPage() {
           </button>
         )}
 
-        <div className="proj-row mt-3 pt-2 border-t border-[#1e293b]">
-          <b className="text-xs text-white">Total</b>
+        <div className="proj-row mt-3 pt-2 border-t border-border">
+          <b className="text-xs text-foreground">Total</b>
           <span className="proj-sp"></span>
           <b
-            className="text-sm font-mono"
-            style={{ color: totalRequirementMarks === 100 ? "#4ade80" : "#fbbf24" }}
+            className="text-sm font-mono tabular-nums"
+            style={{ color: totalRequirementMarks === 100 ? "var(--success)" : "var(--warning)" }}
           >
             {totalRequirementMarks} / 100
           </b>
@@ -1136,7 +1136,7 @@ export default function EvaluationsAndMarksPage() {
     const rightColumn = (
       <div className="proj-card">
         <div className="proj-row mb-3">
-          <b className="text-base text-white">Evaluation</b>
+          <b className="text-base text-foreground">Evaluation</b>
           <span className="proj-sp"></span>
           {targetResult && (
             <span className="proj-tag ok" style={{ margin: 0 }}>
@@ -1147,7 +1147,7 @@ export default function EvaluationsAndMarksPage() {
 
         {isLoadingAi ? (
           <div className="py-6 text-center space-y-3 animate-in fade-in-50">
-            <p className="text-xs text-teal-300 font-mono">
+            <p className="text-xs text-accent font-mono">
               {evalLoadingStep || "Checking requirements against code, ER diagram and reports…"}
             </p>
             <button className="proj-btn p text-xs font-semibold px-4 py-2 opacity-85 cursor-not-allowed">
@@ -1157,7 +1157,7 @@ export default function EvaluationsAndMarksPage() {
           </div>
         ) : !targetResult ? (
           <div className="py-6 space-y-3">
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Gemini compares each requirement with this{" "}
               {isGroup ? "group" : "student"}&apos;s code and reports, then suggests marks.
             </p>
@@ -1169,16 +1169,16 @@ export default function EvaluationsAndMarksPage() {
           <div className="space-y-4">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-[#1e293b] text-slate-400">
+                <tr className="border-b border-border text-muted-foreground">
                   <th className="py-2 px-1">Requirement</th>
                   <th className="py-2 px-1 text-center">Mark</th>
                   <th className="py-2 px-1">Evidence</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1e293b]">
+              <tbody className="divide-y divide-border">
                 {currentProject.reqs.map((req, i) => (
                   <tr key={i}>
-                    <td className="py-2 px-1 font-semibold text-slate-200">{req.t}</td>
+                    <td className="py-2 px-1 font-semibold text-foreground">{req.t}</td>
                     <td className="py-2 px-1 text-center whitespace-nowrap">
                       <input
                         type="number"
@@ -1187,11 +1187,11 @@ export default function EvaluationsAndMarksPage() {
                         value={targetResult.m[i] ?? 0}
                         disabled={isReadOnly}
                         onChange={(e) => handleUpdateTargetScore(i, Number(e.target.value))}
-                        className="w-14 p-1 border border-[#1e293b] rounded bg-[#070b13] text-white text-center font-mono text-xs focus:border-teal-500 focus:outline-none"
+                        className="w-14 p-1 border border-border rounded-[10px] bg-muted text-foreground text-center font-mono text-xs focus:border-accent focus:outline-none"
                       />{" "}
-                      <span className="text-slate-400 text-xs">/ {req.m}</span>
+                      <span className="text-muted-foreground text-xs font-mono">/ {req.m}</span>
                     </td>
-                    <td className="py-2 px-1 text-slate-400 text-[11px]">
+                    <td className="py-2 px-1 text-muted-foreground text-[11px] font-mono">
                       {EVIDENCE_TEMPLATES[i % EVIDENCE_TEMPLATES.length]}
                     </td>
                   </tr>
@@ -1200,13 +1200,13 @@ export default function EvaluationsAndMarksPage() {
             </table>
 
             <div>
-              <b className="text-xs text-white block mb-1">Project Summary</b>
+              <b className="text-xs text-foreground block mb-1">Project Summary</b>
               <textarea
                 rows={3}
                 value={targetResult.sum}
                 disabled={isReadOnly}
                 onChange={(e) => handleUpdateTargetSummary(e.target.value)}
-                className="w-full p-2.5 border border-[#1e293b] rounded-lg bg-[#070b13] text-xs text-slate-200 leading-relaxed font-sans focus:outline-none focus:border-teal-500"
+                className="w-full p-2.5 border border-border rounded-[10px] bg-muted text-xs text-foreground leading-relaxed font-sans focus:outline-none focus:border-accent"
               />
             </div>
 
@@ -1466,22 +1466,22 @@ export default function EvaluationsAndMarksPage() {
         <div className="proj-card space-y-4">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-[#1e293b] text-slate-400">
+              <tr className="border-b border-border text-muted-foreground">
                 <th className="py-2.5 px-2">{targetLabel}</th>
                 <th className="py-2.5 px-2">Marks</th>
                 <th className="py-2.5 px-2 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1e293b]">
+            <tbody className="divide-y divide-border">
               {currentProject.tg.map((targetName) => {
                 const totalScore = calculateTotalMarks(currentProject.res[targetName]);
                 return (
                   <tr key={targetName}>
-                    <td className={`py-2.5 px-2 font-semibold text-white ${currentProject.g ? "" : "font-mono"}`}>
+                    <td className={`py-2.5 px-2 font-semibold text-foreground ${currentProject.g ? "" : "font-mono"}`}>
                       {targetName}
                     </td>
                     <td className="py-2.5 px-2 font-mono">
-                      <b className="text-teal-400">{totalScore}</b> / 100
+                      <b className="text-accent">{totalScore}</b> / 100
                     </td>
                     <td className="py-2.5 px-2 text-right">
                       <span className="proj-tag ok" style={{ margin: 0 }}>
@@ -1494,12 +1494,12 @@ export default function EvaluationsAndMarksPage() {
             </tbody>
           </table>
 
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             One PDF with the separate marks of every {targetLabel.toLowerCase()} will be downloaded.
             The project then moves to Finished.
           </p>
 
-          <div className="proj-row pt-2 border-t border-[#1e293b]">
+          <div className="proj-row pt-2 border-t border-border">
             <span className="proj-sp"></span>
             <button
               className="proj-btn text-xs"

@@ -15,47 +15,47 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-foreground font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex items-center gap-2.5">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-[#0B1220] text-white">
-            <Code2 className="w-5 h-5 text-teal-400" />
-            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#14B8A6] flex items-center justify-center ring-2 ring-[#F8FAFC]">
-              <Sparkles className="w-2 h-2 text-white" />
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-[10px] bg-card border border-border text-foreground">
+            <Code2 className="w-5 h-5 text-accent" />
+            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-accent flex items-center justify-center ring-2 ring-background">
+              <Sparkles className="w-2 h-2 text-background" />
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xl font-bold tracking-tight text-[#0B1220]">
+            <span className="text-xl font-bold tracking-tight text-foreground">
               UniCodeTrack
             </span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-200">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
               AI
             </span>
           </div>
         </Link>
-        <h2 className="mt-4 text-2xl font-bold text-[#0B1220] tracking-tight">
+        <h2 className="mt-4 text-2xl font-bold text-foreground tracking-tight">
           Reset Your Password
         </h2>
-        <p className="mt-1 text-sm text-[#64748B]">
+        <p className="mt-1 text-sm text-muted-foreground">
           Enter your academic email address to receive password reset instructions
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white py-8 px-6 shadow-sm border border-[#E2E8F0] rounded-2xl sm:px-10">
+        <div className="bg-card py-8 px-6 border border-border rounded-[16px] sm:px-10 shadow-sm">
           {submitted ? (
             <div className="text-center space-y-4">
-              <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-full bg-accent/10 text-accent flex items-center justify-center mx-auto border border-accent/20">
                 <Mail className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-[#0B1220]">Check your inbox</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                If an account exists for <span className="font-semibold text-slate-700">{email}</span>, password reset instructions have been sent.
+              <h3 className="text-lg font-bold text-foreground">Check your inbox</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                If an account exists for <span className="font-semibold text-accent">{email}</span>, password reset instructions have been sent.
               </p>
               <div className="pt-2">
                 <Link
                   href="/login"
-                  className="text-xs font-semibold text-teal-700 hover:underline"
+                  className="text-xs font-semibold text-accent hover:underline"
                 >
                   Return to sign in
                 </Link>
@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">
                   Institutional Email Address
                 </label>
                 <div className="relative">
@@ -73,10 +73,10 @@ export default function ResetPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="user@university.edu"
-                    className="w-full px-3.5 py-2 pl-9 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-white"
+                    className="w-full px-3.5 py-2 pl-9 rounded-[10px] border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent text-foreground bg-muted placeholder:text-muted-foreground"
                     required
                   />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
                 </div>
               </div>
 
@@ -92,11 +92,11 @@ export default function ResetPasswordPage() {
             </form>
           )}
 
-          <div className="mt-6 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
+          <div className="mt-6 pt-6 border-t border-border text-center text-xs text-muted-foreground">
             Remembered your password?{" "}
             <Link
               href="/login"
-              className="font-semibold text-teal-700 hover:text-teal-800 hover:underline"
+              className="font-semibold text-accent hover:text-accent-hover hover:underline"
             >
               Sign in
             </Link>
@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
         <div className="mt-6 text-center">
           <Link
             href="/"
-            className="text-xs text-slate-500 hover:text-slate-800 transition-colors"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             ← Back to UniCodeTrack AI Home
           </Link>

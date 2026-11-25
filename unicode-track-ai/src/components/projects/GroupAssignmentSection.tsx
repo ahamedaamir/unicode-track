@@ -449,14 +449,14 @@ export function GroupAssignmentSection({
       className={`bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6 ${className}`}
     >
       {/* Header & Source Status Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#0B1220] text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-10 h-10 rounded-xl bg-muted text-accent border border-border flex items-center justify-center shrink-0 shadow-2xs">
             <Users className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-extrabold text-base text-[#0B1220] tracking-tight">
+              <h3 className="font-extrabold text-base text-foreground tracking-tight">
                 Group Assignment Configuration
               </h3>
               <span className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-full">
@@ -939,14 +939,14 @@ export function GroupAssignmentSection({
       {extractionResult && (
         <div className="space-y-4 pt-2 border-t border-slate-200 animate-in fade-in-50">
           {/* Header & Metrics Strip */}
-          <div className="p-5 rounded-2xl bg-[#0B1220] text-white shadow-md space-y-4 border border-slate-800">
+          <div className="p-5 rounded-[16px] bg-card text-foreground shadow-md space-y-4 border border-border">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 border border-teal-500/20">
+                  <div className="w-7 h-7 rounded-lg bg-accent-soft text-accent flex items-center justify-center shrink-0 border border-accent-border">
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <h4 className="font-extrabold text-sm sm:text-base text-white tracking-tight">
+                  <h4 className="font-extrabold text-sm sm:text-base text-foreground tracking-tight">
                     Gemini AI Extraction & Student Matching
                   </h4>
                   <span className="text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/20">
@@ -1101,14 +1101,14 @@ export function GroupAssignmentSection({
                         onClick={() => setExpandedGroupIdx(isExpanded && expandedGroupIdx === gIdx ? -1 : gIdx)}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                          <span className="w-7 h-7 rounded-lg bg-muted text-accent border border-border font-mono font-bold text-xs flex items-center justify-center shrink-0">
                             #{grp.group_number}
                           </span>
                           <div>
-                            <h5 className="font-bold text-xs sm:text-sm text-slate-900">
+                            <h5 className="font-bold text-xs sm:text-sm text-foreground">
                               {grp.group_name || `Group ${grp.group_number}`}
                             </h5>
-                            <span className="text-[11px] text-slate-500">
+                            <span className="text-[11px] text-muted-foreground">
                               {grp.members.length} student members
                             </span>
                           </div>

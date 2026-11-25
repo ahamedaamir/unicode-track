@@ -55,22 +55,22 @@ export default function HackathonsPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0B1220]">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
 
       <main className="flex-1">
         {/* Banner */}
-        <section className="bg-[#0B1220] text-white py-16 sm:py-20 border-b border-slate-800">
+        <section className="bg-card text-foreground py-16 sm:py-20 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-semibold mb-3">
-                <Trophy className="w-3.5 h-3.5 text-teal-400" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-soft text-accent border border-accent-border text-xs font-semibold mb-3">
+                <Trophy className="w-3.5 h-3.5 text-accent" />
                 University Hackathon Hub
               </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              <h1 className="text-3xl sm:text-5xl font-extrabold text-foreground tracking-tight">
                 Turn Ideas Into Real-World Solutions
               </h1>
-              <p className="text-base sm:text-lg text-slate-300 mt-4 leading-relaxed">
+              <p className="text-base sm:text-lg text-muted-foreground mt-4 leading-relaxed">
                 Discover university sprint challenges, register student teams, submit GitHub repositories, and compete for industry-sponsored awards.
               </p>
             </div>
@@ -81,10 +81,10 @@ export default function HackathonsPage() {
         <section className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-xl font-bold text-[#0B1220]">
+              <h2 className="text-xl font-bold text-foreground">
                 Featured & Upcoming Competitions
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Explore registered university hackathons open for student submissions
               </p>
             </div>

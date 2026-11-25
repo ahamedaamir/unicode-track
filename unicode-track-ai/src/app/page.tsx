@@ -129,9 +129,9 @@ export default function Home() {
         "Track milestones and deadlines.",
         "Manage lecturer supervision.",
       ],
-      icon: <FolderKanban className="w-5 h-5 text-teal-600" />,
-      bg: "bg-teal-50 border-teal-100",
-      accent: "text-teal-700",
+      icon: <FolderKanban className="w-5 h-5 text-accent" />,
+      bg: "bg-muted border-border",
+      accent: "text-accent",
     },
     {
       title: "GitHub Contribution Tracking",
@@ -141,9 +141,9 @@ export default function Home() {
         "View commit activity.",
         "Monitor team contribution patterns.",
       ],
-      icon: <GitBranch className="w-5 h-5 text-indigo-600" />,
-      bg: "bg-indigo-50 border-indigo-100",
-      accent: "text-indigo-700",
+      icon: <GitBranch className="w-5 h-5 text-accent" />,
+      bg: "bg-muted border-border",
+      accent: "text-accent",
     },
     {
       title: "AI-Assisted Project Evaluation",
@@ -153,9 +153,9 @@ export default function Home() {
         "Generate structured feedback.",
         "Help lecturers review project progress.",
       ],
-      icon: <Sparkles className="w-5 h-5 text-teal-600" />,
-      bg: "bg-teal-50 border-teal-100",
-      accent: "text-teal-700",
+      icon: <Sparkles className="w-5 h-5 text-accent" />,
+      bg: "bg-muted border-border",
+      accent: "text-accent",
     },
     {
       title: "Hackathon Management",
@@ -166,9 +166,9 @@ export default function Home() {
         "Manage challenges and submissions.",
         "Support judging and leaderboards.",
       ],
-      icon: <Trophy className="w-5 h-5 text-amber-600" />,
-      bg: "bg-amber-50 border-amber-100",
-      accent: "text-amber-700",
+      icon: <Trophy className="w-5 h-5 text-accent" />,
+      bg: "bg-muted border-border",
+      accent: "text-accent",
     },
     {
       title: "Team Collaboration",
@@ -178,9 +178,9 @@ export default function Home() {
         "Share project information.",
         "Monitor team progress.",
       ],
-      icon: <Users2 className="w-5 h-5 text-sky-600" />,
-      bg: "bg-sky-50 border-sky-100",
-      accent: "text-sky-700",
+      icon: <Users2 className="w-5 h-5 text-accent" />,
+      bg: "bg-muted border-border",
+      accent: "text-accent",
     },
     {
       title: "University Workspace",
@@ -190,25 +190,25 @@ export default function Home() {
         "Organize faculties and academic activities.",
         "Provide a dedicated workspace for each university.",
       ],
-      icon: <School className="w-5 h-5 text-emerald-600" />,
-      bg: "bg-emerald-50 border-emerald-100",
-      accent: "text-emerald-700",
+      icon: <School className="w-5 h-5 text-accent" />,
+      bg: "bg-muted border-border",
+      accent: "text-accent",
     },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0B1220]">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* A. Navigation Bar */}
       <Navbar />
 
       <main className="flex-1">
         {/* B. Hero Section */}
-        <section className="relative pt-12 pb-20 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32 overflow-hidden bg-gradient-to-b from-white via-[#F8FAFC] to-[#F8FAFC]">
+        <section className="relative pt-12 pb-20 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32 overflow-hidden bg-gradient-to-b from-background via-background to-background">
           {/* Subtle grid pattern background */}
-          <div className="absolute inset-0 bg-grid-subtle pointer-events-none opacity-40" />
+          <div className="absolute inset-0 bg-grid-subtle pointer-events-none opacity-20" />
 
           {/* Subtle teal decorative ambient glow */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-teal-300/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -217,19 +217,19 @@ export default function Home() {
                 {/* Small badge */}
                 <div className="inline-flex">
                   <Badge variant="teal" size="md" dot>
-                    <Sparkles className="w-3.5 h-3.5 text-teal-600 mr-0.5" />
+                    <Sparkles className="w-3.5 h-3.5 text-accent mr-0.5" />
                     AI-Powered Academic Collaboration
                   </Badge>
                 </div>
 
                 {/* Main Heading */}
-                <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight text-[#0B1220] leading-[1.12]">
+                <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight text-foreground leading-[1.12]">
                   Manage Academic Projects.{" "}
-                  <span className="text-[#14B8A6]">Track Progress.</span> Build Better Ideas.
+                  <span className="text-accent">Track Progress.</span> Build Better Ideas.
                 </h1>
 
                 {/* Supporting Text */}
-                <p className="text-base sm:text-lg text-[#64748B] leading-relaxed max-w-xl">
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl">
                   UniCodeTrack AI helps universities organize academic projects, monitor student progress, track GitHub contributions, support AI-assisted evaluations, and manage hackathon competitions in one intelligent workspace.
                 </p>
 
@@ -253,15 +253,15 @@ export default function Home() {
                 </div>
 
                 {/* Trust text */}
-                <div className="pt-3 flex items-center gap-3 text-xs text-slate-500 font-medium">
+                <div className="pt-3 flex items-center gap-3 text-xs text-muted-foreground font-medium">
                   <div className="flex -space-x-1.5 overflow-hidden">
-                    <span className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-[#0B1220] text-teal-400 text-[10px] font-bold text-center leading-6">
+                    <span className="inline-block h-6 w-6 rounded-full ring-2 ring-card bg-muted text-accent text-[10px] font-bold text-center leading-6 border border-border">
                       Uni
                     </span>
-                    <span className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-teal-500 text-white text-[10px] font-bold text-center leading-6">
+                    <span className="inline-block h-6 w-6 rounded-full ring-2 ring-card bg-accent text-background text-[10px] font-bold text-center leading-6">
                       AI
                     </span>
-                    <span className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-slate-300 text-slate-700 text-[10px] font-bold text-center leading-6">
+                    <span className="inline-block h-6 w-6 rounded-full ring-2 ring-card bg-muted text-muted-foreground text-[10px] font-bold text-center leading-6 border border-border">
                       Git
                     </span>
                   </div>
@@ -278,59 +278,59 @@ export default function Home() {
         </section>
 
         {/* Platform Statistics */}
-        <section className="border-y border-[#E2E8F0] bg-white py-12">
+        <section className="border-y border-border bg-card py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">
+              <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
                 Platform Statistics (Simulated Academic Metrics)
               </span>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-              <div className="text-center p-4 rounded-xl hover:bg-slate-50/60 transition-colors">
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
-                  1,200<span className="text-[#14B8A6]">+</span>
+              <div className="text-center p-4 rounded-xl hover:bg-muted/60 transition-colors">
+                <div className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
+                  1,200<span className="text-accent">+</span>
                 </div>
-                <div className="text-sm font-semibold text-slate-800 mt-1">
+                <div className="text-sm font-semibold text-foreground mt-1">
                   Academic Projects
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-muted-foreground mt-0.5">
                   Across capstone & research courses
                 </div>
               </div>
 
-              <div className="text-center p-4 rounded-xl hover:bg-slate-50/60 transition-colors">
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
-                  4,800<span className="text-[#14B8A6]">+</span>
+              <div className="text-center p-4 rounded-xl hover:bg-muted/60 transition-colors">
+                <div className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
+                  4,800<span className="text-accent">+</span>
                 </div>
-                <div className="text-sm font-semibold text-slate-800 mt-1">
+                <div className="text-sm font-semibold text-foreground mt-1">
                   Student Teams
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-muted-foreground mt-0.5">
                   Actively collaborating & tracking commits
                 </div>
               </div>
 
-              <div className="text-center p-4 rounded-xl hover:bg-slate-50/60 transition-colors">
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
-                  150<span className="text-[#14B8A6]">+</span>
+              <div className="text-center p-4 rounded-xl hover:bg-muted/60 transition-colors">
+                <div className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
+                  150<span className="text-accent">+</span>
                 </div>
-                <div className="text-sm font-semibold text-slate-800 mt-1">
+                <div className="text-sm font-semibold text-foreground mt-1">
                   Hackathon Events
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-muted-foreground mt-0.5">
                   Organized by university clubs & faculty
                 </div>
               </div>
 
-              <div className="text-center p-4 rounded-xl hover:bg-slate-50/60 transition-colors">
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
-                  18,000<span className="text-[#14B8A6]">+</span>
+              <div className="text-center p-4 rounded-xl hover:bg-muted/60 transition-colors">
+                <div className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight font-mono tabular-nums">
+                  18,000<span className="text-accent">+</span>
                 </div>
-                <div className="text-sm font-semibold text-slate-800 mt-1">
+                <div className="text-sm font-semibold text-foreground mt-1">
                   AI-Assisted Evaluations
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">
+                <div className="text-xs text-muted-foreground mt-0.5">
                   Milestone checks verified by lecturers
                 </div>
               </div>
@@ -339,16 +339,16 @@ export default function Home() {
         </section>
 
         {/* C. What Can UniCodeTrack AI Do? */}
-        <section id="features" className="py-20 sm:py-28 bg-[#F8FAFC]">
+        <section id="features" className="py-20 sm:py-28 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <Badge variant="teal" size="md" className="mb-3">
                 Comprehensive Capabilities
               </Badge>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
                 What Can UniCodeTrack AI Do?
               </h2>
-              <p className="text-base sm:text-lg text-[#64748B] mt-4 leading-relaxed">
+              <p className="text-base sm:text-lg text-muted-foreground mt-4 leading-relaxed">
                 Empowering universities with an all-in-one ecosystem for academic milestones, transparent git telemetry, AI-assisted rubric evaluation, and hackathon organization.
               </p>
             </div>
@@ -358,28 +358,28 @@ export default function Home() {
               {featureCards.map((feat, idx) => (
                 <div
                   key={idx}
-                  className="bg-white rounded-2xl border border-[#E2E8F0] p-6 sm:p-7 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between group"
+                  className="bg-card rounded-[16px] border border-border p-6 sm:p-7 shadow-xs hover:shadow-md hover:border-accent/40 transition-all duration-200 flex flex-col justify-between group"
                 >
                   <div>
                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform border ${feat.bg}`}>
                       {feat.icon}
                     </div>
-                    <h3 className="text-lg font-bold text-[#0B1220] mb-2">
+                    <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-accent transition-colors">
                       {feat.title}
                     </h3>
-                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                    <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
                       {feat.description}
                     </p>
-                    <ul className="space-y-2 text-xs text-slate-600">
+                    <ul className="space-y-2 text-xs text-muted-foreground">
                       {feat.points.map((pt, pIdx) => (
                         <li key={pIdx} className="flex items-start gap-2">
-                          <Check className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                          <Check className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                           <span>{pt}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className={`mt-6 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold ${feat.accent}`}>
+                  <div className={`mt-6 pt-4 border-t border-border flex items-center text-xs font-semibold ${feat.accent}`}>
                     <span>Explore module</span>
                     <ChevronRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
                   </div>
@@ -390,16 +390,16 @@ export default function Home() {
         </section>
 
         {/* D. How It Works */}
-        <section id="how-it-works" className="py-20 sm:py-28 bg-white border-t border-[#E2E8F0]">
+        <section id="how-it-works" className="py-20 sm:py-28 bg-card border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <Badge variant="teal" size="md" className="mb-3">
                 Simple 3-Step Process
               </Badge>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
                 How It Works
               </h2>
-              <p className="text-base sm:text-lg text-[#64748B] mt-4 leading-relaxed">
+              <p className="text-base sm:text-lg text-muted-foreground mt-4 leading-relaxed">
                 From institutional onboarding to continuous academic review and hackathon management.
               </p>
             </div>
@@ -407,70 +407,70 @@ export default function Home() {
             {/* Three connected steps */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               {/* Connector line for desktop */}
-              <div className="hidden md:block absolute top-1/2 left-1/6 right-1/6 h-0.5 bg-slate-200 -translate-y-8 z-0 pointer-events-none" />
+              <div className="hidden md:block absolute top-1/2 left-1/6 right-1/6 h-0.5 bg-border -translate-y-8 z-0 pointer-events-none" />
 
               {/* Step 1 */}
-              <div className="relative z-10 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-7 text-left hover:border-teal-300 transition-colors shadow-2xs">
+              <div className="relative z-10 bg-background border border-border rounded-[16px] p-7 text-left hover:border-accent/40 transition-colors shadow-2xs">
                 <div className="flex items-center justify-between mb-5">
-                  <span className="w-10 h-10 rounded-xl bg-[#0B1220] text-white font-bold flex items-center justify-center text-sm shadow-xs">
+                  <span className="w-10 h-10 rounded-xl bg-card text-foreground font-mono font-bold flex items-center justify-center text-sm shadow-xs border border-border">
                     01
                   </span>
-                  <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+                  <span className="text-xs font-semibold text-accent bg-accent-soft px-2.5 py-1 rounded-full border border-accent-border">
                     Step 1
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-[#0B1220] mb-2">
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   Register Your University
                 </h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   The designated university administrator registers the institution, enters faculty details, and activates the official university workspace.
                 </p>
-                <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center gap-2 text-xs text-slate-500 font-medium">
-                  <Building2 className="w-4 h-4 text-teal-600" />
+                <div className="mt-6 pt-4 border-t border-border flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                  <Building2 className="w-4 h-4 text-accent" />
                   <span>Institutional Administrator Portal</span>
                 </div>
               </div>
 
               {/* Step 2 */}
-              <div className="relative z-10 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-7 text-left hover:border-teal-300 transition-colors shadow-2xs">
+              <div className="relative z-10 bg-background border border-border rounded-[16px] p-7 text-left hover:border-accent/40 transition-colors shadow-2xs">
                 <div className="flex items-center justify-between mb-5">
-                  <span className="w-10 h-10 rounded-xl bg-[#14B8A6] text-white font-bold flex items-center justify-center text-sm shadow-xs">
+                  <span className="w-10 h-10 rounded-xl bg-accent text-background font-mono font-bold flex items-center justify-center text-sm shadow-xs">
                     02
                   </span>
-                  <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+                  <span className="text-xs font-semibold text-accent bg-accent-soft px-2.5 py-1 rounded-full border border-accent-border">
                     Step 2
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-[#0B1220] mb-2">
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   Create Courses and Academic Projects
                 </h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Supervisors and faculty define course milestones, establish grading rubrics, assign teams, and link project repositories with GitHub webhooks.
                 </p>
-                <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center gap-2 text-xs text-slate-500 font-medium">
-                  <GitBranch className="w-4 h-4 text-teal-600" />
+                <div className="mt-6 pt-4 border-t border-border flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                  <GitBranch className="w-4 h-4 text-accent" />
                   <span>Curriculum & Repository Setup</span>
                 </div>
               </div>
 
               {/* Step 3 */}
-              <div className="relative z-10 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-7 text-left hover:border-teal-300 transition-colors shadow-2xs">
+              <div className="relative z-10 bg-background border border-border rounded-[16px] p-7 text-left hover:border-accent/40 transition-colors shadow-2xs">
                 <div className="flex items-center justify-between mb-5">
-                  <span className="w-10 h-10 rounded-xl bg-[#0B1220] text-white font-bold flex items-center justify-center text-sm shadow-xs">
+                  <span className="w-10 h-10 rounded-xl bg-card text-foreground font-mono font-bold flex items-center justify-center text-sm shadow-xs border border-border">
                     03
                   </span>
-                  <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+                  <span className="text-xs font-semibold text-accent bg-accent-soft px-2.5 py-1 rounded-full border border-accent-border">
                     Step 3
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-[#0B1220] mb-2">
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   Manage Students, Projects, and Hackathons
                 </h3>
-                <p className="text-sm text-[#64748B] leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Students collaborate on code, submit milestones, and participate in hackathons while lecturers review automated AI rubric insights and finalize evaluations.
                 </p>
-                <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center gap-2 text-xs text-slate-500 font-medium">
-                  <Bot className="w-4 h-4 text-teal-600" />
+                <div className="mt-6 pt-4 border-t border-border flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                  <Bot className="w-4 h-4 text-accent" />
                   <span>AI Pre-Screening & Evaluation</span>
                 </div>
               </div>
@@ -479,17 +479,17 @@ export default function Home() {
         </section>
 
         {/* Academic Projects Section */}
-        <section id="academic-projects" className="py-20 sm:py-28 bg-[#F8FAFC] border-t border-[#E2E8F0]">
+        <section id="academic-projects" className="py-20 sm:py-28 bg-background border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div className="max-w-2xl">
                 <Badge variant="teal" size="md" className="mb-3">
                   Academic Project Management
                 </Badge>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
                   Transparent Progress for Every Student Project
                 </h2>
-                <p className="text-base text-[#64748B] mt-3 leading-relaxed">
+                <p className="text-base text-muted-foreground mt-3 leading-relaxed">
                   Eliminate guesswork in group assignments. Monitor individual contributions, milestone deliverables, and supervisor feedback in one unified timeline.
                 </p>
               </div>
@@ -514,13 +514,13 @@ export default function Home() {
             </div>
 
             {/* Bottom feature note */}
-            <div className="mt-10 p-5 rounded-xl bg-white border border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+            <div className="mt-10 p-5 rounded-[16px] bg-card border border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-teal-50 text-teal-700 border border-teal-200">
+                <div className="p-2 rounded-lg bg-accent-soft text-accent border border-accent-border">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="font-bold text-[#0B1220] block text-sm">
+                  <span className="font-bold text-foreground block text-sm">
                     Verifiable Academic Integrity
                   </span>
                   <span>
@@ -530,7 +530,7 @@ export default function Home() {
               </div>
               <Link
                 href="/about"
-                className="font-semibold text-teal-700 hover:text-teal-800 shrink-0 inline-flex items-center gap-1"
+                className="font-semibold text-accent hover:text-accent-hover shrink-0 inline-flex items-center gap-1"
               >
                 Learn how it works <ChevronRight className="w-3.5 h-3.5" />
               </Link>
@@ -539,21 +539,21 @@ export default function Home() {
         </section>
 
         {/* Hackathon Section */}
-        <section id="hackathons" className="py-20 sm:py-28 bg-[#0B1220] text-white relative overflow-hidden">
+        <section id="hackathons" className="py-20 sm:py-28 bg-card text-foreground relative overflow-hidden border-t border-border">
           <div className="absolute inset-0 bg-grid-dark opacity-30 pointer-events-none" />
-          <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div className="max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-semibold mb-3">
-                  <Trophy className="w-3.5 h-3.5 text-teal-400" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-soft text-accent border border-accent-border text-xs font-semibold mb-3">
+                  <Trophy className="w-3.5 h-3.5 text-accent" />
                   Campus & Global Hackathons
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
                   Turn Ideas Into Real-World Solutions
                 </h2>
-                <p className="text-base text-slate-400 mt-3 leading-relaxed">
+                <p className="text-base text-muted-foreground mt-3 leading-relaxed">
                   Supercharge university hackathons with streamlined team registrations, challenge tracks, GitHub project submissions, and structured judging panels.
                 </p>
               </div>
@@ -580,16 +580,16 @@ export default function Home() {
         </section>
 
         {/* AI Evaluation Section */}
-        <section id="ai-evaluation" className="py-20 sm:py-28 bg-white border-t border-[#E2E8F0]">
+        <section id="ai-evaluation" className="py-20 sm:py-28 bg-background border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <Badge variant="teal" size="md" className="mb-3">
                 Intelligent Academic Assistant
               </Badge>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
                 AI-Assisted Evaluation for Faculty & Supervisors
               </h2>
-              <p className="text-base sm:text-lg text-[#64748B] mt-4 leading-relaxed">
+              <p className="text-base sm:text-lg text-muted-foreground mt-4 leading-relaxed">
                 Empower educators with instant code rubric analysis, architecture reviews, and team contribution audits while preserving academic rigor.
               </p>
             </div>
@@ -601,32 +601,32 @@ export default function Home() {
 
             {/* Key Evaluation Principles */}
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center mb-3">
+              <div className="p-5 rounded-[16px] bg-card border border-border">
+                <div className="w-8 h-8 rounded-lg bg-accent-soft text-accent border border-accent-border flex items-center justify-center mb-3">
                   <Layers className="w-4 h-4" />
                 </div>
-                <h4 className="text-sm font-bold text-[#0B1220]">Defined Academic Rubrics</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <h4 className="text-sm font-bold text-foreground">Defined Academic Rubrics</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   Configure custom criteria such as ABET outcomes, test coverage thresholds, and software design patterns.
                 </p>
               </div>
 
-              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center mb-3">
+              <div className="p-5 rounded-[16px] bg-card border border-border">
+                <div className="w-8 h-8 rounded-lg bg-accent-soft text-accent border border-accent-border flex items-center justify-center mb-3">
                   <Activity className="w-4 h-4" />
                 </div>
-                <h4 className="text-sm font-bold text-[#0B1220]">Fair Contribution Auditing</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <h4 className="text-sm font-bold text-foreground">Fair Contribution Auditing</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   Evaluate individual commit velocity and pull requests to ensure balanced group participation.
                 </p>
               </div>
 
-              <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center mb-3">
+              <div className="p-5 rounded-[16px] bg-card border border-border">
+                <div className="w-8 h-8 rounded-lg bg-accent-soft text-accent border border-accent-border flex items-center justify-center mb-3">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
-                <h4 className="text-sm font-bold text-[#0B1220]">Human-in-the-Loop Authority</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <h4 className="text-sm font-bold text-foreground">Human-in-the-Loop Authority</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                   AI provides actionable evaluation insights, but final academic marks and decisions always remain with professors.
                 </p>
               </div>
@@ -635,24 +635,23 @@ export default function Home() {
         </section>
 
         {/* E. Final CTA */}
-        <section className="py-20 sm:py-24 bg-gradient-to-b from-white to-[#F8FAFC] border-t border-[#E2E8F0]">
+        <section className="py-20 sm:py-24 bg-card border-t border-border">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative rounded-3xl bg-[#0B1220] text-white p-8 sm:p-12 lg:p-16 text-center overflow-hidden shadow-2xl border border-slate-800">
+            <div className="relative rounded-[16px] bg-background text-foreground p-8 sm:p-12 lg:p-16 text-center overflow-hidden shadow-2xl border border-border">
               <div className="absolute inset-0 bg-grid-dark opacity-30 pointer-events-none" />
-              <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-80 h-80 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
               <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-semibold">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-soft text-accent border border-accent-border text-xs font-semibold">
+                  <Sparkles className="w-3.5 h-3.5 text-accent" />
                   Academic Excellence with AI
                 </div>
 
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
                   Bring Your University&apos;s Projects Into One Workspace.
                 </h2>
 
-                <p className="text-base sm:text-lg text-slate-300 leading-relaxed">
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
                   Join leading academic institutions streamlining course deliverables, student git accountability, and hackathon innovation.
                 </p>
 
@@ -668,15 +667,15 @@ export default function Home() {
                   </Button>
                   <Button
                     href="/login"
-                    variant="tealOutline"
+                    variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto px-8 border-slate-700 bg-slate-800/80 text-white hover:bg-slate-800"
+                    className="w-full sm:w-auto px-8"
                   >
                     Sign In
                   </Button>
                 </div>
 
-                <p className="text-xs text-slate-400 pt-2">
+                <p className="text-xs text-muted-foreground pt-2">
                   Dedicated institutional workspaces with role-based access for students, lecturers, and administrators.
                 </p>
               </div>

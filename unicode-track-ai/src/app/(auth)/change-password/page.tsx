@@ -145,74 +145,74 @@ function ChangePasswordContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-[#0B1220]">
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-foreground">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex items-center gap-2.5">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-[#0B1220] text-white shadow-xs">
-            <Code2 className="w-5 h-5 text-teal-400" />
-            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#14B8A6] flex items-center justify-center ring-2 ring-[#F8FAFC]">
-              <Sparkles className="w-2 h-2 text-white" />
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-[10px] bg-card border border-border text-foreground shadow-xs">
+            <Code2 className="w-5 h-5 text-accent" />
+            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-accent flex items-center justify-center ring-2 ring-background">
+              <Sparkles className="w-2 h-2 text-background" />
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xl font-bold tracking-tight text-[#0B1220]">
+            <span className="text-xl font-bold tracking-tight text-foreground">
               UniCodeTrack
             </span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-200">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
               AI
             </span>
           </div>
         </Link>
 
         {/* Required Heading & Description */}
-        <h2 className="mt-4 text-2xl font-extrabold text-[#0B1220] tracking-tight">
+        <h2 className="mt-4 text-2xl font-extrabold text-foreground tracking-tight">
           Create Your New Password
         </h2>
-        <p className="mt-1 text-xs sm:text-sm text-[#64748B]">
+        <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
           For your account security, you must change your administrator-assigned password before continuing.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white py-8 px-6 shadow-sm border border-[#E2E8F0] rounded-2xl sm:px-10 space-y-5">
+        <div className="bg-card py-8 px-6 border border-border rounded-[16px] sm:px-10 space-y-5 shadow-sm">
           {/* Identity Information Card */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
+          <div className="p-3.5 rounded-[10px] bg-muted border border-border text-xs flex items-center justify-between">
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] uppercase font-bold text-slate-400">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground">
                   {isStudentRole ? "Student Account" : "Faculty Account"}
                 </span>
                 {matchedStudent && (
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent font-semibold border border-accent/20">
                     Year {matchedStudent.academicYear} • Sem {matchedStudent.semester}
                   </span>
                 )}
               </div>
-              <p className="font-bold text-slate-900 text-sm">{displayName}</p>
+              <p className="font-bold text-foreground text-sm">{displayName}</p>
               {/* Required: Display student's email address */}
-              <p className="text-slate-500 font-mono text-[11px]">{displayEmail}</p>
+              <p className="text-muted-foreground font-mono text-[11px]">{displayEmail}</p>
               {matchedStudent && (
-                <p className="text-[10px] text-slate-400 truncate max-w-[240px]">
+                <p className="text-[10px] text-muted-foreground truncate max-w-[240px]">
                   {getDeptName(matchedStudent.departmentId)}
                 </p>
               )}
             </div>
-            <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+            <div className="p-2.5 rounded-[10px] bg-warning/10 text-warning border border-warning/20 shrink-0">
               <KeyRound className="w-5 h-5" />
             </div>
           </div>
 
           {/* Security Alert Notice */}
-          <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-900 flex items-start gap-2">
-            <ShieldAlert className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+          <div className="p-3 rounded-[10px] bg-accent/10 border border-accent/20 text-xs text-foreground flex items-start gap-2">
+            <ShieldAlert className="w-4 h-4 text-accent shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              Default credentials detected for <strong className="font-semibold text-slate-800">{displayEmail}</strong>. Setting a personalized password activates your academic dashboard and projects.
+              Default credentials detected for <strong className="font-semibold text-accent">{displayEmail}</strong>. Setting a personalized password activates your academic dashboard and projects.
             </p>
           </div>
 
           {errors.general && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="p-3 rounded-[10px] bg-danger/10 border border-danger/20 text-xs text-danger flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
               <span>{errors.general}</span>
             </div>
           )}
@@ -220,14 +220,14 @@ function ChangePasswordContent() {
           {isSuccess ? (
             /* Success State */
             <div className="text-center space-y-4 py-4 animate-in zoom-in-95">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-xs">
+              <div className="w-14 h-14 rounded-[16px] bg-accent/10 text-accent border border-accent/20 flex items-center justify-center mx-auto shadow-xs">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#0B1220]">
+                <h3 className="text-lg font-bold text-foreground">
                   Password Updated Successfully!
                 </h3>
-                <p className="text-xs text-slate-600 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Your student account is now fully secured. You can now access your university dashboard.
                 </p>
               </div>
@@ -249,8 +249,8 @@ function ChangePasswordContent() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Field 1: Current Password */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Current Password <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                  Current Password <span className="text-danger">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -261,24 +261,24 @@ function ChangePasswordContent() {
                       if (errors.currentPassword) setErrors((prev) => ({ ...prev, currentPassword: undefined }));
                     }}
                     placeholder="Enter current administrator-assigned password"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${errors.currentPassword
-                        ? "border-rose-300 focus:ring-rose-200"
-                        : "border-slate-300 focus:ring-teal-200 focus:border-[#14B8A6]"
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-[10px] border text-sm text-foreground bg-muted focus:outline-none focus:ring-2 ${errors.currentPassword
+                        ? "border-danger focus:ring-danger/20"
+                        : "border-border focus:ring-accent focus:border-accent"
                       }`}
                     required
                   />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground focus:outline-none"
                     aria-label={showCurrentPassword ? "Hide password" : "Show password"}
                   >
                     {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.currentPassword && (
-                  <p className="text-xs text-rose-500 mt-1 flex items-center gap-1">
+                  <p className="text-xs text-danger mt-1 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5" /> {errors.currentPassword}
                   </p>
                 )}
@@ -286,8 +286,8 @@ function ChangePasswordContent() {
 
               {/* Field 2: New Password */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  New Password <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                  New Password <span className="text-danger">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -298,24 +298,24 @@ function ChangePasswordContent() {
                       if (errors.newPassword) setErrors((prev) => ({ ...prev, newPassword: undefined }));
                     }}
                     placeholder="At least 8 characters"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${errors.newPassword
-                        ? "border-rose-300 focus:ring-rose-200"
-                        : "border-slate-300 focus:ring-teal-200 focus:border-[#14B8A6]"
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-[10px] border text-sm text-foreground bg-muted focus:outline-none focus:ring-2 ${errors.newPassword
+                        ? "border-danger focus:ring-danger/20"
+                        : "border-border focus:ring-accent focus:border-accent"
                       }`}
                     required
                   />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground focus:outline-none"
                     aria-label={showNewPassword ? "Hide password" : "Show password"}
                   >
                     {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.newPassword && (
-                  <p className="text-xs text-rose-500 mt-1 flex items-center gap-1">
+                  <p className="text-xs text-danger mt-1 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5" /> {errors.newPassword}
                   </p>
                 )}
@@ -323,8 +323,8 @@ function ChangePasswordContent() {
 
               {/* Field 3: Confirm New Password */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Confirm New Password <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                  Confirm New Password <span className="text-danger">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -335,61 +335,61 @@ function ChangePasswordContent() {
                       if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
                     }}
                     placeholder="Re-enter new password"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-xl border text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 ${errors.confirmPassword
-                        ? "border-rose-300 focus:ring-rose-200"
-                        : "border-slate-300 focus:ring-teal-200 focus:border-[#14B8A6]"
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-[10px] border text-sm text-foreground bg-muted focus:outline-none focus:ring-2 ${errors.confirmPassword
+                        ? "border-danger focus:ring-danger/20"
+                        : "border-border focus:ring-accent focus:border-accent"
                       }`}
                     required
                   />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    className="absolute right-3.5 top-3.5 text-muted-foreground hover:text-foreground focus:outline-none"
                     aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-xs text-rose-500 mt-1 flex items-center gap-1">
+                  <p className="text-xs text-danger mt-1 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5" /> {errors.confirmPassword}
                   </p>
                 )}
               </div>
 
               {/* Validation checklist indicator */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1.5 text-slate-600">
-                <span className="font-semibold text-slate-700 block text-[10px] uppercase tracking-wider">
+              <div className="p-3 bg-muted rounded-[10px] border border-border text-[11px] space-y-1.5 text-muted-foreground">
+                <span className="font-semibold text-foreground block text-[10px] uppercase tracking-wider">
                   Password Requirements:
                 </span>
                 <div className="flex items-center gap-2">
                   <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
-                    newPassword.length >= 8 ? "bg-emerald-100 text-emerald-700 font-bold" : "bg-slate-200 text-slate-400"
+                    newPassword.length >= 8 ? "bg-accent/20 text-accent font-bold" : "bg-card text-muted-foreground"
                   }`}>
                     {newPassword.length >= 8 ? "✓" : "•"}
                   </span>
-                  <span className={newPassword.length >= 8 ? "text-emerald-700 font-medium" : ""}>
+                  <span className={newPassword.length >= 8 ? "text-accent font-medium" : ""}>
                     At least 8 characters
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
-                    newPassword && currentPassword && newPassword !== currentPassword ? "bg-emerald-100 text-emerald-700 font-bold" : "bg-slate-200 text-slate-400"
+                    newPassword && currentPassword && newPassword !== currentPassword ? "bg-accent/20 text-accent font-bold" : "bg-card text-muted-foreground"
                   }`}>
                     {newPassword && currentPassword && newPassword !== currentPassword ? "✓" : "•"}
                   </span>
-                  <span className={newPassword && currentPassword && newPassword !== currentPassword ? "text-emerald-700 font-medium" : ""}>
+                  <span className={newPassword && currentPassword && newPassword !== currentPassword ? "text-accent font-medium" : ""}>
                     Different from current default password
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
-                    newPassword && confirmPassword && newPassword === confirmPassword ? "bg-emerald-100 text-emerald-700 font-bold" : "bg-slate-200 text-slate-400"
+                    newPassword && confirmPassword && newPassword === confirmPassword ? "bg-accent/20 text-accent font-bold" : "bg-card text-muted-foreground"
                   }`}>
                     {newPassword && confirmPassword && newPassword === confirmPassword ? "✓" : "•"}
                   </span>
-                  <span className={newPassword && confirmPassword && newPassword === confirmPassword ? "text-emerald-700 font-medium" : ""}>
+                  <span className={newPassword && confirmPassword && newPassword === confirmPassword ? "text-accent font-medium" : ""}>
                     Passwords match
                   </span>
                 </div>
@@ -412,7 +412,7 @@ function ChangePasswordContent() {
           <div className="text-center pt-2">
             <Link
               href="/login"
-              className="text-xs text-slate-500 hover:text-slate-800 transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               ← Return to Login
             </Link>
