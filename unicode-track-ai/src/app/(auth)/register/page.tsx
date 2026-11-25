@@ -2,21 +2,21 @@
 
 import React, { useState, useRef } from "react";
 import Link from "next/link";
-import { 
-  Code2, 
-  Sparkles, 
-  ArrowRight, 
-  ArrowLeft, 
-  Check, 
-  Building2, 
-  GraduationCap, 
-  MapPin, 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  Code2,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Building2,
+  GraduationCap,
+  MapPin,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
   Info,
   ShieldCheck,
   School
@@ -260,24 +260,22 @@ export default function UniversityAdminRegisterPage() {
               return (
                 <div key={step.number} className="flex flex-col items-center text-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 ${
-                      isPassed
-                        ? "bg-accent text-background shadow-xs font-bold"
-                        : isCurrent
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 ${isPassed
+                      ? "bg-accent text-background shadow-xs font-bold"
+                      : isCurrent
                         ? "bg-foreground text-background ring-4 ring-accent/20 shadow-xs font-bold"
                         : "bg-muted text-muted-foreground border border-border"
-                    }`}
+                      }`}
                   >
                     {isPassed ? <Check className="w-4 h-4 stroke-[2.5]" /> : step.number}
                   </div>
                   <span
-                    className={`mt-2 text-[11px] leading-tight font-medium hidden sm:block ${
-                      isCurrent
-                        ? "text-foreground font-semibold"
-                        : isPassed
+                    className={`mt-2 text-[11px] leading-tight font-medium hidden sm:block ${isCurrent
+                      ? "text-foreground font-semibold"
+                      : isPassed
                         ? "text-accent"
                         : "text-muted-foreground"
-                    }`}
+                      }`}
                   >
                     {step.label}
                   </span>
@@ -322,11 +320,10 @@ export default function UniversityAdminRegisterPage() {
                     value={formData.universityName}
                     onChange={(e) => handleInputChange("universityName", e.target.value)}
                     placeholder="e.g. Stanford University or National Institute of Technology"
-                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${
-                      step1Errors.universityName
-                        ? "border-danger focus:ring-danger/20"
-                        : "border-border focus:ring-accent focus:border-accent"
-                    }`}
+                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${step1Errors.universityName
+                      ? "border-danger focus:ring-danger/20"
+                      : "border-border focus:ring-accent focus:border-accent"
+                      }`}
                   />
                   <Building2 className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                 </div>
@@ -348,11 +345,10 @@ export default function UniversityAdminRegisterPage() {
                     value={formData.faculty}
                     onChange={(e) => handleInputChange("faculty", e.target.value)}
                     placeholder="e.g. Faculty of Engineering and Applied Sciences"
-                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${
-                      step1Errors.faculty
-                        ? "border-danger focus:ring-danger/20"
-                        : "border-border focus:ring-accent focus:border-accent"
-                    }`}
+                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${step1Errors.faculty
+                      ? "border-danger focus:ring-danger/20"
+                      : "border-border focus:ring-accent focus:border-accent"
+                      }`}
                   />
                   <GraduationCap className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                 </div>
@@ -374,11 +370,10 @@ export default function UniversityAdminRegisterPage() {
                     value={formData.location}
                     onChange={(e) => handleInputChange("location", e.target.value)}
                     placeholder="City, Country (e.g. Cambridge, United Kingdom)"
-                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${
-                      step1Errors.location
-                        ? "border-danger focus:ring-danger/20"
-                        : "border-border focus:ring-accent focus:border-accent"
-                    }`}
+                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${step1Errors.location
+                      ? "border-danger focus:ring-danger/20"
+                      : "border-border focus:ring-accent focus:border-accent"
+                      }`}
                   />
                   <MapPin className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                 </div>
@@ -400,11 +395,10 @@ export default function UniversityAdminRegisterPage() {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="admin@university.edu"
-                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${
-                      step1Errors.email
-                        ? "border-danger focus:ring-danger/20"
-                        : "border-border focus:ring-accent focus:border-accent"
-                    }`}
+                    className={`w-full px-3.5 py-2.5 pl-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${step1Errors.email
+                      ? "border-danger focus:ring-danger/20"
+                      : "border-border focus:ring-accent focus:border-accent"
+                      }`}
                   />
                   <Mail className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                 </div>
@@ -485,13 +479,12 @@ export default function UniversityAdminRegisterPage() {
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className={`w-14 h-14 sm:w-16 sm:h-16 text-center text-2xl font-mono font-bold rounded-[10px] border transition-all text-foreground bg-muted focus:outline-none focus:ring-2 ${
-                        otpError
-                          ? "border-danger focus:ring-danger/20"
-                          : digit
+                      className={`w-14 h-14 sm:w-16 sm:h-16 text-center text-2xl font-mono font-bold rounded-[10px] border transition-all text-foreground bg-muted focus:outline-none focus:ring-2 ${otpError
+                        ? "border-danger focus:ring-danger/20"
+                        : digit
                           ? "border-accent bg-accent/10 text-accent"
                           : "border-border focus:ring-accent focus:border-accent"
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
@@ -557,11 +550,10 @@ export default function UniversityAdminRegisterPage() {
                       if (step3Errors.password) setStep3Errors((prev) => ({ ...prev, password: undefined }));
                     }}
                     placeholder="Minimum 8 characters"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${
-                      step3Errors.password
-                        ? "border-danger focus:ring-danger/20"
-                        : "border-border focus:ring-accent focus:border-accent"
-                    }`}
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${step3Errors.password
+                      ? "border-danger focus:ring-danger/20"
+                      : "border-border focus:ring-accent focus:border-accent"
+                      }`}
                   />
                   <Lock className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                   <button
@@ -594,11 +586,10 @@ export default function UniversityAdminRegisterPage() {
                       if (step3Errors.confirmPassword) setStep3Errors((prev) => ({ ...prev, confirmPassword: undefined }));
                     }}
                     placeholder="Re-enter password"
-                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${
-                      step3Errors.confirmPassword
-                        ? "border-danger focus:ring-danger/20"
-                        : "border-border focus:ring-accent focus:border-accent"
-                    }`}
+                    className={`w-full px-3.5 py-2.5 pl-10 pr-10 rounded-[10px] border text-sm transition-all text-foreground bg-muted focus:outline-none focus:ring-2 placeholder:text-muted-foreground ${step3Errors.confirmPassword
+                      ? "border-danger focus:ring-danger/20"
+                      : "border-border focus:ring-accent focus:border-accent"
+                      }`}
                   />
                   <Lock className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3.5" />
                   <button
@@ -621,11 +612,10 @@ export default function UniversityAdminRegisterPage() {
               <div className="p-3 bg-muted rounded-[10px] border border-border text-xs space-y-1.5">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
-                      formData.password.length >= 8
-                        ? "bg-accent text-background font-bold"
-                        : "bg-card text-muted-foreground"
-                    }`}
+                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${formData.password.length >= 8
+                      ? "bg-accent text-background font-bold"
+                      : "bg-card text-muted-foreground"
+                      }`}
                   >
                     ✓
                   </span>
@@ -635,11 +625,10 @@ export default function UniversityAdminRegisterPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
-                      formData.confirmPassword && formData.password === formData.confirmPassword
-                        ? "bg-accent text-background font-bold"
-                        : "bg-card text-muted-foreground"
-                    }`}
+                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${formData.confirmPassword && formData.password === formData.confirmPassword
+                      ? "bg-accent text-background font-bold"
+                      : "bg-card text-muted-foreground"
+                      }`}
                   >
                     ✓
                   </span>
