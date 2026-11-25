@@ -214,7 +214,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           setLecturers(parsed.lecturers.filter((l: Lecturer) => l.email.toLowerCase() !== "check@gmail.com"));
         }
         if (parsed.students && Array.isArray(parsed.students)) {
-          setStudents(parsed.students.slice());
+          setStudents(parsed.students);
         }
         if (parsed.activities) setActivities(parsed.activities);
         if (parsed.projects && Array.isArray(parsed.projects)) {

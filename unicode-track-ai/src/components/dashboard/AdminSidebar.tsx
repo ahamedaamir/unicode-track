@@ -291,11 +291,10 @@ export function AdminSidebar({
               key={item.name}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2 rounded-[10px] text-xs sm:text-sm font-medium transition-all group relative ${
-                isActive
-                  ? "bg-muted text-foreground border border-border/70 font-semibold shadow-2xs"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+              className={`flex items-center gap-3 px-3 py-2 rounded-[10px] text-xs sm:text-sm font-medium transition-all group relative ${isActive
+                ? "bg-muted text-foreground border border-border/70 font-semibold shadow-2xs"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               title={collapsed ? item.name : undefined}
             >
               {/* Active Dot Marker */}
@@ -306,9 +305,8 @@ export function AdminSidebar({
               )}
 
               <item.icon
-                className={`w-4 h-4 shrink-0 transition-transform ${
-                  isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground"
-                }`}
+                className={`w-4 h-4 shrink-0 transition-transform ${isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground"
+                  }`}
               />
 
               {(!collapsed || mobileOpen) && (
@@ -328,9 +326,8 @@ export function AdminSidebar({
       <div className="p-3 border-t border-border space-y-2">
         {isLecturer ? (
           <div
-            className={`p-2.5 rounded-[12px] bg-card border border-border ${
-              collapsed && !mobileOpen ? "text-center" : ""
-            }`}
+            className={`p-2.5 rounded-[12px] bg-card border border-border ${collapsed && !mobileOpen ? "text-center" : ""
+              }`}
           >
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0">
@@ -350,9 +347,8 @@ export function AdminSidebar({
           </div>
         ) : (
           <div
-            className={`flex items-center gap-2.5 p-2 rounded-[12px] bg-card border border-border ${
-              collapsed && !mobileOpen ? "justify-center" : ""
-            }`}
+            className={`flex items-center gap-2.5 p-2 rounded-[12px] bg-card border border-border ${collapsed && !mobileOpen ? "justify-center" : ""
+              }`}
           >
             <div className="w-7 h-7 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center shrink-0">
               {isStudent
@@ -381,9 +377,8 @@ export function AdminSidebar({
 
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center gap-2 px-3 py-2 rounded-[8px] text-xs font-medium text-danger hover:bg-danger-soft transition-colors cursor-pointer ${
-            collapsed && !mobileOpen ? "justify-center" : ""
-          }`}
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-[8px] text-xs font-medium text-danger hover:bg-danger-soft transition-colors cursor-pointer ${collapsed && !mobileOpen ? "justify-center" : ""
+            }`}
           title="Sign Out"
         >
           <LogOut className="w-3.5 h-3.5 shrink-0" />
@@ -397,9 +392,8 @@ export function AdminSidebar({
     <>
       {/* Desktop Persistent Sidebar (~252px wide) */}
       <aside
-        className={`hidden md:block shrink-0 transition-all duration-200 z-30 ${
-          collapsed ? "w-16" : "w-[252px]"
-        }`}
+        className={`hidden md:block shrink-0 transition-all duration-200 z-30 ${collapsed ? "w-16" : "w-[252px]"
+          }`}
       >
         <div
           className="fixed top-0 bottom-0 left-0 transition-all duration-200 z-30"
