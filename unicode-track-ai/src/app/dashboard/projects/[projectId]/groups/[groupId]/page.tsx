@@ -229,10 +229,10 @@ function LecturerGroupReviewContent() {
 
   if (!project || !group) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+      <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
         <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-slate-900">Group Not Found</h2>
-        <p className="text-sm text-slate-500 mt-2 mb-6">
+        <h2 className="text-xl font-bold text-foreground">Group Not Found</h2>
+        <p className="text-sm text-muted-foreground mt-2 mb-6">
           The requested group could not be located in project records.
         </p>
         <Link
@@ -314,16 +314,16 @@ function LecturerGroupReviewContent() {
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Top Breadcrumb & Quick Action Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
-          <Link href="/dashboard" className="hover:text-teal-700">Dashboard</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <Link href="/dashboard/projects" className="hover:text-teal-700">Projects</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <Link href={`/dashboard/projects/${project.id}`} className="hover:text-teal-700 font-semibold text-teal-700">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <Link href="/dashboard" className="hover:text-accent">Dashboard</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+          <Link href="/dashboard/projects" className="hover:text-accent">Projects</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+          <Link href={`/dashboard/projects/${project.id}`} className="hover:text-accent font-semibold text-teal-700">
             {project.courseCode}
           </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="text-slate-900 font-bold truncate max-w-xs">{group.groupName}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
+          <span className="text-foreground font-bold truncate max-w-xs">{group.groupName}</span>
         </div>
 
         {/* Prominent Direct Access Buttons */}
@@ -338,7 +338,7 @@ function LecturerGroupReviewContent() {
           >
             <FolderGit2 className="w-3.5 h-3.5 text-teal-400" />
             <span>Open on GitHub</span>
-            <ExternalLink className="w-3 h-3 text-slate-400" />
+            <ExternalLink className="w-3 h-3 text-muted-foreground" />
           </a>
 
           {/* Action 2: Browse code inside UniCodeTrack AI */}
@@ -361,7 +361,7 @@ function LecturerGroupReviewContent() {
 
           <Link
             href="/dashboard/projects"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-medium transition-all"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Projects
           </Link>
@@ -369,7 +369,7 @@ function LecturerGroupReviewContent() {
       </div>
 
       {/* Header Banner & Repository Telemetry Strip */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
+      <div className="bg-card rounded-[16px] border border-border shadow-sm p-6 sm:p-8 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="space-y-3 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -414,26 +414,26 @@ function LecturerGroupReviewContent() {
               )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
               {project.title}
             </h1>
-            <p className="text-slate-600 text-sm leading-relaxed max-w-4xl">
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-4xl">
               Faculty code review and academic tracking console. Inspect GitHub branches, commit streams, team member contribution velocity, pull request status, and compile C programs inside UniCodeTrack AI.
             </p>
 
             {/* GitHub Repository Quick Reference & Telemetry Overview */}
             {group.repoUrl ? (
-              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+              <div className="bg-muted border border-border rounded-[16px] p-4 sm:p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-[#0B1220] text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
                       <FolderGit2 className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xs sm:text-sm text-slate-900">
+                      <h3 className="font-bold text-xs sm:text-sm text-foreground">
                         Connected GitHub Repository Overview
                       </h3>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-muted-foreground">
                         Real-time repository telemetry & code inspection console
                       </p>
                     </div>
@@ -448,7 +448,7 @@ function LecturerGroupReviewContent() {
                     >
                       <FolderGit2 className="w-3.5 h-3.5 text-teal-400" />
                       <span>Open on GitHub</span>
-                      <ExternalLink className="w-3 h-3 text-slate-400" />
+                      <ExternalLink className="w-3 h-3 text-muted-foreground" />
                     </a>
 
                     <button
@@ -465,19 +465,19 @@ function LecturerGroupReviewContent() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <tr className="border-b border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                         <th className="py-2 pr-4 font-semibold">Information</th>
                         <th className="py-2 font-semibold">What the lecturer sees</th>
                         <th className="py-2 pl-4 text-right font-semibold">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200/60 text-xs">
+                    <tbody className="divide-y divide-border/60 text-xs">
                       <tr>
-                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                        <td className="py-2.5 pr-4 font-bold text-foreground flex items-center gap-1.5 font-sans">
                           <FolderGit2 className="w-3.5 h-3.5 text-teal-600" /> Repository
                         </td>
-                        <td className="py-2.5 text-slate-700 font-mono">
-                          <span className="font-bold text-slate-900">{group.repoName || "repository"}</span> —{" "}
+                        <td className="py-2.5 text-foreground font-mono">
+                          <span className="font-bold text-foreground">{group.repoName || "repository"}</span> —{" "}
                           <a
                             href={group.repoUrl}
                             target="_blank"
@@ -500,12 +500,12 @@ function LecturerGroupReviewContent() {
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                        <td className="py-2.5 pr-4 font-bold text-foreground flex items-center gap-1.5 font-sans">
                           <GitBranch className="w-3.5 h-3.5 text-teal-600" /> Branches
                         </td>
-                        <td className="py-2.5 text-slate-700 font-mono">
-                          <span className="font-bold text-slate-900">{branches.length} available branches</span>:{" "}
-                          {branches.map((b) => b.name).join(", ")} (Default: <strong className="text-slate-900">main</strong>)
+                        <td className="py-2.5 text-foreground font-mono">
+                          <span className="font-bold text-foreground">{branches.length} available branches</span>:{" "}
+                          {branches.map((b) => b.name).join(", ")} (Default: <strong className="text-foreground">main</strong>)
                         </td>
                         <td className="py-2.5 pl-4 text-right font-sans">
                           <button
@@ -518,11 +518,11 @@ function LecturerGroupReviewContent() {
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                        <td className="py-2.5 pr-4 font-bold text-foreground flex items-center gap-1.5 font-sans">
                           <GitCommit className="w-3.5 h-3.5 text-teal-600" /> Commits
                         </td>
-                        <td className="py-2.5 text-slate-700">
-                          <span className="font-bold text-slate-900">{group.totalCommits || commits.length} total commits</span>. Latest: &ldquo;{commits[0]?.message}&rdquo; by <strong className="text-slate-900">{commits[0]?.author}</strong> (<span className="font-mono text-teal-700">{commits[0]?.shortHash}</span>)
+                        <td className="py-2.5 text-foreground">
+                          <span className="font-bold text-foreground">{group.totalCommits || commits.length} total commits</span>. Latest: &ldquo;{commits[0]?.message}&rdquo; by <strong className="text-foreground">{commits[0]?.author}</strong> (<span className="font-mono text-teal-700">{commits[0]?.shortHash}</span>)
                         </td>
                         <td className="py-2.5 pl-4 text-right font-sans">
                           <button
@@ -535,10 +535,10 @@ function LecturerGroupReviewContent() {
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                        <td className="py-2.5 pr-4 font-bold text-foreground flex items-center gap-1.5 font-sans">
                           <BarChart3 className="w-3.5 h-3.5 text-teal-600" /> Contributions
                         </td>
-                        <td className="py-2.5 text-slate-700 font-sans">
+                        <td className="py-2.5 text-foreground font-sans">
                           Activity by group member: {group.members.map((m) => `${m.fullName} (${m.commitsCount} commits)`).join(", ")}
                         </td>
                         <td className="py-2.5 pl-4 text-right font-sans">
@@ -552,10 +552,10 @@ function LecturerGroupReviewContent() {
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                        <td className="py-2.5 pr-4 font-bold text-foreground flex items-center gap-1.5 font-sans">
                           <FileCode2 className="w-3.5 h-3.5 text-teal-600" /> Source code
                         </td>
-                        <td className="py-2.5 text-slate-700 font-sans">
+                        <td className="py-2.5 text-foreground font-sans">
                           C source files, headers, and build scripts browsable with live GCC sandboxed execution
                         </td>
                         <td className="py-2.5 pl-4 text-right font-sans">
@@ -569,11 +569,11 @@ function LecturerGroupReviewContent() {
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                        <td className="py-2.5 pr-4 font-bold text-foreground flex items-center gap-1.5 font-sans">
                           <GitPullRequest className="w-3.5 h-3.5 text-teal-600" /> Pull requests
                         </td>
-                        <td className="py-2.5 text-slate-700 font-sans">
-                          <span className="font-bold text-slate-900">{pullRequests.length} pull requests</span> — Submitted changes, code review approvals, and target branches
+                        <td className="py-2.5 text-foreground font-sans">
+                          <span className="font-bold text-foreground">{pullRequests.length} pull requests</span> — Submitted changes, code review approvals, and target branches
                         </td>
                         <td className="py-2.5 pl-4 text-right font-sans">
                           <button
@@ -586,10 +586,10 @@ function LecturerGroupReviewContent() {
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 pr-4 font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                        <td className="py-2.5 pr-4 font-bold text-foreground flex items-center gap-1.5 font-sans">
                           <Activity className="w-3.5 h-3.5 text-teal-600" /> Activity
                         </td>
-                        <td className="py-2.5 text-slate-700 font-sans">
+                        <td className="py-2.5 text-foreground font-sans">
                           Latest repository updates: {activityEvents[0]?.user} {activityEvents[0]?.action} {activityEvents[0]?.target} ({activityEvents[0]?.time})
                         </td>
                         <td className="py-2.5 pl-4 text-right font-sans">
@@ -605,7 +605,7 @@ function LecturerGroupReviewContent() {
                   </table>
                 </div>
 
-                <div className="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between text-[11px] text-slate-500 font-medium">
+                <div className="pt-2 border-t border-border flex flex-wrap items-center justify-between text-[11px] text-muted-foreground font-medium">
                   <span>The lecturer can open the repository directly or browse its code inside UniCodeTrack AI.</span>
                   <span className="text-teal-700 font-semibold font-mono">Sync Status: Active</span>
                 </div>
@@ -619,43 +619,43 @@ function LecturerGroupReviewContent() {
           </div>
 
           {/* Quick Metrics */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 lg:w-72 shrink-0 space-y-3">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cohort Group Status</div>
+          <div className="bg-muted border border-border rounded-xl p-4 lg:w-72 shrink-0 space-y-3">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Cohort Group Status</div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+              <div className="flex items-center justify-between text-xs font-bold text-foreground">
                 <span>Milestone Progress</span>
                 <span className="text-teal-600">{group.progress}%</span>
               </div>
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                 <div className="bg-teal-500 h-full rounded-full" style={{ width: `${group.progress}%` }} />
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200 space-y-1.5 text-xs">
-              <div className="flex justify-between text-slate-600">
+            <div className="pt-2 border-t border-border space-y-1.5 text-xs">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Team Members:</span>
-                <span className="font-semibold text-slate-900">{group.members.length} Enrolled Students</span>
+                <span className="font-semibold text-foreground">{group.members.length} Enrolled Students</span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Total Commits:</span>
                 <span className="font-semibold text-teal-700">{group.totalCommits}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Deadline:</span>
-                <span className="font-semibold text-slate-900">{project.deadline || "Dec 15, 2026"}</span>
+                <span className="font-semibold text-foreground">{project.deadline || "Dec 15, 2026"}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tab Selector: Covers all 7 Information Categories */}
-        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-100">
+        <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border">
           <button
             onClick={() => setActiveTab("overview")}
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "overview"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             Overview & Proposal
@@ -666,7 +666,7 @@ function LecturerGroupReviewContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "branches"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <GitBranch className="w-3.5 h-3.5 text-teal-400" />
@@ -678,7 +678,7 @@ function LecturerGroupReviewContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "commits"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <GitCommit className="w-3.5 h-3.5 text-teal-400" />
@@ -690,7 +690,7 @@ function LecturerGroupReviewContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "contributions"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5 text-teal-400" />
@@ -702,7 +702,7 @@ function LecturerGroupReviewContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "code_review"
                 ? "bg-teal-600 text-white shadow-xs shadow-teal-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
@@ -714,7 +714,7 @@ function LecturerGroupReviewContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "pull_requests"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <GitPullRequest className="w-3.5 h-3.5 text-teal-400" />
@@ -726,7 +726,7 @@ function LecturerGroupReviewContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
               activeTab === "activity"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-teal-400" />
@@ -751,34 +751,34 @@ function LecturerGroupReviewContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             {/* Student Group Roster */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card p-6 rounded-[16px] border border-border shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <Users className="w-4 h-4 text-teal-600" />
                   Assigned Student Members ({group.members.length})
                 </h3>
-                <span className="text-[11px] font-mono text-slate-400">Workspace ID: {group.workspaceId}</span>
+                <span className="text-[11px] font-mono text-muted-foreground">Workspace ID: {group.workspaceId}</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 {group.members.map((member) => (
                   <div
                     key={member.email}
-                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3"
+                    className="p-3.5 rounded-xl bg-muted border border-border flex items-start gap-3"
                   >
                     <div className="w-9 h-9 rounded-xl bg-teal-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
                       {member.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("")}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-900 truncate">{member.fullName}</span>
+                        <span className="font-bold text-foreground truncate">{member.fullName}</span>
                         <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
                           {member.role}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 truncate">{member.email}</p>
-                      <div className="pt-2 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                        <span>Uni ID: <strong className="text-slate-800">{member.studentId?.startsWith("std-") ? `CS202300${member.studentId.replace("std-", "")}` : (member.studentId || "CS2023001")}</strong></span>
+                      <p className="text-[11px] text-muted-foreground truncate">{member.email}</p>
+                      <div className="pt-2 flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+                        <span>Uni ID: <strong className="text-foreground">{member.studentId?.startsWith("std-") ? `CS202300${member.studentId.replace("std-", "")}` : (member.studentId || "CS2023001")}</strong></span>
                         <span>{member.commitsCount} commits</span>
                       </div>
                     </div>
@@ -788,9 +788,9 @@ function LecturerGroupReviewContent() {
             </div>
 
             {/* Proposal Evaluation Panel */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card p-6 rounded-[16px] border border-border shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-border">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <FileText className="w-4 h-4 text-teal-600" />
                   Capstone Proposal Review & Grading
                 </h3>
@@ -807,19 +807,19 @@ function LecturerGroupReviewContent() {
               {group.proposal ? (
                 <div className="space-y-4">
                   {/* Proposal Document details */}
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="p-4 rounded-xl bg-muted border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                         PDF
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-slate-900 text-sm">{group.proposal.title}</h4>
-                          <span className="text-[10px] bg-white px-2 py-0.5 rounded border border-slate-200 font-mono">
+                          <h4 className="font-bold text-foreground text-sm">{group.proposal.title}</h4>
+                          <span className="text-[10px] bg-card px-2 py-0.5 rounded border border-border font-mono">
                             v{group.proposal.version}.0
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           File: <strong>{group.proposal.fileName}</strong> ({group.proposal.fileSize}) • Submitted by {group.proposal.submittedBy}
                         </p>
                       </div>
@@ -831,7 +831,7 @@ function LecturerGroupReviewContent() {
                         e.preventDefault();
                         alert(`Downloading proposal document: ${group.proposal?.fileName}`);
                       }}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold shadow-2xs transition-colors shrink-0"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-card border border-border hover:bg-muted text-foreground rounded-lg text-xs font-semibold shadow-2xs transition-colors shrink-0"
                     >
                       <Download className="w-3.5 h-3.5" /> Download Proposal
                     </a>
@@ -839,15 +839,15 @@ function LecturerGroupReviewContent() {
 
                   {/* Proposal Description */}
                   {group.proposal.description && (
-                    <div className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/70 text-xs text-slate-600">
-                      <strong className="block text-slate-900 text-[11px] uppercase font-bold mb-1">Abstract:</strong>
+                    <div className="p-3.5 rounded-xl bg-muted/40 border border-border/70 text-xs text-muted-foreground">
+                      <strong className="block text-foreground text-[11px] uppercase font-bold mb-1">Abstract:</strong>
                       <p className="leading-relaxed">{group.proposal.description}</p>
                     </div>
                   )}
 
                   {/* Lecturer Evaluation Form */}
-                  <form onSubmit={handleReviewProposal} className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-4">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  <form onSubmit={handleReviewProposal} className="p-5 rounded-[16px] bg-muted border border-border space-y-4">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                       Faculty Decision & Evaluation
                     </h4>
 
@@ -857,7 +857,7 @@ function LecturerGroupReviewContent() {
                         className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-2 ${
                           feedbackDecision === "approved"
                             ? "border-teal-500 bg-teal-50/30 text-teal-950 font-bold"
-                            : "border-slate-200 bg-white text-slate-600"
+                            : "border-border bg-card text-muted-foreground"
                         }`}
                       >
                         <input
@@ -875,7 +875,7 @@ function LecturerGroupReviewContent() {
                         className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-2 ${
                           feedbackDecision === "changes_requested"
                             ? "border-rose-500 bg-rose-50/30 text-rose-950 font-bold"
-                            : "border-slate-200 bg-white text-slate-600"
+                            : "border-border bg-card text-muted-foreground"
                         }`}
                       >
                         <input
@@ -893,19 +893,19 @@ function LecturerGroupReviewContent() {
                     {/* Score and Comments */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
                       <div className="sm:col-span-1 space-y-1">
-                        <label className="block font-semibold text-slate-700">Rubric Score (/100)</label>
+                        <label className="block font-semibold text-foreground">Rubric Score (/100)</label>
                         <input
                           type="number"
                           min="0"
                           max="100"
                           value={feedbackScore}
                           onChange={(e) => setFeedbackScore(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+                          className="w-full px-3 py-2 bg-card border border-border rounded-xl text-xs font-bold text-foreground"
                         />
                       </div>
 
                       <div className="sm:col-span-3 space-y-1">
-                        <label className="block font-semibold text-slate-700">
+                        <label className="block font-semibold text-foreground">
                           Constructive Review Comments <span className="text-rose-500">*</span>
                         </label>
                         <textarea
@@ -913,7 +913,7 @@ function LecturerGroupReviewContent() {
                           placeholder="Provide architectural feedback, risk flags, or specific revision guidelines..."
                           value={feedbackComments}
                           onChange={(e) => setFeedbackComments(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 resize-none"
+                          className="w-full px-3 py-2 bg-card border border-border rounded-xl text-xs text-foreground resize-none"
                         />
                       </div>
                     </div>
@@ -932,10 +932,10 @@ function LecturerGroupReviewContent() {
                   </form>
                 </div>
               ) : (
-                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-                  <FileText className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-slate-700">No project proposal submitted yet.</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                <div className="p-8 text-center bg-muted rounded-[16px] border border-dashed border-border">
+                  <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-foreground">No project proposal submitted yet.</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
                     Students will upload their capstone PDF specification from the shared workspace.
                   </p>
                 </div>
@@ -945,9 +945,9 @@ function LecturerGroupReviewContent() {
 
           {/* Right Sidebar: Contribution Breakdown & Guidelines */}
           <div className="space-y-6">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="bg-card p-5 rounded-[16px] border border-border shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                   Git Contribution Telemetry
                 </span>
                 <span className="font-mono text-xs font-bold text-teal-700">{group.totalCommits} Total Commits</span>
@@ -961,10 +961,10 @@ function LecturerGroupReviewContent() {
                   return (
                     <div key={m.email} className="space-y-1">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-slate-800">{m.fullName}</span>
+                        <span className="font-bold text-foreground">{m.fullName}</span>
                         <span className="font-mono text-teal-700 font-semibold">{m.commitsCount} commits ({pct}%)</span>
                       </div>
-                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
                         <div className="bg-teal-500 h-full rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
@@ -982,8 +982,8 @@ function LecturerGroupReviewContent() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Faculty Shortcuts</span>
+            <div className="bg-card p-5 rounded-[16px] border border-border shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">Faculty Shortcuts</span>
               <Button
                 variant="outline"
                 size="sm"
@@ -1020,14 +1020,14 @@ function LecturerGroupReviewContent() {
       {/* TAB 2: BRANCHES VIEW                                           */}
       {/* ============================================================== */}
       {activeTab === "branches" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <GitBranch className="w-5 h-5 text-teal-600" />
                 Repository Branches ({branches.length})
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Inspect available development branches, switch active code views, or open branch trees on GitHub.
               </p>
             </div>
@@ -1037,7 +1037,7 @@ function LecturerGroupReviewContent() {
                 href={group.repoUrl ? `${group.repoUrl}/branches` : "https://github.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold transition-all"
               >
                 <span>View Branches on GitHub</span>
                 <ExternalLink className="w-3 h-3" />
@@ -1060,17 +1060,17 @@ function LecturerGroupReviewContent() {
               return (
                 <div
                   key={b.name}
-                  className={`p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 ${
+                  className={`p-5 rounded-[16px] border transition-all flex flex-col justify-between gap-4 ${
                     isSelected
                       ? "border-teal-500 bg-teal-50/20 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      : "border-border bg-card hover:border-border"
                   }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <GitBranch className="w-4 h-4 text-teal-600 shrink-0" />
-                        <span className="font-mono font-bold text-slate-900 text-sm truncate">{b.name}</span>
+                        <span className="font-mono font-bold text-foreground text-sm truncate">{b.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         {b.isDefault && (
@@ -1086,17 +1086,17 @@ function LecturerGroupReviewContent() {
                       </div>
                     </div>
 
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Latest Commit</div>
-                      <p className="font-medium text-slate-800 line-clamp-2">{b.latestCommitMessage}</p>
-                      <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-slate-500">
+                    <div className="p-3 bg-muted rounded-xl border border-border text-xs space-y-1">
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Latest Commit</div>
+                      <p className="font-medium text-foreground line-clamp-2">{b.latestCommitMessage}</p>
+                      <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
                         <span className="text-teal-700 font-semibold">{b.latestCommitHash}</span>
                         <span>{b.updatedAt}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center gap-2 pt-2 border-t border-border">
                     <button
                       onClick={() => {
                         setSelectedBranch(b.name);
@@ -1111,7 +1111,7 @@ function LecturerGroupReviewContent() {
                       href={group.repoUrl ? `${group.repoUrl}/tree/${b.name}` : "https://github.com"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs transition-colors"
+                      className="p-1.5 bg-muted hover:bg-muted text-muted-foreground rounded-lg text-xs transition-colors"
                       title="Open branch in GitHub"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -1128,14 +1128,14 @@ function LecturerGroupReviewContent() {
       {/* TAB 3: COMMITS VIEW                                            */}
       {/* ============================================================== */}
       {activeTab === "commits" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <FolderGit2 className="w-5 h-5 text-teal-600" />
                 Repository Telemetry & Commit History
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Commit messages, author telemetry, timestamps, and commit hashes from {group.repoUrl || "connected repository"}.
               </p>
             </div>
@@ -1144,7 +1144,7 @@ function LecturerGroupReviewContent() {
               <select
                 value={selectedBranch}
                 onChange={(e) => setSelectedBranch(e.target.value)}
-                className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono text-slate-700 font-semibold"
+                className="text-xs bg-muted border border-border rounded-lg px-2.5 py-1.5 font-mono text-foreground font-semibold"
               >
                 {branches.map((b) => (
                   <option key={b.name} value={b.name}>
@@ -1170,16 +1170,16 @@ function LecturerGroupReviewContent() {
             {commits.map((commit) => (
               <div
                 key={commit.hash}
-                className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                className="p-4 rounded-xl border border-border bg-card hover:border-border transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
               >
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
                     <GitCommit className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">{commit.message}</p>
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 mt-1">
-                      <span>Committed by <strong className="text-slate-800">{commit.author}</strong></span>
+                    <p className="font-bold text-foreground text-sm">{commit.message}</p>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground mt-1">
+                      <span>Committed by <strong className="text-foreground">{commit.author}</strong></span>
                       <span>•</span>
                       <span>{new Date(commit.date).toLocaleString()}</span>
                     </div>
@@ -1187,7 +1187,7 @@ function LecturerGroupReviewContent() {
                 </div>
 
                 <div className="flex items-center gap-2 font-mono shrink-0">
-                  <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 border border-slate-200">
+                  <span className="text-[10px] bg-muted px-2 py-0.5 rounded text-muted-foreground border border-border">
                     {commit.branch}
                   </span>
                   <a
@@ -1210,20 +1210,20 @@ function LecturerGroupReviewContent() {
       {/* TAB 4: CONTRIBUTIONS BY GROUP MEMBER                           */}
       {/* ============================================================== */}
       {activeTab === "contributions" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-teal-600" />
                 Activity and Contributions by Group Member
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Breakdown of commits, source code modifications, and relative participation across all enrolled students.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-mono bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-              <span className="text-slate-500">Total Group Commits:</span>
+            <div className="flex items-center gap-3 text-xs font-mono bg-muted px-3 py-1.5 rounded-xl border border-border">
+              <span className="text-muted-foreground">Total Group Commits:</span>
               <strong className="text-teal-700 font-bold">{group.totalCommits || commits.length}</strong>
             </div>
           </div>
@@ -1241,7 +1241,7 @@ function LecturerGroupReviewContent() {
               return (
                 <div
                   key={member.email}
-                  className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-4 shadow-2xs"
+                  className="p-5 rounded-[16px] border border-border bg-card hover:border-border transition-all space-y-4 shadow-2xs"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -1250,7 +1250,7 @@ function LecturerGroupReviewContent() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-slate-900 text-sm">{member.fullName}</h4>
+                          <h4 className="font-bold text-foreground text-sm">{member.fullName}</h4>
                           {isLead && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded border border-amber-200">
                               <Crown className="w-3 h-3 text-amber-500" />
@@ -1258,8 +1258,8 @@ function LecturerGroupReviewContent() {
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
-                          <span>Uni ID: <strong className="text-slate-800 font-bold">{uniId}</strong></span>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono mt-0.5">
+                          <span>Uni ID: <strong className="text-foreground font-bold">{uniId}</strong></span>
                           <span>•</span>
                           <span>{member.role}</span>
                         </div>
@@ -1268,17 +1268,17 @@ function LecturerGroupReviewContent() {
 
                     <div className="text-right">
                       <span className="font-mono text-base font-extrabold text-teal-700">{member.commitsCount}</span>
-                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Commits</span>
+                      <span className="block text-[10px] font-bold text-muted-foreground uppercase">Commits</span>
                     </div>
                   </div>
 
                   {/* Progress Bar */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500">Contribution Share</span>
-                      <span className="font-mono font-bold text-slate-800">{pct}% of cohort commits</span>
+                      <span className="text-muted-foreground">Contribution Share</span>
+                      <span className="font-mono font-bold text-foreground">{pct}% of cohort commits</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                       <div
                         className="bg-teal-500 h-full rounded-full transition-all duration-500"
                         style={{ width: `${pct}%` }}
@@ -1287,18 +1287,18 @@ function LecturerGroupReviewContent() {
                   </div>
 
                   {/* Contribution Details */}
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center text-xs">
-                    <div className="p-2 bg-slate-50 rounded-lg">
-                      <span className="text-[10px] text-slate-400 block font-bold">Lines Added</span>
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border text-center text-xs">
+                    <div className="p-2 bg-muted rounded-lg">
+                      <span className="text-[10px] text-muted-foreground block font-bold">Lines Added</span>
                       <strong className="text-emerald-700 font-mono font-bold">+{member.commitsCount * 45 + 120}</strong>
                     </div>
-                    <div className="p-2 bg-slate-50 rounded-lg">
-                      <span className="text-[10px] text-slate-400 block font-bold">Lines Deleted</span>
+                    <div className="p-2 bg-muted rounded-lg">
+                      <span className="text-[10px] text-muted-foreground block font-bold">Lines Deleted</span>
                       <strong className="text-rose-700 font-mono font-bold">-{member.commitsCount * 8 + 15}</strong>
                     </div>
-                    <div className="p-2 bg-slate-50 rounded-lg">
-                      <span className="text-[10px] text-slate-400 block font-bold">Files Touched</span>
-                      <strong className="text-slate-800 font-mono font-bold">{Math.max(2, member.commitsCount * 2)}</strong>
+                    <div className="p-2 bg-muted rounded-lg">
+                      <span className="text-[10px] text-muted-foreground block font-bold">Files Touched</span>
+                      <strong className="text-foreground font-mono font-bold">{Math.max(2, member.commitsCount * 2)}</strong>
                     </div>
                   </div>
                 </div>
@@ -1306,7 +1306,7 @@ function LecturerGroupReviewContent() {
             })}
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-3">
+          <div className="p-4 rounded-xl bg-muted border border-border text-xs text-muted-foreground flex items-start gap-3">
             <Info className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
             <p>
               Contribution statistics are compiled from authenticated commit authors matching registered student emails. Individual grading rubrics should also incorporate code quality, peer feedback, and verbal design defense.
@@ -1321,19 +1321,19 @@ function LecturerGroupReviewContent() {
       {activeTab === "code_review" && (
         <div className="space-y-6">
           {/* Top Bar */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-card p-5 rounded-[16px] border border-border shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <FileCode2 className="w-5 h-5 text-teal-600" />
                 Repository Source Code & Sandboxed C Execution
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Browse repository files inside UniCodeTrack AI and run C programs securely in the sandboxed runtime.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200">
+              <span className="text-xs font-mono bg-muted text-foreground px-2.5 py-1 rounded-lg border border-border">
                 Compiler: GCC 13.2 (C11)
               </span>
               <Button
@@ -1351,9 +1351,9 @@ function LecturerGroupReviewContent() {
           {/* Code Review Layout: File Tree (Left) + Code Viewer (Right) */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* File Tree Navigator */}
-            <div className="lg:col-span-1 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
+            <div className="lg:col-span-1 bg-card p-4 rounded-[16px] border border-border shadow-2xs space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                   Repository Files
                 </span>
                 <span className="text-[11px] font-mono text-teal-700 bg-teal-50 px-2 py-0.5 rounded">
@@ -1366,7 +1366,7 @@ function LecturerGroupReviewContent() {
                   if (node.type === "dir") {
                     return (
                       <div key={node.path} className="space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-slate-800 px-2 py-1">
+                        <div className="flex items-center gap-1.5 font-bold text-foreground px-2 py-1">
                           <FolderGit2 className="w-3.5 h-3.5 text-teal-600" />
                           <span>{node.name}/</span>
                         </div>
@@ -1378,10 +1378,10 @@ function LecturerGroupReviewContent() {
                               className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${
                                 selectedFile.path === child.path
                                   ? "bg-teal-50 text-teal-800 font-bold border border-teal-200"
-                                  : "text-slate-600 hover:bg-slate-100"
+                                  : "text-muted-foreground hover:bg-muted"
                               }`}
                             >
-                              <FileCode2 className="w-3 h-3 text-slate-400" />
+                              <FileCode2 className="w-3 h-3 text-muted-foreground" />
                               <span className="truncate">{child.name}</span>
                             </button>
                           ))}
@@ -1397,10 +1397,10 @@ function LecturerGroupReviewContent() {
                       className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors ${
                         selectedFile.path === node.path
                           ? "bg-teal-50 text-teal-800 font-bold border border-teal-200"
-                          : "text-slate-600 hover:bg-slate-100"
+                          : "text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      <FileCode2 className="w-3 h-3 text-slate-400" />
+                      <FileCode2 className="w-3 h-3 text-muted-foreground" />
                       <span className="truncate">{node.name}</span>
                     </button>
                   );
@@ -1409,11 +1409,11 @@ function LecturerGroupReviewContent() {
             </div>
 
             {/* Code Viewer Panel */}
-            <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
+            <div className="lg:col-span-3 bg-card rounded-[16px] border border-border shadow-2xs overflow-hidden flex flex-col">
               {/* Code Viewer Header */}
-              <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+              <div className="p-3.5 bg-muted border-b border-border flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-slate-900">{selectedFile.path}</span>
+                  <span className="font-mono font-bold text-foreground">{selectedFile.path}</span>
                   <span className="text-[10px] uppercase font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                     {selectedFile.language || "c"}
                   </span>
@@ -1425,7 +1425,7 @@ function LecturerGroupReviewContent() {
                       href={`${group.repoUrl}/blob/${selectedBranch}/${selectedFile.path}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-card border border-border text-muted-foreground hover:bg-muted text-[11px] transition-colors"
                       title="Open file on GitHub"
                     >
                       <ExternalLink className="w-3 h-3" />
@@ -1435,7 +1435,7 @@ function LecturerGroupReviewContent() {
 
                   <button
                     onClick={handleCopyCode}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px] transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-card border border-border text-muted-foreground hover:bg-muted text-[11px] transition-colors"
                   >
                     {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedCode ? "Copied" : "Copy Code"}</span>
@@ -1453,7 +1453,7 @@ function LecturerGroupReviewContent() {
           </div>
 
           {/* Sandboxed C Execution Terminal */}
-          <div className="bg-[#0B1220] text-slate-100 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+          <div className="bg-[#0B1220] text-slate-100 rounded-[16px] border border-slate-800 p-6 space-y-4 shadow-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
                 <Terminal className="w-5 h-5 text-teal-400" />
@@ -1481,7 +1481,7 @@ function LecturerGroupReviewContent() {
 
             {/* Stdin input */}
             <div className="space-y-1">
-              <label className="block text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+              <label className="block text-[11px] font-mono text-muted-foreground uppercase tracking-wider">
                 Standard Input (stdin) - optional
               </label>
               <input
@@ -1489,7 +1489,7 @@ function LecturerGroupReviewContent() {
                 placeholder="Pass optional program input here..."
                 value={stdinInput}
                 onChange={(e) => setStdinInput(e.target.value)}
-                className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-mono text-slate-200 focus:outline-hidden focus:border-teal-500"
+                className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-mono text-slate-200 focus:outline-hidden focus:border-accent"
               />
             </div>
 
@@ -1504,13 +1504,13 @@ function LecturerGroupReviewContent() {
                         executionResult.success ? "bg-emerald-400" : "bg-rose-400"
                       }`}
                     />
-                    <span className="text-slate-300">Status:</span>
+                    <span className="text-muted-foreground/60">Status:</span>
                     <strong className={executionResult.success ? "text-emerald-400" : "text-rose-400"}>
                       {executionResult.compilationStatus}
                     </strong>
                   </div>
 
-                  <div className="flex items-center gap-3 text-slate-400 text-[11px]">
+                  <div className="flex items-center gap-3 text-muted-foreground text-[11px]">
                     <span>Execution: {executionResult.executionTimeSeconds}s</span>
                     <span>Exit code: {executionResult.exitCode}</span>
                   </div>
@@ -1530,7 +1530,7 @@ function LecturerGroupReviewContent() {
                 )}
               </div>
             ) : (
-              <div className="p-6 text-center text-slate-500 font-mono text-xs border border-dashed border-slate-800 rounded-xl">
+              <div className="p-6 text-center text-muted-foreground font-mono text-xs border border-dashed border-slate-800 rounded-xl">
                 Click &ldquo;Run C Program&rdquo; to compile and execute <strong>{selectedFile.name}</strong> inside the secure sandbox environment.
               </div>
             )}
@@ -1542,14 +1542,14 @@ function LecturerGroupReviewContent() {
       {/* TAB 6: PULL REQUESTS VIEW                                      */}
       {/* ============================================================== */}
       {activeTab === "pull_requests" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <GitPullRequest className="w-5 h-5 text-teal-600" />
                 Submitted Changes and Review Status ({pullRequests.length})
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Review student peer pull requests, code modifications, branch targets, and faculty evaluation status.
               </p>
             </div>
@@ -1559,7 +1559,7 @@ function LecturerGroupReviewContent() {
                 href={group.repoUrl ? `${group.repoUrl}/pulls` : "https://github.com"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold transition-all"
               >
                 <span>View PRs on GitHub</span>
                 <ExternalLink className="w-3 h-3" />
@@ -1571,13 +1571,13 @@ function LecturerGroupReviewContent() {
             {pullRequests.map((pr) => (
               <div
                 key={pr.id}
-                className="p-5 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-3"
+                className="p-5 rounded-[16px] border border-border bg-card hover:border-border transition-all space-y-3"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-teal-700 font-bold text-sm">#{pr.number}</span>
-                      <h4 className="font-bold text-slate-900 text-sm">{pr.title}</h4>
+                      <h4 className="font-bold text-foreground text-sm">{pr.title}</h4>
 
                       {/* Status Badges */}
                       {pr.status === "merged" ? (
@@ -1589,7 +1589,7 @@ function LecturerGroupReviewContent() {
                           <GitPullRequest className="w-3 h-3" /> Open
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-foreground">
                           Closed
                         </span>
                       )}
@@ -1610,7 +1610,7 @@ function LecturerGroupReviewContent() {
                       )}
                     </div>
 
-                    <p className="text-xs text-slate-600">{pr.description}</p>
+                    <p className="text-xs text-muted-foreground">{pr.description}</p>
                   </div>
 
                   {/* Diff Stats */}
@@ -1621,17 +1621,17 @@ function LecturerGroupReviewContent() {
                     <span className="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                       -{pr.deletions}
                     </span>
-                    <span className="text-slate-500 text-[11px]">
+                    <span className="text-muted-foreground text-[11px]">
                       {pr.changedFilesCount} files
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 font-mono">
+                <div className="pt-2 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-muted-foreground font-mono">
                   <div className="flex items-center gap-2">
-                    <span>Author: <strong className="text-slate-800">{pr.author}</strong></span>
+                    <span>Author: <strong className="text-foreground">{pr.author}</strong></span>
                     <span>•</span>
-                    <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700">
+                    <span className="bg-muted px-2 py-0.5 rounded text-foreground">
                       {pr.sourceBranch} → {pr.targetBranch}
                     </span>
                   </div>
@@ -1639,7 +1639,7 @@ function LecturerGroupReviewContent() {
                   <div className="flex items-center gap-3">
                     {pr.reviewer && (
                       <span className="text-[11px]">
-                        Reviewed by: <strong className="text-slate-700">{pr.reviewer}</strong>
+                        Reviewed by: <strong className="text-foreground">{pr.reviewer}</strong>
                       </span>
                     )}
                     <a
@@ -1655,8 +1655,8 @@ function LecturerGroupReviewContent() {
                 </div>
 
                 {pr.reviewComments && (
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-700">
-                    <strong className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">Faculty / Reviewer Notes:</strong>
+                  <div className="p-3 bg-muted rounded-xl border border-border text-xs text-foreground">
+                    <strong className="block text-[10px] uppercase font-bold text-muted-foreground mb-0.5">Faculty / Reviewer Notes:</strong>
                     <p className="italic">{pr.reviewComments}</p>
                   </div>
                 )}
@@ -1670,14 +1670,14 @@ function LecturerGroupReviewContent() {
       {/* TAB 7: LATEST ACTIVITY STREAM                                  */}
       {/* ============================================================== */}
       {activeTab === "activity" && (
-        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="bg-card p-6 sm:p-7 rounded-[16px] border border-border shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Activity className="w-5 h-5 text-teal-600" />
                 Latest Repository Updates & Activity Stream
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Real-time chronological events, commits, pull requests, and collaborator events for {group.groupName}.
               </p>
             </div>
@@ -1688,29 +1688,29 @@ function LecturerGroupReviewContent() {
             </span>
           </div>
 
-          <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
+          <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-muted">
             {activityEvents.map((evt) => (
               <div key={evt.id} className="relative group">
                 {/* Timeline node */}
-                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-teal-500 flex items-center justify-center">
+                <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-card border-2 border-teal-500 flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-teal-600" />
                 </div>
 
-                <div className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors space-y-1.5 text-xs">
+                <div className="p-4 rounded-xl border border-border bg-card hover:border-border transition-colors space-y-1.5 text-xs">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900">{evt.user}</span>
-                      <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                      <span className="font-bold text-foreground">{evt.user}</span>
+                      <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         {evt.role}
                       </span>
-                      <span className="text-slate-600">{evt.action}</span>
+                      <span className="text-muted-foreground">{evt.action}</span>
                       <span className="font-mono font-semibold text-teal-700">{evt.target}</span>
                     </div>
 
-                    <span className="text-[11px] text-slate-400 font-mono">{evt.time}</span>
+                    <span className="text-[11px] text-muted-foreground font-mono">{evt.time}</span>
                   </div>
 
-                  <p className="text-slate-600 text-xs">{evt.detail}</p>
+                  <p className="text-muted-foreground text-xs">{evt.detail}</p>
                 </div>
               </div>
             ))}
@@ -1725,9 +1725,9 @@ export default function LecturerGroupReviewPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+        <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
           <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm font-medium text-slate-600">Loading lecturer group review console...</p>
+          <p className="text-sm font-medium text-muted-foreground">Loading lecturer group review console...</p>
         </div>
       }
     >

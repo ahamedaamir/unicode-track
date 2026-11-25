@@ -321,12 +321,12 @@ function ProjectDetailContent() {
 
   if (!project) {
     return (
-      <div className="bg-[#0e1626] rounded-2xl border border-[#1e293b] p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
-        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+      <div className="bg-[#0e1626] rounded-[16px] border border-[#1e293b] p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+        <div className="w-16 h-16 rounded-[16px] bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
           <FolderKanban className="w-8 h-8" />
         </div>
         <h2 className="text-xl font-bold text-white">Project Not Found</h2>
-        <p className="text-sm text-slate-400 mt-2 mb-6">
+        <p className="text-sm text-muted-foreground mt-2 mb-6">
           The requested project ID <span className="font-mono text-teal-400 font-semibold">{projectId}</span> could not be found or may have been removed.
         </p>
         <Link
@@ -343,17 +343,17 @@ function ProjectDetailContent() {
   // Security Gate: Permission Denied Card
   if (!isAuthorizedLecturer || permissionError) {
     return (
-      <div className="bg-[#0e1626] rounded-2xl border border-rose-900/60 p-12 text-center max-w-xl mx-auto mt-10 shadow-md space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-rose-950/40 text-rose-400 flex items-center justify-center mx-auto border border-rose-800/60 shadow-xs">
+      <div className="bg-[#0e1626] rounded-[16px] border border-rose-900/60 p-12 text-center max-w-xl mx-auto mt-10 shadow-md space-y-4">
+        <div className="w-16 h-16 rounded-[16px] bg-rose-950/40 text-rose-400 flex items-center justify-center mx-auto border border-rose-800/60 shadow-xs">
           <ShieldAlert className="w-8 h-8" />
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">Access Denied: Faculty Supervision Restricted</h2>
-          <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+          <p className="text-sm text-muted-foreground/60 mt-2 leading-relaxed">
             {permissionError ||
               `You are logged in as ${currentLecturer?.name || activeLecturerEmail}, but this project is assigned to ${project.lecturerName || "another faculty coordinator"} for course ${project.courseCode}.`}
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Student deliverables and workspace evaluation are only accessible to assigned faculty members.
           </p>
         </div>
@@ -389,7 +389,7 @@ function ProjectDetailContent() {
       {/* Hierarchy: Year -> Department -> Course -> Project -> Scope   */}
       {/* ============================================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-400 font-medium">
+        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground font-medium">
           <Link
             href="/dashboard/projects"
             className="inline-flex items-center gap-1.5 hover:text-teal-400 transition-colors"
@@ -398,7 +398,7 @@ function ProjectDetailContent() {
             Projects Directory
           </Link>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
 
           <Link
             href={`/dashboard/projects?academicYear=${project.academicYear}`}
@@ -407,19 +407,19 @@ function ProjectDetailContent() {
             Year {project.academicYear}
           </Link>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
 
-          <span className="text-slate-600 truncate max-w-[140px]" title={department?.name}>
+          <span className="text-muted-foreground truncate max-w-[140px]" title={department?.name}>
             {department?.name || "Computing"}
           </span>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
 
           <span className="font-bold text-teal-300 bg-teal-500/15 px-2 py-0.5 rounded border border-teal-500/30">
             {project.courseCode}
           </span>
 
-          <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
 
           <span className="text-white font-bold truncate max-w-[200px]">
             {project.title}
@@ -447,9 +447,9 @@ function ProjectDetailContent() {
           ) : (
             <button
               onClick={() => archiveProject(project.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-[#1e293b] hover:bg-slate-800 text-slate-300 rounded-xl text-xs font-medium transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-[#1e293b] hover:bg-slate-800 text-muted-foreground/60 rounded-xl text-xs font-medium transition-all"
             >
-              <Archive className="w-3.5 h-3.5 text-slate-400" />
+              <Archive className="w-3.5 h-3.5 text-muted-foreground" />
               {project.status === "Archived" ? "Restore" : "Archive"}
             </button>
           )}
@@ -467,7 +467,7 @@ function ProjectDetailContent() {
       {/* ============================================================== */}
       {/* HERO PROJECT HEADER CARD                                       */}
       {/* ============================================================== */}
-      <div className="bg-[#0e1626] rounded-2xl border border-[#1e293b] shadow-xs p-6 sm:p-8">
+      <div className="bg-[#0e1626] rounded-[16px] border border-[#1e293b] shadow-xs p-6 sm:p-8">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div className="space-y-3 flex-1">
             {/* Badges */}
@@ -478,7 +478,7 @@ function ProjectDetailContent() {
                     ? "bg-emerald-950/60 text-emerald-400 border border-emerald-800/60"
                     : project.status === "Draft"
                     ? "bg-amber-950/60 text-amber-400 border border-amber-800/60"
-                    : "bg-slate-800 text-slate-400 border border-slate-700"
+                    : "bg-slate-800 text-muted-foreground border border-slate-700"
                 }`}
               >
                 <span
@@ -525,31 +525,31 @@ function ProjectDetailContent() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
               {project.title}
             </h1>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-4xl">
+            <p className="text-muted-foreground/60 text-sm sm:text-base leading-relaxed max-w-4xl">
               {project.description}
             </p>
           </div>
 
           {/* Quick Academic Meta Pill Card */}
           <div className="bg-[#090d16] border border-[#1e293b] rounded-xl p-4 lg:w-72 shrink-0 space-y-3">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Course Information
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Course Code:</span>
+                <span className="text-muted-foreground">Course Code:</span>
                 <span className="font-bold text-teal-400 font-mono">{project.courseCode}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Target Cohort:</span>
+                <span className="text-muted-foreground">Target Cohort:</span>
                 <span className="font-medium text-slate-200">
                   Year {project.academicYear}, Sem {project.semester}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Deadline:</span>
+                <span className="text-muted-foreground">Deadline:</span>
                 <span className="font-medium text-slate-200 flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-slate-400" />
+                  <Calendar className="w-3 h-3 text-muted-foreground" />
                   {project.deadline
                     ? new Date(project.deadline).toLocaleDateString("en-US", {
                         month: "short",
@@ -560,7 +560,7 @@ function ProjectDetailContent() {
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-[#1e293b]">
-                <span className="text-slate-400">Supervisor:</span>
+                <span className="text-muted-foreground">Supervisor:</span>
                 <span className="font-medium text-slate-200 truncate max-w-[130px]" title={project.lecturerName}>
                   {project.lecturerName || "Lecturer"}
                 </span>
@@ -576,7 +576,7 @@ function ProjectDetailContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
               activeTab === "supervision"
                 ? "bg-teal-500 text-slate-950 font-bold shadow-xs"
-                : "text-slate-400 hover:text-white hover:bg-slate-800"
+                : "text-muted-foreground hover:text-white hover:bg-slate-800"
             }`}
           >
             {isIndividualProject ? (
@@ -596,7 +596,7 @@ function ProjectDetailContent() {
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
               activeTab === "overview"
                 ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             Overview & Milestones
@@ -607,7 +607,7 @@ function ProjectDetailContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
               activeTab === "requirements"
                 ? "bg-teal-600 text-white shadow-xs shadow-teal-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             {project.requirementsSource === "ai" ? (
@@ -624,7 +624,7 @@ function ProjectDetailContent() {
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
                 activeTab === "repositories"
                   ? "bg-slate-900 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
               <FolderGit2 className="w-3.5 h-3.5 text-teal-500" />
@@ -637,7 +637,7 @@ function ProjectDetailContent() {
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
               activeTab === "assignment"
                 ? "bg-teal-600 text-white shadow-xs shadow-teal-600/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -665,7 +665,7 @@ function ProjectDetailContent() {
                     ? "Assigned Student Workspaces & Deliverables"
                     : "Academic Group Workspaces & Deliverables"}
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {isIndividualProject
                     ? "Inspect individual personal workspaces, ER diagrams, GitHub telemetry, and assign evaluation marks."
                     : "Monitor student groups sequentially (Group 1, Group 2, ...), track submission progress, ER models, and AI reviews."}
@@ -684,7 +684,7 @@ function ProjectDetailContent() {
             {/* Filter Bar */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-[#1e293b]">
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder={
@@ -694,7 +694,7 @@ function ProjectDetailContent() {
                   }
                   value={supervisionSearch}
                   onChange={(e) => setSupervisionSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
+                  className="w-full pl-9 pr-4 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-accent"
                 />
               </div>
 
@@ -702,7 +702,7 @@ function ProjectDetailContent() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full px-3 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 focus:outline-none focus:border-accent"
                 >
                   <option value="all">All Deliverables Progress</option>
                   <option value="approved">Approved</option>
@@ -716,7 +716,7 @@ function ProjectDetailContent() {
                 <select
                   value={evalFilter}
                   onChange={(e) => setEvalFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+                  className="w-full px-3 py-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-slate-200 focus:outline-none focus:border-accent"
                 >
                   <option value="all">All Evaluation Statuses</option>
                   <option value="published">Graded & Published</option>
@@ -733,17 +733,17 @@ function ProjectDetailContent() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 animate-pulse"
+                  className="bg-card rounded-[16px] border border-border p-6 space-y-4 animate-pulse"
                 >
                   <div className="flex justify-between items-center">
-                    <div className="h-6 w-24 bg-slate-200 rounded-lg" />
-                    <div className="h-5 w-20 bg-slate-200 rounded-full" />
+                    <div className="h-6 w-24 bg-muted rounded-lg" />
+                    <div className="h-5 w-20 bg-muted rounded-full" />
                   </div>
-                  <div className="h-4 w-3/4 bg-slate-200 rounded-md" />
-                  <div className="h-2 w-full bg-slate-100 rounded-full" />
+                  <div className="h-4 w-3/4 bg-muted rounded-md" />
+                  <div className="h-2 w-full bg-muted rounded-full" />
                   <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="h-8 bg-slate-100 rounded-lg" />
-                    <div className="h-8 bg-slate-100 rounded-lg" />
+                    <div className="h-8 bg-muted rounded-lg" />
+                    <div className="h-8 bg-muted rounded-lg" />
                   </div>
                 </div>
               ))}
@@ -753,10 +753,10 @@ function ProjectDetailContent() {
             /* GROUP PROJECT SUPERVISION VIEW: GROUP 1, GROUP 2, GROUP 3...   */
             /* ============================================================== */
             filteredGroups.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-3">
-                <Users className="w-12 h-12 text-slate-300 mx-auto" />
-                <h4 className="text-base font-bold text-slate-800">No Student Groups Found</h4>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <div className="bg-card rounded-[16px] border border-dashed border-border p-12 text-center space-y-3">
+                <Users className="w-12 h-12 text-muted-foreground/60 mx-auto" />
+                <h4 className="text-base font-bold text-foreground">No Student Groups Found</h4>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   No groups matched your active search query or filter. If no groups have been created, use the AI Assignment Workflow to extract groups.
                 </p>
                 <div className="pt-2">
@@ -776,7 +776,7 @@ function ProjectDetailContent() {
                     return (
                       <div
                         key={group.id}
-                        className="bg-white rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md transition-all p-6 flex flex-col justify-between space-y-5"
+                        className="bg-card rounded-[16px] border border-border shadow-2xs hover:shadow-md transition-all p-6 flex flex-col justify-between space-y-5"
                       >
                         {/* Group Header */}
                         <div>
@@ -787,10 +787,10 @@ function ProjectDetailContent() {
                                 #{group.groupNumber}
                               </span>
                               <div>
-                                <h4 className="font-extrabold text-base text-slate-900">
+                                <h4 className="font-extrabold text-base text-foreground">
                                   {group.groupName}
                                 </h4>
-                                <span className="text-[11px] font-mono text-slate-400">
+                                <span className="text-[11px] font-mono text-muted-foreground">
                                   Workspace: {group.workspaceId}
                                 </span>
                               </div>
@@ -803,7 +803,7 @@ function ProjectDetailContent() {
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : group.lecturerEvaluationStatus === "in_review"
                                   ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                  : "bg-slate-100 text-slate-600 border border-slate-200"
+                                  : "bg-muted text-muted-foreground border border-border"
                               }`}
                             >
                               {group.lecturerEvaluationStatus === "published"
@@ -815,32 +815,32 @@ function ProjectDetailContent() {
                           </div>
 
                           {/* Group Members List */}
-                          <div className="mt-3 pt-3 border-t border-slate-100">
-                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                          <div className="mt-3 pt-3 border-t border-border">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
                               Team Members ({group.members.length})
                             </span>
                             <div className="space-y-1.5">
                               {group.members.map((m) => (
                                 <div
                                   key={m.studentId || m.email}
-                                  className="flex items-center justify-between text-xs bg-slate-50/80 px-2.5 py-1.5 rounded-lg border border-slate-200/50"
+                                  className="flex items-center justify-between text-xs bg-muted px-2.5 py-1.5 rounded-lg border border-border/50"
                                 >
                                   <div className="flex items-center gap-2 truncate">
                                     <div className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 font-bold text-[10px] flex items-center justify-center shrink-0">
                                       {m.fullName.charAt(0)}
                                     </div>
-                                    <span className="font-semibold text-slate-900 truncate">
+                                    <span className="font-semibold text-foreground truncate">
                                       {m.fullName}
                                     </span>
-                                    <span className="text-[10px] font-mono text-slate-400">
+                                    <span className="text-[10px] font-mono text-muted-foreground">
                                       ({m.studentId})
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2 shrink-0">
-                                    <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-slate-200 text-slate-700">
+                                    <span className="text-[10px] px-1.5 py-0.2 rounded font-semibold bg-muted text-foreground">
                                       {m.role}
                                     </span>
-                                    <span className="text-[10px] font-mono text-slate-500">
+                                    <span className="text-[10px] font-mono text-muted-foreground">
                                       {m.commitsCount} commits
                                     </span>
                                   </div>
@@ -851,14 +851,14 @@ function ProjectDetailContent() {
                         </div>
 
                         {/* Deliverables Status Grid (7 Required Statuses) */}
-                        <div className="space-y-3 pt-3 border-t border-slate-100">
+                        <div className="space-y-3 pt-3 border-t border-border">
                           {/* Submission Progress Bar */}
                           <div>
                             <div className="flex items-center justify-between text-xs mb-1">
-                              <span className="text-slate-500 font-medium">
+                              <span className="text-muted-foreground font-medium">
                                 Submission Progress
                               </span>
-                              <span className="font-bold text-slate-900">
+                              <span className="font-bold text-foreground">
                                 {group.submissionProgress}% (
                                 <span className="capitalize text-teal-700">
                                   {group.submissionStatus.replace("_", " ")}
@@ -866,7 +866,7 @@ function ProjectDetailContent() {
                                 )
                               </span>
                             </div>
-                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                               <div
                                 className="bg-teal-500 h-full rounded-full transition-all"
                                 style={{ width: `${Math.max(group.submissionProgress, 5)}%` }}
@@ -877,8 +877,8 @@ function ProjectDetailContent() {
                           {/* 4 Status Strip Badges */}
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             {/* ER Diagram Status */}
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            <div className="p-2.5 rounded-xl bg-muted border border-border/70 space-y-1">
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                                 ER Diagram
                               </span>
                               <span
@@ -889,7 +889,7 @@ function ProjectDetailContent() {
                                     : group.erDiagramStatus === "submitted" ||
                                       group.erDiagramStatus === "under_review"
                                     ? "text-blue-700"
-                                    : "text-slate-500"
+                                    : "text-muted-foreground"
                                 }`}
                               >
                                 <Database className="w-3 h-3" />
@@ -901,15 +901,15 @@ function ProjectDetailContent() {
                             </div>
 
                             {/* GitHub Status */}
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            <div className="p-2.5 rounded-xl bg-muted border border-border/70 space-y-1">
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                                 GitHub Repository
                               </span>
                               <span
                                 className={`inline-flex items-center gap-1 font-semibold text-[11px] ${
                                   group.githubStatus === "connected"
                                     ? "text-emerald-700"
-                                    : "text-slate-500"
+                                    : "text-muted-foreground"
                                 }`}
                               >
                                 <FolderGit2 className="w-3 h-3" />
@@ -920,15 +920,15 @@ function ProjectDetailContent() {
                             </div>
 
                             {/* AI Review Status */}
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            <div className="p-2.5 rounded-xl bg-muted border border-border/70 space-y-1">
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                                 AI Review
                               </span>
                               <span
                                 className={`inline-flex items-center gap-1 font-semibold text-[11px] ${
                                   group.aiReviewStatus === "completed"
                                     ? "text-teal-700"
-                                    : "text-slate-500"
+                                    : "text-muted-foreground"
                                 }`}
                               >
                                 <Sparkles className="w-3 h-3" />
@@ -939,15 +939,15 @@ function ProjectDetailContent() {
                             </div>
 
                             {/* Lecturer Evaluation */}
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            <div className="p-2.5 rounded-xl bg-muted border border-border/70 space-y-1">
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                                 Lecturer Evaluation
                               </span>
                               <span
                                 className={`inline-flex items-center gap-1 font-semibold text-[11px] ${
                                   group.lecturerEvaluationStatus === "published"
                                     ? "text-emerald-700"
-                                    : "text-slate-500"
+                                    : "text-muted-foreground"
                                 }`}
                               >
                                 <Award className="w-3 h-3" />
@@ -976,8 +976,8 @@ function ProjectDetailContent() {
 
                 {/* Groups Pagination */}
                 {filteredGroups.length > GROUPS_PER_PAGE && (
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                    <span className="text-xs text-slate-500">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <span className="text-xs text-muted-foreground">
                       Showing {(currentPage - 1) * GROUPS_PER_PAGE + 1} to{" "}
                       {Math.min(currentPage * GROUPS_PER_PAGE, filteredGroups.length)} of{" "}
                       {filteredGroups.length} groups
@@ -986,14 +986,14 @@ function ProjectDetailContent() {
                       <button
                         onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold disabled:opacity-40"
                       >
                         Previous
                       </button>
                       <button
                         onClick={() => setCurrentPage((p) => Math.min(p + 1, totalGroupPages))}
                         disabled={currentPage === totalGroupPages}
-                        className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold disabled:opacity-40"
                       >
                         Next
                       </button>
@@ -1007,10 +1007,10 @@ function ProjectDetailContent() {
             /* INDIVIDUAL PROJECT SUPERVISION: ASSIGNED STUDENT LIST          */
             /* ============================================================== */
             filteredStudents.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-3">
-                <User className="w-12 h-12 text-slate-300 mx-auto" />
-                <h4 className="text-base font-bold text-slate-800">No Assigned Students Found</h4>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <div className="bg-card rounded-[16px] border border-dashed border-border p-12 text-center space-y-3">
+                <User className="w-12 h-12 text-muted-foreground/60 mx-auto" />
+                <h4 className="text-base font-bold text-foreground">No Assigned Students Found</h4>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   No individual students matched your active filter. Use the Assignment Workflow to allocate students to this personal project.
                 </p>
                 <div className="pt-2">
@@ -1025,10 +1025,10 @@ function ProjectDetailContent() {
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                <div className="bg-card rounded-[16px] border border-border shadow-2xs overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                      <thead className="bg-muted border-b border-border text-muted-foreground uppercase tracking-wider font-semibold">
                         <tr>
                           <th className="px-5 py-3.5">Student ID</th>
                           <th className="px-4 py-3.5">Full Name</th>
@@ -1040,11 +1040,11 @@ function ProjectDetailContent() {
                           <th className="px-5 py-3.5 text-right">Personal Workspace</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                      <tbody className="divide-y divide-border text-foreground">
                         {paginatedStudents.map((student) => (
                           <tr
                             key={student.id}
-                            className="hover:bg-slate-50/80 transition-colors group"
+                            className="hover:bg-muted transition-colors group"
                           >
                             {/* Student ID */}
                             <td className="px-5 py-4 whitespace-nowrap font-mono font-bold text-teal-700">
@@ -1060,10 +1060,10 @@ function ProjectDetailContent() {
                                   {student.fullName.charAt(0)}
                                 </div>
                                 <div>
-                                  <span className="font-bold text-slate-900 block">
+                                  <span className="font-bold text-foreground block">
                                     {student.fullName}
                                   </span>
-                                  <span className="text-[11px] text-slate-400">
+                                  <span className="text-[11px] text-muted-foreground">
                                     {student.email}
                                   </span>
                                 </div>
@@ -1074,14 +1074,14 @@ function ProjectDetailContent() {
                             <td className="px-4 py-4 whitespace-nowrap">
                               <div className="space-y-1 w-32">
                                 <div className="flex justify-between text-[11px]">
-                                  <span className="capitalize font-semibold text-slate-700">
+                                  <span className="capitalize font-semibold text-foreground">
                                     {student.submissionStatus.replace("_", " ")}
                                   </span>
-                                  <span className="font-mono text-slate-500">
+                                  <span className="font-mono text-muted-foreground">
                                     {student.submissionProgress}%
                                   </span>
                                 </div>
-                                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
                                   <div
                                     className="bg-purple-600 h-full rounded-full"
                                     style={{ width: `${Math.max(student.submissionProgress, 5)}%` }}
@@ -1098,7 +1098,7 @@ function ProjectDetailContent() {
                                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                     : student.erDiagramStatus === "submitted"
                                     ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                    : "bg-slate-100 text-slate-500 border border-slate-200"
+                                    : "bg-muted text-muted-foreground border border-border"
                                 }`}
                               >
                                 <Database className="w-3 h-3" />
@@ -1114,7 +1114,7 @@ function ProjectDetailContent() {
                                 className={`inline-flex items-center gap-1 font-semibold text-[11px] ${
                                   student.githubStatus === "connected"
                                     ? "text-emerald-700"
-                                    : "text-slate-400"
+                                    : "text-muted-foreground"
                                 }`}
                               >
                                 <FolderGit2 className="w-3.5 h-3.5" />
@@ -1130,7 +1130,7 @@ function ProjectDetailContent() {
                                 className={`inline-flex items-center gap-1 font-semibold text-[11px] ${
                                   student.aiReviewStatus === "completed"
                                     ? "text-teal-700"
-                                    : "text-slate-400"
+                                    : "text-muted-foreground"
                                 }`}
                               >
                                 <Sparkles className="w-3.5 h-3.5" />
@@ -1146,7 +1146,7 @@ function ProjectDetailContent() {
                                 className={`inline-flex items-center gap-1 font-semibold text-[11px] px-2 py-0.5 rounded-full ${
                                   student.lecturerEvaluationStatus === "published"
                                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : "bg-slate-100 text-slate-500 border border-slate-200"
+                                    : "bg-muted text-muted-foreground border border-border"
                                 }`}
                               >
                                 <Award className="w-3 h-3" />
@@ -1175,8 +1175,8 @@ function ProjectDetailContent() {
 
                 {/* Students Pagination */}
                 {filteredStudents.length > STUDENTS_PER_PAGE && (
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                    <span className="text-xs text-slate-500">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <span className="text-xs text-muted-foreground">
                       Showing {(currentPage - 1) * STUDENTS_PER_PAGE + 1} to{" "}
                       {Math.min(currentPage * STUDENTS_PER_PAGE, filteredStudents.length)} of{" "}
                       {filteredStudents.length} students
@@ -1185,14 +1185,14 @@ function ProjectDetailContent() {
                       <button
                         onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold disabled:opacity-40"
                       >
                         Previous
                       </button>
                       <button
                         onClick={() => setCurrentPage((p) => Math.min(p + 1, totalStudentPages))}
                         disabled={currentPage === totalStudentPages}
-                        className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold disabled:opacity-40"
+                        className="px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold disabled:opacity-40"
                       >
                         Next
                       </button>
@@ -1211,84 +1211,84 @@ function ProjectDetailContent() {
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card rounded-[16px] border border-border p-6 shadow-xs space-y-4">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-teal-600" />
                 Academic Scope & Assignment
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                <div className="p-3.5 rounded-xl bg-muted border border-border">
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                     Department
                   </div>
-                  <div className="text-slate-900 font-semibold mt-1">
+                  <div className="text-foreground font-semibold mt-1">
                     {department?.name || "Faculty of Computing & Information"}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                <div className="p-3.5 rounded-xl bg-muted border border-border">
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                     Assigned Course
                   </div>
-                  <div className="text-slate-900 font-semibold mt-1">
+                  <div className="text-foreground font-semibold mt-1">
                     {project.courseCode} {course ? `— ${course.name}` : ""}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                <div className="p-3.5 rounded-xl bg-muted border border-border">
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                     Target Cohort
                   </div>
-                  <div className="text-slate-900 font-semibold mt-1">
+                  <div className="text-foreground font-semibold mt-1">
                     Year {project.academicYear}, Semester {project.semester}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <div className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                <div className="p-3.5 rounded-xl bg-muted border border-border">
+                  <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                     Format
                   </div>
-                  <div className="text-slate-900 font-semibold mt-1">{project.type}</div>
+                  <div className="text-foreground font-semibold mt-1">{project.type}</div>
                 </div>
               </div>
             </div>
 
             {/* Milestones */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card rounded-[16px] border border-border p-6 shadow-xs space-y-4">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Layers className="w-4 h-4 text-teal-600" />
                 Submission Milestones & Deadlines
               </h3>
               <div className="space-y-3">
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-start gap-4">
+                <div className="p-4 rounded-xl border border-border bg-muted flex items-start gap-4">
                   <div className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-700 font-bold flex items-center justify-center text-xs shrink-0">
                     M1
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-slate-900">
+                      <h4 className="text-sm font-bold text-foreground">
                         Architecture Proposal & Schema
                       </h4>
                       <span className="text-xs font-semibold text-teal-600">Week 4</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Entity Relationship Diagrams, API specification, and GitHub repo initialization.
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-start gap-4">
+                <div className="p-4 rounded-xl border border-border bg-muted flex items-start gap-4">
                   <div className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-700 font-bold flex items-center justify-center text-xs shrink-0">
                     M2
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-slate-900">
+                      <h4 className="text-sm font-bold text-foreground">
                         Functional MVP & Implementation
                       </h4>
                       <span className="text-xs font-semibold text-teal-600">Week 8</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Working user flows, database integration, automated tests, and core features.
                     </p>
                   </div>
@@ -1300,7 +1300,7 @@ function ProjectDetailContent() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-slate-900">
+                      <h4 className="text-sm font-bold text-foreground">
                         Production Release & Viva Defense
                       </h4>
                       <span className="text-xs font-semibold text-emerald-600 font-bold">
@@ -1309,7 +1309,7 @@ function ProjectDetailContent() {
                           : "Final Week"}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Live deployment, defense presentation, automated Git AI contribution report.
                     </p>
                   </div>
@@ -1319,58 +1319,58 @@ function ProjectDetailContent() {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <div className="bg-card rounded-[16px] border border-border p-6 shadow-xs space-y-4">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                 <Award className="w-4 h-4 text-teal-600" />
                 Evaluation Rubric Breakdown
               </h3>
               <div className="space-y-3 pt-2 text-xs">
                 <div>
-                  <div className="flex justify-between text-slate-700 mb-1">
+                  <div className="flex justify-between text-foreground mb-1">
                     <span>Feature Completeness</span>
-                    <span className="font-bold text-slate-900">30%</span>
+                    <span className="font-bold text-foreground">30%</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                     <div className="bg-teal-500 h-full rounded-full" style={{ width: "30%" }} />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-slate-700 mb-1">
+                  <div className="flex justify-between text-foreground mb-1">
                     <span>Software Architecture & DB</span>
-                    <span className="font-bold text-slate-900">25%</span>
+                    <span className="font-bold text-foreground">25%</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                     <div className="bg-teal-600 h-full rounded-full" style={{ width: "25%" }} />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-slate-700 mb-1">
+                  <div className="flex justify-between text-foreground mb-1">
                     <span>Git Velocity & Commits</span>
-                    <span className="font-bold text-slate-900">20%</span>
+                    <span className="font-bold text-foreground">20%</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                     <div className="bg-indigo-500 h-full rounded-full" style={{ width: "20%" }} />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-slate-700 mb-1">
+                  <div className="flex justify-between text-foreground mb-1">
                     <span>Automated Tests & Quality</span>
-                    <span className="font-bold text-slate-900">15%</span>
+                    <span className="font-bold text-foreground">15%</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                     <div className="bg-amber-500 h-full rounded-full" style={{ width: "15%" }} />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-slate-700 mb-1">
+                  <div className="flex justify-between text-foreground mb-1">
                     <span>Oral Defense & Demo</span>
-                    <span className="font-bold text-slate-900">10%</span>
+                    <span className="font-bold text-foreground">10%</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
                     <div className="bg-emerald-500 h-full rounded-full" style={{ width: "10%" }} />
                   </div>
                 </div>
@@ -1384,8 +1384,8 @@ function ProjectDetailContent() {
       {/* TAB: REQUIREMENTS SPECIFICATION                                */}
       {/* ============================================================== */}
       {activeTab === "requirements" && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div className="bg-card rounded-[16px] border border-border p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
             <div>
               <div className="flex items-center gap-2">
                 {project.requirementsSource === "ai" ? (
@@ -1393,13 +1393,13 @@ function ProjectDetailContent() {
                 ) : (
                   <FileText className="w-5 h-5 text-indigo-600" />
                 )}
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-bold text-foreground">
                   {project.requirementsSource === "ai"
                     ? "Standard Academic Specification"
                     : "Uploaded Faculty PDF Rubric"}
                 </h3>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Official requirements document configured for this academic course module.
               </p>
             </div>
@@ -1408,7 +1408,7 @@ function ProjectDetailContent() {
               {project.requirementsSource === "ai" && project.requirementsContent && (
                 <button
                   onClick={handleCopyRequirements}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted border border-border rounded-lg text-xs font-semibold text-foreground transition-colors"
                 >
                   {copied ? (
                     <>
@@ -1417,7 +1417,7 @@ function ProjectDetailContent() {
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <Copy className="w-3.5 h-3.5 text-muted-foreground" />
                       <span>Copy Markdown</span>
                     </>
                   )}
@@ -1428,25 +1428,25 @@ function ProjectDetailContent() {
 
           {project.requirementsSource === "ai" ? (
             project.requirementsContent ? (
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 font-mono text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
+              <div className="bg-muted border border-border rounded-[16px] p-6 sm:p-8 font-mono text-xs sm:text-sm text-foreground whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
                 {project.requirementsContent}
               </div>
             ) : (
-              <div className="p-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-                <AlertCircle className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-                <h4 className="font-semibold text-slate-800">No Specification Text</h4>
+              <div className="p-12 text-center bg-muted rounded-[16px] border border-dashed border-border">
+                <AlertCircle className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                <h4 className="font-semibold text-foreground">No Specification Text</h4>
               </div>
             )
           ) : (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center space-y-4 max-w-lg mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center mx-auto border border-indigo-500/20">
+            <div className="bg-muted border border-border rounded-[16px] p-8 text-center space-y-4 max-w-lg mx-auto">
+              <div className="w-16 h-16 rounded-[16px] bg-indigo-500/10 text-indigo-600 flex items-center justify-center mx-auto border border-indigo-500/20">
                 <FileText className="w-8 h-8" />
               </div>
               <div>
-                <h4 className="text-base font-bold text-slate-900">
+                <h4 className="text-base font-bold text-foreground">
                   {project.requirementsPdfName || "Course_Project_Specification.pdf"}
                 </h4>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   File Size: {project.requirementsPdfSize || "1.2 MB"} • Format: PDF
                 </p>
               </div>
@@ -1460,16 +1460,16 @@ function ProjectDetailContent() {
       {/* ============================================================== */}
       {activeTab === "repositories" && (
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 sm:p-8 space-y-4">
+          <div className="bg-card rounded-[16px] border border-border shadow-xs p-6 sm:p-8 space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-[#0B1220] text-teal-400 flex items-center justify-center shrink-0">
                 <FolderGit2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-bold text-foreground">
                   GitHub Repositories Monitoring Console
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Track student commit velocity, inspect code contributions, and view synchronized branches.
                 </p>
               </div>
@@ -1484,7 +1484,7 @@ function ProjectDetailContent() {
                     <span className="w-7 h-7 rounded-lg bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center">
                       #{grp.groupNumber}
                     </span>
-                    <h4 className="font-extrabold text-base text-slate-900">{grp.groupName}</h4>
+                    <h4 className="font-extrabold text-base text-foreground">{grp.groupName}</h4>
                   </div>
                   <Link
                     href={`/dashboard/projects/${projectId}/workspace?groupId=${grp.id}`}
@@ -1495,19 +1495,19 @@ function ProjectDetailContent() {
                   </Link>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between">
+                <div className="bg-card rounded-[16px] border border-border p-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FolderGit2 className="w-5 h-5 text-teal-600" />
                     <div>
-                      <span className="font-mono text-xs font-bold text-slate-900 block">
+                      <span className="font-mono text-xs font-bold text-foreground block">
                         {grp.repoName || "Repository pending connection"}
                       </span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-muted-foreground">
                         {grp.repoUrl || "Students paste their GitHub URL in workspace"}
                       </span>
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
+                  <span className="text-xs font-mono font-bold text-foreground bg-muted px-3 py-1 rounded-full">
                     {grp.totalCommits || 0} Commits
                   </span>
                 </div>
@@ -1541,22 +1541,22 @@ function ProjectDetailContent() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-[16px] max-w-md w-full p-6 shadow-2xl border border-border space-y-4">
             <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Delete Project?</h3>
-              <p className="text-sm text-slate-600 mt-1">
-                Are you sure you want to delete <strong className="text-slate-800">&ldquo;{project.title}&rdquo;</strong>?
+              <h3 className="text-lg font-bold text-foreground">Delete Project?</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Are you sure you want to delete <strong className="text-foreground">&ldquo;{project.title}&rdquo;</strong>?
                 This will unassign student teams and delete all associated submission history.
               </p>
             </div>
             <div className="flex items-center justify-end gap-3 pt-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 border border-border text-foreground text-sm font-medium rounded-lg hover:bg-muted transition-colors"
               >
                 Cancel
               </button>
@@ -1578,9 +1578,9 @@ export default function ProjectDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
+        <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto mt-8 shadow-sm">
           <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm font-medium text-slate-600">Loading academic project supervision...</p>
+          <p className="text-sm font-medium text-muted-foreground">Loading academic project supervision...</p>
         </div>
       }
     >

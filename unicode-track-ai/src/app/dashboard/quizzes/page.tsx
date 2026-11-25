@@ -272,7 +272,7 @@ export default function QuizzesPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">Quizzes</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           Practical coding quizzes for your students.
         </p>
 
@@ -346,7 +346,7 @@ export default function QuizzesPage() {
           <div className="proj-card text-center py-14 space-y-3">
             <span className="sp2"></span>
             <b className="text-base text-white block">Gemini is reading the PDF…</b>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Finding each question and putting them in order.
             </p>
           </div>
@@ -363,7 +363,7 @@ export default function QuizzesPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">Create quiz</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           Upload the questions and set the time.
         </p>
 
@@ -473,13 +473,13 @@ export default function QuizzesPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">Quiz published</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           Students can open it at the start time.
         </p>
 
         <div className="proj-card space-y-4">
           <b className="text-lg text-white block">{activeQuiz.topic}</b>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-muted-foreground">
             {activeQuiz.start.replace("T", " ")} · {formatQuizTiming(activeQuiz)}
           </p>
 
@@ -557,7 +557,7 @@ export default function QuizzesPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">{activeQuiz.topic}</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           {activeQuiz.start.replace("T", " ")} · {formatQuizTiming(activeQuiz)} ·{" "}
           {questionCount} questions
         </p>
@@ -676,7 +676,7 @@ export default function QuizzesPage() {
                 })}
               </tbody>
             </table>
-            <p className="text-xs text-slate-500 mt-3">
+            <p className="text-xs text-muted-foreground mt-3">
               Each question is out of 5. Students only see their own marks.
             </p>
           </div>
@@ -702,7 +702,7 @@ export default function QuizzesPage() {
         <div className="proj-card proj-row mb-4">
           <div>
             <b className="text-base text-white block">{activeQuiz.topic}</b>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-muted-foreground">
               Student preview · TG/2004/2004
             </span>
           </div>

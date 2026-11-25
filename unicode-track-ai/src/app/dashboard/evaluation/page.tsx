@@ -562,7 +562,7 @@ export default function EvaluationsAndMarksPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">Evaluations & Marks</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           Only batches with projects whose duration has ended are available.
         </p>
 
@@ -630,7 +630,7 @@ export default function EvaluationsAndMarksPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">Batch {selectedBatch}</h1>
-        <p className="sub text-sm text-slate-400 mb-4">Select a course.</p>
+        <p className="sub text-sm text-muted-foreground mb-4">Select a course.</p>
 
         <div className="proj-grid">
           {batchCourses.map((cCode) => {
@@ -681,7 +681,7 @@ export default function EvaluationsAndMarksPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">{selectedCourse}</h1>
-        <p className="sub text-sm text-slate-400 mb-4">Select a project.</p>
+        <p className="sub text-sm text-muted-foreground mb-4">Select a project.</p>
 
         <div className="proj-grid">
           {courseProjects.map((p) => {
@@ -740,7 +740,7 @@ export default function EvaluationsAndMarksPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white tracking-tight">{currentProject.t}</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           {targetLabel} · {currentProject.c} · Batch {currentProject.b}
         </p>
 
@@ -752,7 +752,7 @@ export default function EvaluationsAndMarksPage() {
                 {evaluatedCount} of {totalCount} {targetLabel.toLowerCase()} evaluated
               </b>
               <span className="proj-sp"></span>
-              <span className="text-xs text-slate-400">{totalCount} total</span>
+              <span className="text-xs text-muted-foreground">{totalCount} total</span>
             </div>
             <div className="proj-bar">
               <i style={{ width: `${(evaluatedCount / totalCount) * 100}%` }}></i>
@@ -1002,7 +1002,7 @@ export default function EvaluationsAndMarksPage() {
         <h1 className="text-2xl font-bold text-white tracking-tight">
           {selectedTarget} · {currentProject.t}
         </h1>
-        <p className="sub text-sm text-slate-400 mb-4 flex items-center gap-1.5 flex-wrap">
+        <p className="sub text-sm text-muted-foreground mb-4 flex items-center gap-1.5 flex-wrap">
           <span>Linked repository:</span>
           <a
             href={`https://github.com/${currentProject.repo}`}
@@ -1046,7 +1046,7 @@ export default function EvaluationsAndMarksPage() {
                 <div className="proj-row">
                   <span className="font-mono text-xs text-slate-200">{bItem[0]}</span>
                   <span className="proj-sp"></span>
-                  <span className="text-xs text-slate-400">{bItem[1]} commits</span>
+                  <span className="text-xs text-muted-foreground">{bItem[1]} commits</span>
                 </div>
                 <div className="proj-bar">
                   <i style={{ width: `${(bItem[1] / 42) * 100}%` }}></i>
@@ -1064,7 +1064,7 @@ export default function EvaluationsAndMarksPage() {
                 <div className="proj-row">
                   <span className="text-xs font-medium text-slate-200">{mItem[0]}</span>
                   <span className="proj-sp"></span>
-                  <span className="text-xs text-slate-400">{mItem[1]} commits</span>
+                  <span className="text-xs text-muted-foreground">{mItem[1]} commits</span>
                 </div>
                 <div className="proj-bar">
                   <i style={{ width: `${(mItem[1] / 42) * 100}%` }}></i>
@@ -1208,7 +1208,7 @@ export default function EvaluationsAndMarksPage() {
         <h1 className="text-2xl font-bold text-white tracking-tight">
           Finalize {currentProject.t}
         </h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           Review every {targetLabel.toLowerCase()} before generating the PDF.
         </p>
 

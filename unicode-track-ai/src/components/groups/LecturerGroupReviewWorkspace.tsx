@@ -443,7 +443,7 @@ export function LecturerGroupReviewWorkspace({
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">
+            <p className="text-xs text-muted-foreground/60 max-w-3xl leading-relaxed">
               Review AI-extracted groups, edit group names, change team memberships, resolve unmatched or ambiguous student records against the Supabase database, and ensure no student is duplicate before confirming group workspaces.
             </p>
           </div>
@@ -462,7 +462,7 @@ export function LecturerGroupReviewWorkspace({
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-3.5 py-2 bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl text-xs font-semibold transition-all border border-slate-700/60"
+                className="px-3.5 py-2 bg-slate-800/60 hover:bg-slate-800 text-muted-foreground hover:text-white rounded-xl text-xs font-semibold transition-all border border-slate-700/60"
               >
                 Back / Cancel
               </button>
@@ -490,12 +490,12 @@ export function LecturerGroupReviewWorkspace({
         {/* Real-time Status Counts Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5 pt-4 border-t border-slate-800 text-xs">
           <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Groups</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Groups</span>
             <span className="text-base font-bold text-white mt-0.5 block">{stats.totalGroups}</span>
           </div>
 
           <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Students</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Students</span>
             <span className="text-base font-bold text-teal-400 mt-0.5 block">{stats.totalMembers}</span>
           </div>
 
@@ -516,7 +516,7 @@ export function LecturerGroupReviewWorkspace({
 
           <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
             <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">Duplicate</span>
-            <span className={`text-base font-bold mt-0.5 block ${stats.duplicateCount > 0 ? "text-rose-400 animate-pulse" : "text-slate-400"}`}>
+            <span className={`text-base font-bold mt-0.5 block ${stats.duplicateCount > 0 ? "text-rose-400 animate-pulse" : "text-muted-foreground"}`}>
               {stats.duplicateCount}
             </span>
           </div>
@@ -527,7 +527,7 @@ export function LecturerGroupReviewWorkspace({
       {/* 2. BLOCKING VALIDATION ALERTS & WARNINGS                       */}
       {/* ============================================================== */}
       {stats.hasBlockingErrors && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 text-xs text-rose-900 space-y-2 animate-in fade-in-50">
+        <div className="p-4 rounded-[16px] bg-rose-50 border border-rose-300 text-xs text-rose-900 space-y-2 animate-in fade-in-50">
           <div className="flex items-center gap-2 font-bold text-rose-950 text-sm">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>Resolution Required Before Confirmation</span>
@@ -551,7 +551,7 @@ export function LecturerGroupReviewWorkspace({
 
       {/* Confirmation Error Alert */}
       {confirmError && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2.5 animate-in fade-in-50">
+        <div className="p-4 rounded-[16px] bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2.5 animate-in fade-in-50">
           <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-bold">Confirmation Failed</span>
@@ -562,7 +562,7 @@ export function LecturerGroupReviewWorkspace({
 
       {/* General Warnings Banner */}
       {allWarnings.length > 0 && !stats.hasBlockingErrors && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
+        <div className="p-4 rounded-[16px] bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1.5">
           <div className="flex items-center gap-2 font-bold text-amber-950">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
             <span>Assignment Notices & Cohort Warnings ({allWarnings.length})</span>
@@ -583,10 +583,10 @@ export function LecturerGroupReviewWorkspace({
       {/* ============================================================== */}
       <div className="space-y-6">
         {validatedGroups.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-12 text-center space-y-3">
-            <Users className="w-12 h-12 text-slate-300 mx-auto" />
-            <h4 className="text-base font-bold text-slate-800">No Groups in Assignment</h4>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <div className="bg-card rounded-3xl border border-dashed border-border p-12 text-center space-y-3">
+            <Users className="w-12 h-12 text-muted-foreground/60 mx-auto" />
+            <h4 className="text-base font-bold text-foreground">No Groups in Assignment</h4>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               No student groups are currently allocated. Click &ldquo;Add New Group&rdquo; above to manually form cohort teams.
             </p>
             <Button type="button" variant="primary" size="sm" onClick={handleAddNewGroup} icon={<Plus className="w-3.5 h-3.5" />}>
@@ -600,10 +600,10 @@ export function LecturerGroupReviewWorkspace({
             return (
               <div
                 key={grp.id}
-                className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden transition-all hover:border-slate-300"
+                className="bg-card rounded-3xl border border-border shadow-2xs overflow-hidden transition-all hover:border-border"
               >
                 {/* Group Header */}
-                <div className="p-5 sm:p-6 bg-slate-50/80 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-5 sm:p-6 bg-muted border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     {/* Number Indicator & Reordering */}
                     <div className="flex items-center gap-1">
@@ -615,7 +615,7 @@ export function LecturerGroupReviewWorkspace({
                           type="button"
                           disabled={gIdx === 0}
                           onClick={() => handleMoveGroupUp(gIdx)}
-                          className="p-1 hover:bg-slate-200 text-slate-500 disabled:opacity-30 rounded transition-colors"
+                          className="p-1 hover:bg-muted text-muted-foreground disabled:opacity-30 rounded transition-colors"
                           title="Move group up"
                         >
                           <ArrowUp className="w-3 h-3" />
@@ -624,7 +624,7 @@ export function LecturerGroupReviewWorkspace({
                           type="button"
                           disabled={gIdx === validatedGroups.length - 1}
                           onClick={() => handleMoveGroupDown(gIdx)}
-                          className="p-1 hover:bg-slate-200 text-slate-500 disabled:opacity-30 rounded transition-colors"
+                          className="p-1 hover:bg-muted text-muted-foreground disabled:opacity-30 rounded transition-colors"
                           title="Move group down"
                         >
                           <ArrowDown className="w-3 h-3" />
@@ -635,13 +635,13 @@ export function LecturerGroupReviewWorkspace({
                     {/* Group Number & Group Name (Inline Editable) */}
                     {isEditing ? (
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-teal-500">
-                          <span className="text-xs font-mono font-bold text-slate-400">#</span>
+                        <div className="flex items-center gap-1 bg-card px-2 py-0.5 rounded-lg border border-teal-500">
+                          <span className="text-xs font-mono font-bold text-muted-foreground">#</span>
                           <input
                             type="number"
                             value={editGroupNumVal}
                             onChange={(e) => setEditGroupNumVal(parseInt(e.target.value, 10) || 1)}
-                            className="w-12 text-xs font-mono font-bold text-slate-900 focus:outline-hidden"
+                            className="w-12 text-xs font-mono font-bold text-foreground focus:outline-hidden"
                             min={1}
                             title="Edit group number"
                           />
@@ -650,7 +650,7 @@ export function LecturerGroupReviewWorkspace({
                           type="text"
                           value={editGroupNameVal}
                           onChange={(e) => setEditGroupNameVal(e.target.value)}
-                          className="px-3 py-1 bg-white border border-teal-500 rounded-lg text-sm font-bold text-slate-900 focus:outline-hidden ring-2 ring-teal-500/20"
+                          className="px-3 py-1 bg-card border border-teal-500 rounded-lg text-sm font-bold text-foreground focus:outline-hidden ring-2 ring-teal-500/20"
                           placeholder="Group Name"
                           autoFocus
                           onKeyDown={(e) => {
@@ -669,7 +669,7 @@ export function LecturerGroupReviewWorkspace({
                         <button
                           type="button"
                           onClick={() => setEditingGroupId(null)}
-                          className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"
+                          className="p-1.5 bg-muted text-muted-foreground rounded-lg hover:bg-muted transition-colors"
                           title="Cancel"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -677,7 +677,7 @@ export function LecturerGroupReviewWorkspace({
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <h3 className="font-extrabold text-base text-slate-900 tracking-tight">
+                        <h3 className="font-extrabold text-base text-foreground tracking-tight">
                           {grp.group_name}
                         </h3>
                         <button
@@ -687,7 +687,7 @@ export function LecturerGroupReviewWorkspace({
                             setEditGroupNameVal(grp.group_name);
                             setEditGroupNumVal(grp.group_number);
                           }}
-                          className="p-1 text-slate-400 hover:text-teal-600 hover:bg-slate-200/60 rounded-md transition-colors"
+                          className="p-1 text-muted-foreground hover:text-teal-600 hover:bg-muted/60 rounded-md transition-colors"
                           title="Edit group name and number"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -698,14 +698,14 @@ export function LecturerGroupReviewWorkspace({
 
                   {/* Group Meta & Action Buttons */}
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="px-2.5 py-1 bg-white rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
+                    <span className="px-2.5 py-1 bg-card rounded-xl border border-border text-xs font-semibold text-muted-foreground">
                       {grp.members.length} Assigned Students
                     </span>
 
                     <button
                       type="button"
                       onClick={() => setPickerTarget({ groupId: grp.id })}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-teal-500 hover:text-teal-700 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:border-teal-500 hover:text-accent text-foreground rounded-xl text-xs font-bold transition-all shadow-2xs"
                     >
                       <Plus className="w-3.5 h-3.5 text-teal-600" />
                       <span>Add Student</span>
@@ -714,7 +714,7 @@ export function LecturerGroupReviewWorkspace({
                     <button
                       type="button"
                       onClick={() => handleRemoveGroup(grp.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border border-transparent hover:border-rose-200"
+                      className="p-1.5 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border border-transparent hover:border-rose-200"
                       title="Remove this group"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -725,8 +725,8 @@ export function LecturerGroupReviewWorkspace({
                 {/* Group Student Members List */}
                 <div className="p-5 sm:p-6 space-y-3">
                   {grp.members.length === 0 ? (
-                    <div className="p-6 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
-                      <p className="text-xs text-slate-500">No students are currently allocated to {grp.group_name}.</p>
+                    <div className="p-6 text-center bg-muted rounded-[16px] border border-dashed border-border space-y-2">
+                      <p className="text-xs text-muted-foreground">No students are currently allocated to {grp.group_name}.</p>
                       <button
                         type="button"
                         onClick={() => setPickerTarget({ groupId: grp.id })}
@@ -743,7 +743,7 @@ export function LecturerGroupReviewWorkspace({
                       return (
                         <div
                           key={member.id}
-                          className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${
+                          className={`p-3.5 sm:p-4 rounded-[16px] border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${
                             member.status === "Duplicate"
                               ? "bg-rose-50/60 border-rose-300 ring-1 ring-rose-400/30"
                               : member.status === "Invalid student"
@@ -752,7 +752,7 @@ export function LecturerGroupReviewWorkspace({
                               ? "bg-purple-50/40 border-purple-200"
                               : member.status === "Unmatched"
                               ? "bg-amber-50/40 border-amber-200"
-                              : "bg-slate-50/60 border-slate-200/80 hover:bg-white"
+                              : "bg-muted border-border hover:bg-card"
                           }`}
                         >
                           {/* Student Extracted Info & Match Record */}
@@ -763,14 +763,14 @@ export function LecturerGroupReviewWorkspace({
                                 className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold ${
                                   isLead
                                     ? "bg-teal-600 text-white shadow-2xs"
-                                    : "bg-slate-200 text-slate-700"
+                                    : "bg-muted text-foreground"
                                 }`}
                               >
                                 {isLead ? "Team Lead" : `Member ${mIdx + 1}`}
                               </span>
 
                               {/* Extracted Full Name */}
-                              <span className="font-extrabold text-sm text-slate-900 truncate">
+                              <span className="font-extrabold text-sm text-foreground truncate">
                                 {member.full_name}
                               </span>
 
@@ -779,14 +779,14 @@ export function LecturerGroupReviewWorkspace({
                             </div>
 
                             {/* Extracted Details vs Matched Record */}
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-600">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
                               <span>
-                                Extracted ID: <strong className="font-mono text-slate-800">{member.student_id || "None"}</strong>
+                                Extracted ID: <strong className="font-mono text-foreground">{member.student_id || "None"}</strong>
                               </span>
 
                               {member.email && (
                                 <span>
-                                  Email: <strong className="font-mono text-slate-700">{member.email}</strong>
+                                  Email: <strong className="font-mono text-foreground">{member.email}</strong>
                                 </span>
                               )}
 
@@ -811,7 +811,7 @@ export function LecturerGroupReviewWorkspace({
                           </div>
 
                           {/* Student Review & Reconciliation Action Controls */}
-                          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/60">
+                          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border">
                             {/* Reconcile / Select Student Record */}
                             {(member.status === "Unmatched" ||
                               member.status === "Ambiguous" ||
@@ -833,13 +833,13 @@ export function LecturerGroupReviewWorkspace({
 
                             {/* Change Student Group Dropdown */}
                             <div className="flex items-center gap-1">
-                              <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Group:</span>
+                              <span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">Group:</span>
                               <select
                                 value={grp.id}
                                 onChange={(e) =>
                                   handleChangeStudentGroup(member.id, grp.id, e.target.value)
                                 }
-                                className="px-2.5 py-1 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-teal-500 shadow-2xs"
+                                className="px-2.5 py-1 bg-card border border-border rounded-xl text-xs font-medium text-foreground focus:outline-hidden focus:ring-1 focus:ring-accent focus:border-accent shadow-2xs"
                               >
                                 {validatedGroups.map((target) => (
                                   <option key={target.id} value={target.id}>
@@ -853,7 +853,7 @@ export function LecturerGroupReviewWorkspace({
                             <button
                               type="button"
                               onClick={() => handleRemoveStudent(grp.id, member.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                              className="p-1.5 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                               title="Remove this student assignment"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -873,16 +873,16 @@ export function LecturerGroupReviewWorkspace({
       {/* ============================================================== */}
       {/* 4. CONFIRMATION BAR & FOOTER NOTICE                           */}
       {/* ============================================================== */}
-      <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-6 bg-card rounded-3xl border border-border shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200">
+          <div className="w-10 h-10 rounded-[16px] bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200">
             <ShieldCheck className="w-5 h-5 text-teal-600" />
           </div>
           <div>
-            <h4 className="font-bold text-sm text-slate-900">
+            <h4 className="font-bold text-sm text-foreground">
               Institutional Confirmation Gate
             </h4>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Workspaces, repository bindings, and team members will be permanently created only upon clicking &ldquo;Confirm Group Assignments&rdquo;.
             </p>
           </div>
@@ -893,7 +893,7 @@ export function LecturerGroupReviewWorkspace({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all"
+              className="px-4 py-2.5 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-bold transition-all"
             >
               Cancel
             </button>
@@ -922,22 +922,22 @@ export function LecturerGroupReviewWorkspace({
       {/* 5. DATABASE STUDENT SELECTION MODAL (For Unmatched/Ambiguous)  */}
       {/* ============================================================== */}
       {pickerTarget && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-card rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-border space-y-4 max-h-[85vh] flex flex-col animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
               <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <GraduationCap className="w-5 h-5 text-teal-600" />
                   Select Registered University Student
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Search university student records to resolve unmatched or ambiguous assignments.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setPickerTarget(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-xl"
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-xl"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -946,13 +946,13 @@ export function LecturerGroupReviewWorkspace({
             {/* Search Input & Department Filter */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div className="sm:col-span-2 relative">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search by student ID, full name, or email..."
                   value={studentSearchQuery}
                   onChange={(e) => setStudentSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                  className="w-full pl-9 pr-4 py-2 bg-muted border border-border rounded-xl text-xs text-foreground focus:bg-muted focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent"
                   autoFocus
                 />
               </div>
@@ -960,7 +960,7 @@ export function LecturerGroupReviewWorkspace({
               <select
                 value={selectedDeptFilter}
                 onChange={(e) => setSelectedDeptFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:bg-white focus:outline-hidden"
+                className="px-3 py-2 bg-muted border border-border rounded-xl text-xs text-foreground focus:bg-muted focus:outline-hidden"
               >
                 <option value="all">All Departments</option>
                 {departmentsList.map((d) => (
@@ -974,23 +974,23 @@ export function LecturerGroupReviewWorkspace({
             {/* Candidates List */}
             <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[380px]">
               {filteredStudents.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <div className="p-8 text-center text-xs text-muted-foreground bg-muted rounded-[16px] border border-dashed border-border">
                   No registered student records match &ldquo;{studentSearchQuery}&rdquo;.
                 </div>
               ) : (
                 filteredStudents.map((s) => (
                   <div
                     key={s.id}
-                    className="p-3.5 rounded-2xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/20 transition-all flex items-center justify-between gap-3 text-xs"
+                    className="p-3.5 rounded-[16px] border border-border hover:border-teal-500 hover:bg-teal-50/20 transition-all flex items-center justify-between gap-3 text-xs"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-9 h-9 rounded-xl bg-teal-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
                         {s.fullName.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-slate-900 truncate text-sm">{s.fullName}</p>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
-                          <span>ID: <strong className="text-slate-800">{s.studentId || s.id}</strong></span>
+                        <p className="font-bold text-foreground truncate text-sm">{s.fullName}</p>
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
+                          <span>ID: <strong className="text-foreground">{s.studentId || s.id}</strong></span>
                           <span>•</span>
                           <span className="truncate">{s.email}</span>
                         </div>
@@ -1011,7 +1011,7 @@ export function LecturerGroupReviewWorkspace({
               )}
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
+            <div className="pt-2 border-t border-border flex justify-end">
               <Button type="button" variant="outline" size="sm" onClick={() => setPickerTarget(null)}>
                 Cancel
               </Button>
@@ -1024,33 +1024,33 @@ export function LecturerGroupReviewWorkspace({
       {/* 6. SUCCESS CONFIRMATION MODAL                                  */}
       {/* ============================================================== */}
       {confirmedSuccessGroups && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 text-center animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-card rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-border space-y-5 text-center animate-in zoom-in-95">
             <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-sm">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-xl font-extrabold text-slate-900">
+              <h3 className="text-xl font-extrabold text-foreground">
                 Group Assignments Confirmed!
               </h3>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
                 Successfully created <strong>{confirmedSuccessGroups.length} project groups</strong>, memberships, and isolated shared workspaces for this project.
               </p>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-left space-y-2">
-              <div className="flex justify-between font-bold text-slate-800">
+            <div className="p-4 bg-muted rounded-[16px] border border-border text-xs text-left space-y-2">
+              <div className="flex justify-between font-bold text-foreground">
                 <span>Created Groups:</span>
                 <span className="text-teal-700">{confirmedSuccessGroups.length} Teams</span>
               </div>
-              <div className="flex justify-between font-bold text-slate-800">
+              <div className="flex justify-between font-bold text-foreground">
                 <span>Total Enrolled Students:</span>
                 <span className="text-teal-700">
                   {confirmedSuccessGroups.reduce((acc, g) => acc + g.members.length, 0)} Members
                 </span>
               </div>
-              <div className="flex justify-between font-bold text-slate-800">
+              <div className="flex justify-between font-bold text-foreground">
                 <span>Workspace Access Isolation:</span>
                 <span className="text-emerald-600">Active</span>
               </div>

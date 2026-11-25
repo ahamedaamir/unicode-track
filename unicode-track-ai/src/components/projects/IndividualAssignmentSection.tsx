@@ -111,22 +111,22 @@ export function IndividualAssignmentSection({
   };
 
   return (
-    <div className={`p-6 sm:p-7 rounded-3xl bg-white border border-slate-200/90 shadow-2xs space-y-5 ${className}`}>
+    <div className={`p-6 sm:p-7 rounded-3xl bg-card border border-border shadow-2xs space-y-5 ${className}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-200 shadow-2xs">
               <Users className="w-4 h-4" />
             </span>
-            <h3 className="font-extrabold text-base text-slate-900">
+            <h3 className="font-extrabold text-base text-foreground">
               Individual Student Assignments
             </h3>
             <span className="text-[11px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full border border-indigo-200">
               Personal Workspaces
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Assign students to this individual project. Each student receives an isolated personal workspace.
           </p>
         </div>
@@ -138,7 +138,7 @@ export function IndividualAssignmentSection({
             <span>
               {selectedStudentIds.length} Assigned
             </span>
-            <span className="text-slate-400 font-normal">
+            <span className="text-muted-foreground font-normal">
               / {activePool.length} Eligible
             </span>
           </div>
@@ -146,16 +146,16 @@ export function IndividualAssignmentSection({
       </div>
 
       {/* Cohort Criteria Card */}
-      <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="p-4 rounded-[16px] bg-muted border border-border flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-slate-500 font-semibold flex items-center gap-1.5">
+          <span className="text-muted-foreground font-semibold flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5 text-teal-600" />
             Target Cohort:
           </span>
-          <span className="font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+          <span className="font-bold text-foreground bg-card px-2.5 py-1 rounded-lg border border-border">
             Year {academicYear || 4}, Semester {semester || 1}
           </span>
-          <span className="font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 truncate max-w-xs">
+          <span className="font-bold text-foreground bg-card px-2.5 py-1 rounded-lg border border-border truncate max-w-xs">
             {currentDept?.name || "Computing Department"}
           </span>
           {currentCourse && (
@@ -177,13 +177,13 @@ export function IndividualAssignmentSection({
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search eligible students by name, student ID, or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-50/60 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+            className="w-full pl-9 pr-3 py-2 bg-muted border border-border rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent/20 focus:border-accent transition-all"
           />
         </div>
 
@@ -205,7 +205,7 @@ export function IndividualAssignmentSection({
               variant="outline"
               size="sm"
               onClick={handleDeselectAll}
-              icon={<Square className="w-3.5 h-3.5 text-slate-400" />}
+              icon={<Square className="w-3.5 h-3.5 text-muted-foreground" />}
             >
               Clear All
             </Button>
@@ -215,10 +215,10 @@ export function IndividualAssignmentSection({
 
       {/* Student Cards Grid */}
       {filteredStudents.length === 0 ? (
-        <div className="py-12 px-4 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 space-y-2">
-          <UserX className="w-8 h-8 text-slate-400 mx-auto" />
-          <p className="text-xs font-semibold text-slate-700">No matching students found</p>
-          <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+        <div className="py-12 px-4 text-center border-2 border-dashed border-border rounded-[16px] bg-muted space-y-2">
+          <UserX className="w-8 h-8 text-muted-foreground mx-auto" />
+          <p className="text-xs font-semibold text-foreground">No matching students found</p>
+          <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
             Try adjusting your search query or verify that students are enrolled under this department.
           </p>
         </div>
@@ -236,10 +236,10 @@ export function IndividualAssignmentSection({
               <div
                 key={student.id}
                 onClick={() => handleToggleStudent(student.id)}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 relative ${
+                className={`p-3.5 rounded-[16px] border transition-all cursor-pointer flex items-start gap-3 relative ${
                   isSelected
                     ? "bg-teal-50/40 border-teal-500 shadow-xs ring-1 ring-teal-500/20"
-                    : "bg-slate-50/40 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                    : "bg-muted/40 border-border hover:border-border hover:bg-muted"
                 }`}
               >
                 {/* Checkbox indicator */}
@@ -247,7 +247,7 @@ export function IndividualAssignmentSection({
                   className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                     isSelected
                       ? "bg-teal-600 border-teal-600 text-white"
-                      : "bg-white border-slate-300 text-transparent"
+                      : "bg-card border-border text-transparent"
                   }`}
                 >
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
@@ -261,7 +261,7 @@ export function IndividualAssignmentSection({
                 {/* Info */}
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center justify-between gap-1">
-                    <h4 className="font-bold text-xs text-slate-900 truncate">
+                    <h4 className="font-bold text-xs text-foreground truncate">
                       {student.fullName}
                     </h4>
                     {isSelected && (
@@ -271,15 +271,15 @@ export function IndividualAssignmentSection({
                     )}
                   </div>
 
-                  <p className="text-[11px] text-slate-500 font-mono truncate">
+                  <p className="text-[11px] text-muted-foreground font-mono truncate">
                     {student.studentId || student.id}
                   </p>
-                  <p className="text-[11px] text-slate-400 truncate">
+                  <p className="text-[11px] text-muted-foreground truncate">
                     {student.email}
                   </p>
 
-                  <div className="pt-1 flex items-center gap-2 text-[10px] text-slate-500">
-                    <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                  <div className="pt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <span className="bg-card px-1.5 py-0.5 rounded border border-border">
                       Y{student.academicYear || 4} S{student.semester || 1}
                     </span>
                   </div>
@@ -293,7 +293,7 @@ export function IndividualAssignmentSection({
                       e.stopPropagation();
                       handleRemoveStudent(student.id);
                     }}
-                    className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-colors"
+                    className="text-muted-foreground hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-colors"
                     title="Remove assignment"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -306,7 +306,7 @@ export function IndividualAssignmentSection({
       )}
 
       {/* Security Isolation Notice */}
-      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 flex items-start gap-2.5">
+      <div className="p-3.5 rounded-[16px] bg-muted border border-border text-xs text-muted-foreground flex items-start gap-2.5">
         <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
         <p className="leading-relaxed text-[11px]">
           <strong>Personal Workspace Isolation:</strong> Each confirmed student is granted their own private workspace (<code>ws-ind-[projectId]-[studentId]</code>). Students cannot see or access other students&apos; individual project workspaces. As the supervising lecturer, you can evaluate each student separately.

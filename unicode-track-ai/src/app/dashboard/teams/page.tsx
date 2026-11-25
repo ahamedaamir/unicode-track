@@ -123,19 +123,19 @@ export default function StudentTeamsOverviewPage() {
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[#0B1220] flex items-center justify-center text-teal-400 shadow-xs border border-slate-800">
+          <div className="w-11 h-11 rounded-[16px] bg-[#0B1220] flex items-center justify-center text-teal-400 shadow-xs border border-slate-800">
             <Users className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 Student Teams & Workspaces
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">
                 {filteredGroups.length} Teams Active
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               Monitor team rosters, university IDs, GitHub commit telemetry, milestone progress, and proposal submissions.
             </p>
           </div>
@@ -154,11 +154,11 @@ export default function StudentTeamsOverviewPage() {
 
       {/* 4 Summary Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-2xs">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="bg-card rounded-[16px] p-4 sm:p-5 border border-border shadow-2xs">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Total Cohort Teams
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] mt-1">
+          <div className="text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
             {stats.totalGroups}
           </div>
           <div className="text-xs text-teal-700 font-medium mt-1 flex items-center gap-1">
@@ -166,11 +166,11 @@ export default function StudentTeamsOverviewPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-2xs">
+        <div className="bg-card rounded-[16px] p-4 sm:p-5 border border-border shadow-2xs">
           <div className="text-xs font-semibold text-indigo-500 uppercase tracking-wider">
             Enrolled Students
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] mt-1">
+          <div className="text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
             {stats.totalStudents}
           </div>
           <div className="text-xs text-indigo-600 font-medium mt-1 flex items-center gap-1">
@@ -178,11 +178,11 @@ export default function StudentTeamsOverviewPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-2xs">
+        <div className="bg-card rounded-[16px] p-4 sm:p-5 border border-border shadow-2xs">
           <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
             GitHub Connected
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] mt-1">
+          <div className="text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
             {stats.connectedRepos}
           </div>
           <div className="text-xs text-emerald-700 font-medium mt-1 flex items-center gap-1">
@@ -190,11 +190,11 @@ export default function StudentTeamsOverviewPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-2xs">
+        <div className="bg-card rounded-[16px] p-4 sm:p-5 border border-border shadow-2xs">
           <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider">
             Proposals Submitted
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#0B1220] mt-1">
+          <div className="text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
             {stats.proposalsSubmitted}
           </div>
           <div className="text-xs text-amber-700 font-medium mt-1 flex items-center gap-1">
@@ -204,22 +204,22 @@ export default function StudentTeamsOverviewPage() {
       </div>
 
       {/* Filter and Search Toolbar */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+      <div className="bg-card p-4 sm:p-5 rounded-[16px] border border-border shadow-2xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Search Box */}
           <div className="lg:col-span-2 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by team, student name, university ID (CS2023001)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2 bg-muted border border-border rounded-xl text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-accent focus:border-accent/20 focus:border-accent focus:bg-muted transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-muted-foreground"
               >
                 Clear
               </button>
@@ -231,7 +231,7 @@ export default function StudentTeamsOverviewPage() {
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-hidden focus:border-teal-500 focus:bg-white"
+              className="w-full px-3 py-2 bg-muted border border-border rounded-xl text-xs sm:text-sm text-foreground focus:outline-hidden focus:border-accent focus:bg-muted"
             >
               <option value="all">All Courses</option>
               {courses.map((crs) => (
@@ -247,7 +247,7 @@ export default function StudentTeamsOverviewPage() {
             <select
               value={selectedProposalStatus}
               onChange={(e) => setSelectedProposalStatus(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-hidden focus:border-teal-500 focus:bg-white"
+              className="w-full px-3 py-2 bg-muted border border-border rounded-xl text-xs sm:text-sm text-foreground focus:outline-hidden focus:border-accent focus:bg-muted"
             >
               <option value="all">All Proposal Statuses</option>
               <option value="approved">Approved</option>
@@ -262,7 +262,7 @@ export default function StudentTeamsOverviewPage() {
             <select
               value={selectedRepoStatus}
               onChange={(e) => setSelectedRepoStatus(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-hidden focus:border-teal-500 focus:bg-white"
+              className="w-full px-3 py-2 bg-muted border border-border rounded-xl text-xs sm:text-sm text-foreground focus:outline-hidden focus:border-accent focus:bg-muted"
             >
               <option value="all">All Repo Statuses</option>
               <option value="connected">GitHub Connected</option>
@@ -274,10 +274,10 @@ export default function StudentTeamsOverviewPage() {
 
       {/* Student Teams Cards Grid */}
       {filteredGroups.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-3">
-          <Users className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="text-base font-bold text-slate-800">No student teams found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+        <div className="bg-card rounded-[16px] border border-dashed border-border p-12 text-center space-y-3">
+          <Users className="w-12 h-12 text-muted-foreground/60 mx-auto" />
+          <h3 className="text-base font-bold text-foreground">No student teams found</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
             No groups matched your active search or filter criteria. Try clearing filters to view all cohort teams.
           </p>
           <div className="pt-2">
@@ -288,7 +288,7 @@ export default function StudentTeamsOverviewPage() {
                 setSelectedProposalStatus("all");
                 setSelectedRepoStatus("all");
               }}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
+              className="px-4 py-2 bg-muted hover:bg-muted text-foreground rounded-xl text-xs font-semibold transition-colors"
             >
               Reset Filters
             </button>

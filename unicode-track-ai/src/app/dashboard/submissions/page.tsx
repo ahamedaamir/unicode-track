@@ -129,14 +129,14 @@ export default function SubmissionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0B1220] tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Project Submissions & Reviews
             </h2>
             <Badge variant="teal" size="sm">
               {filteredSubmissions.length} Items
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Evaluate student proposals, review ER diagrams, inspect source code deliverables, and publish revision requests.
           </p>
         </div>
@@ -154,15 +154,15 @@ export default function SubmissionsPage() {
 
       {/* Summary KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <span className="text-[10px] font-bold text-slate-400 uppercase">Total Submissions</span>
+        <div className="bg-card p-4 rounded-[16px] border border-border shadow-2xs">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase">Total Submissions</span>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-slate-900 font-mono">{submissionsList.length}</span>
-            <span className="text-xs text-slate-500">Delivered</span>
+            <span className="text-2xl font-extrabold text-foreground font-mono">{submissionsList.length}</span>
+            <span className="text-xs text-muted-foreground">Delivered</span>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-4 rounded-[16px] border border-border shadow-2xs">
           <span className="text-[10px] font-bold text-amber-600 uppercase">Pending Review</span>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-amber-600 font-mono">
@@ -172,7 +172,7 @@ export default function SubmissionsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-4 rounded-[16px] border border-border shadow-2xs">
           <span className="text-[10px] font-bold text-teal-600 uppercase">Approved</span>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-teal-700 font-mono">
@@ -182,7 +182,7 @@ export default function SubmissionsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="bg-card p-4 rounded-[16px] border border-border shadow-2xs">
           <span className="text-[10px] font-bold text-rose-600 uppercase">Revisions Requested</span>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-rose-600 font-mono">
@@ -194,9 +194,9 @@ export default function SubmissionsPage() {
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+      <div className="bg-card p-4 rounded-[16px] border border-border shadow-2xs space-y-4">
         {/* Type Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-3">
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-border pb-3">
           {[
             { id: "all", label: "All Submissions", icon: Inbox },
             { id: "proposal", label: "Proposals (Section 7)", icon: FileText },
@@ -213,10 +213,10 @@ export default function SubmissionsPage() {
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   isSelected
                     ? "bg-[#0B1220] text-white shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-teal-400" : "text-slate-400"}`} />
+                <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-teal-400" : "text-muted-foreground"}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -231,13 +231,13 @@ export default function SubmissionsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by title, group, student, or course..."
-              className="w-full px-3.5 py-2 pl-9 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-transparent text-slate-900 bg-slate-50/60 focus:bg-white transition-all placeholder:text-slate-400"
+              className="w-full px-3.5 py-2 pl-9 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent focus:border-transparent text-foreground bg-muted focus:bg-muted transition-all placeholder:text-muted-foreground"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-muted-foreground"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -245,11 +245,11 @@ export default function SubmissionsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-medium">Status:</span>
+            <span className="text-xs text-muted-foreground font-medium">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as SubmissionStatusFilter)}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
+              className="px-3 py-1.5 rounded-xl border border-border text-xs text-foreground bg-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent font-semibold"
             >
               <option value="all">All Statuses</option>
               <option value="submitted">Submitted</option>
@@ -263,11 +263,11 @@ export default function SubmissionsPage() {
       </div>
 
       {/* Submissions Table List */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="bg-card rounded-[16px] border border-border shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <tr className="bg-muted border-b border-border text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <th className="py-3.5 px-4 sm:px-6">Submission & Group</th>
                 <th className="py-3.5 px-4">Type</th>
                 <th className="py-3.5 px-4 hidden md:table-cell">Submitted By</th>
@@ -276,38 +276,38 @@ export default function SubmissionsPage() {
                 <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-border text-xs">
               {filteredSubmissions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    <Inbox className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                    <p className="font-semibold text-slate-600">No submissions found</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                    <Inbox className="w-8 h-8 mx-auto mb-2 text-muted-foreground/60" />
+                    <p className="font-semibold text-muted-foreground">No submissions found</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
                       Try adjusting the filter tab or search keywords.
                     </p>
                   </td>
                 </tr>
               ) : (
                 filteredSubmissions.map((sub) => (
-                  <tr key={sub.id} className="hover:bg-slate-50/70 transition-colors group">
+                  <tr key={sub.id} className="hover:bg-muted/40 transition-colors group">
                     <td className="py-3.5 px-4 sm:px-6">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200">
                             {sub.courseCode}
                           </span>
-                          <span className="font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
+                          <span className="font-bold text-foreground group-hover:text-accent transition-colors">
                             {sub.title}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500">
-                          {sub.groupName} • <span className="font-mono text-slate-600">{sub.fileName}</span> ({sub.fileSize}) • v{sub.version}.0
+                        <p className="text-[11px] text-muted-foreground">
+                          {sub.groupName} • <span className="font-mono text-muted-foreground">{sub.fileName}</span> ({sub.fileSize}) • v{sub.version}.0
                         </p>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground bg-muted px-2 py-0.5 rounded">
                         {sub.type === "proposal" && <FileText className="w-3 h-3 text-indigo-600" />}
                         {sub.type === "er_diagram" && <Database className="w-3 h-3 text-purple-600" />}
                         {sub.type === "source_code" && <FileCode2 className="w-3 h-3 text-teal-600" />}
@@ -317,8 +317,8 @@ export default function SubmissionsPage() {
                     </td>
 
                     <td className="py-3.5 px-4 hidden md:table-cell">
-                      <p className="font-semibold text-slate-900">{sub.submittedBy}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{sub.submittedByEmail}</p>
+                      <p className="font-semibold text-foreground">{sub.submittedBy}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{sub.submittedByEmail}</p>
                     </td>
 
                     <td className="py-3.5 px-4">
@@ -337,7 +337,7 @@ export default function SubmissionsPage() {
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 hidden lg:table-cell text-slate-500 font-mono text-[11px]">
+                    <td className="py-3.5 px-4 hidden lg:table-cell text-muted-foreground font-mono text-[11px]">
                       {sub.submittedAt}
                     </td>
 
@@ -361,7 +361,7 @@ export default function SubmissionsPage() {
                             e.preventDefault();
                             alert(`Downloading file: ${sub.fileName}`);
                           }}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                          className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
                           title="Download submitted file"
                         >
                           <Download className="w-4 h-4" />
@@ -378,39 +378,39 @@ export default function SubmissionsPage() {
 
       {/* Review & Grading Modal (Sections 7, 8, 12, 14) */}
       {selectedSubmission && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in-50">
-          <div className="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm backdrop-blur-xs animate-in fade-in-50">
+          <div className="bg-card w-full max-w-xl rounded-[16px] border border-border shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-start justify-between pb-3 border-b border-border">
               <div>
                 <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
                   {selectedSubmission.courseCode} • {selectedSubmission.typeLabel}
                 </span>
-                <h3 className="font-bold text-base text-slate-900 mt-1">
+                <h3 className="font-bold text-base text-foreground mt-1">
                   {selectedSubmission.title}
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Submitted by <strong>{selectedSubmission.submittedBy}</strong> ({selectedSubmission.groupName})
                 </p>
               </div>
 
               <button
                 onClick={() => setSelectedSubmission(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"
+                className="p-1.5 text-muted-foreground hover:text-muted-foreground rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Document Details Strip */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+            <div className="p-3.5 bg-muted rounded-xl border border-border flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center text-[10px]">
                   PDF
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">{selectedSubmission.fileName}</p>
-                  <p className="text-[10px] text-slate-500">{selectedSubmission.fileSize} • Version {selectedSubmission.version}.0</p>
+                  <p className="font-bold text-foreground">{selectedSubmission.fileName}</p>
+                  <p className="text-[10px] text-muted-foreground">{selectedSubmission.fileSize} • Version {selectedSubmission.version}.0</p>
                 </div>
               </div>
 
@@ -420,7 +420,7 @@ export default function SubmissionsPage() {
                   e.preventDefault();
                   alert(`Downloading: ${selectedSubmission.fileName}`);
                 }}
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold shadow-2xs"
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground rounded-lg text-xs font-semibold shadow-2xs"
               >
                 <Download className="w-3.5 h-3.5" /> Download
               </a>
@@ -451,7 +451,7 @@ export default function SubmissionsPage() {
             {/* Evaluation Form */}
             <form onSubmit={handleSaveReview} className="space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="block font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                <label className="block font-bold text-foreground uppercase tracking-wider text-[10px]">
                   Faculty Evaluation Decision
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -461,7 +461,7 @@ export default function SubmissionsPage() {
                     className={`py-2 px-3 rounded-xl border text-center font-bold transition-all ${
                       reviewDecision === "approved"
                         ? "bg-teal-50 border-teal-500 text-teal-900 ring-2 ring-teal-500/20"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        : "border-border text-muted-foreground hover:bg-muted"
                     }`}
                   >
                     Approve
@@ -472,7 +472,7 @@ export default function SubmissionsPage() {
                     className={`py-2 px-3 rounded-xl border text-center font-bold transition-all ${
                       reviewDecision === "revision_requested"
                         ? "bg-amber-50 border-amber-500 text-amber-900 ring-2 ring-amber-500/20"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        : "border-border text-muted-foreground hover:bg-muted"
                     }`}
                   >
                     Request Revision
@@ -483,7 +483,7 @@ export default function SubmissionsPage() {
                     className={`py-2 px-3 rounded-xl border text-center font-bold transition-all ${
                       reviewDecision === "rejected"
                         ? "bg-rose-50 border-rose-500 text-rose-900 ring-2 ring-rose-500/20"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        : "border-border text-muted-foreground hover:bg-muted"
                     }`}
                   >
                     Reject
@@ -494,31 +494,31 @@ export default function SubmissionsPage() {
               {/* Rubric Score & Revision Deadline */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="block font-semibold text-slate-700">Awarded Marks (/100)</label>
+                  <label className="block font-semibold text-foreground">Awarded Marks (/100)</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={reviewScore}
                     onChange={(e) => setReviewScore(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono font-bold text-slate-900"
+                    className="w-full px-3 py-2 border border-border rounded-xl font-mono font-bold text-foreground"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block font-semibold text-slate-700">Revision Deadline (if requested)</label>
+                  <label className="block font-semibold text-foreground">Revision Deadline (if requested)</label>
                   <input
                     type="date"
                     value={revisionDeadline}
                     onChange={(e) => setRevisionDeadline(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-700 font-mono"
+                    className="w-full px-3 py-2 border border-border rounded-xl text-foreground font-mono"
                   />
                 </div>
               </div>
 
               {/* Comments & Revision Guidelines */}
               <div className="space-y-1">
-                <label className="block font-semibold text-slate-700">
+                <label className="block font-semibold text-foreground">
                   Constructive Feedback & Revision Guidelines <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -526,11 +526,11 @@ export default function SubmissionsPage() {
                   placeholder="Explain why revisions are requested or provide specific feedback for students..."
                   value={reviewComments}
                   onChange={(e) => setReviewComments(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 resize-none text-xs"
+                  className="w-full px-3 py-2 border border-border rounded-xl text-foreground resize-none text-xs"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
