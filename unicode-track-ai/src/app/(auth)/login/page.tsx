@@ -20,7 +20,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 function LoginContent() {
   const router = useRouter();
-  const { students, findLecturerByEmail, setActiveRole, setActiveLecturerEmail } = useAdminData();
+  const { students, findLecturerByEmail, setActiveRole, setActiveLecturerEmail, setActiveAdminEmail } = useAdminData();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -65,6 +65,7 @@ function LoginContent() {
 
         if (studentAuth.student) {
           // Set student session state
+          const linkedAdmin = (studentAuth.student as any).adminEmail || "admin@university.edu";
           try {
             sessionStorage.setItem(
               "unicodetrack_authenticated_user",
@@ -74,9 +75,13 @@ function LoginContent() {
                 fullName: studentAuth.student.fullName,
                 departmentId: studentAuth.student.departmentId,
                 mustChangePassword: studentAuth.mustChangePassword,
+                adminEmail: linkedAdmin,
               })
             );
             sessionStorage.setItem("unicodetrack_pending_user_role", "student");
+            sessionStorage.setItem("unicodetrack_active_admin_email", linkedAdmin);
+            setActiveRole("student");
+            setActiveAdminEmail(linkedAdmin);
           } catch {
             // Ignore session storage errors
           }
@@ -129,6 +134,7 @@ function LoginContent() {
         }
 
         try {
+          const linkedAdmin = lecturer.adminEmail || "admin@university.edu";
           sessionStorage.setItem(
             "unicodetrack_authenticated_user",
             JSON.stringify({
@@ -137,14 +143,17 @@ function LoginContent() {
               name: lecturer.name,
               position: lecturer.position,
               assignedCourses: lecturer.assignedCourses,
+              adminEmail: linkedAdmin,
             })
           );
           sessionStorage.setItem("unicodetrack_pending_user_role", "lecturer");
           sessionStorage.setItem("unicodetrack_active_lecturer_email", lecturer.email);
+          sessionStorage.setItem("unicodetrack_active_admin_email", linkedAdmin);
           sessionStorage.removeItem("unicodetrack_pending_student_email");
           sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
           setActiveRole("lecturer");
           setActiveLecturerEmail(lecturer.email);
+          setActiveAdminEmail(linkedAdmin);
         } catch {
           // Ignore
         }
@@ -177,12 +186,16 @@ function LoginContent() {
                   role: "admin",
                   email: trimmedEmail,
                   name: adminName,
+                  universityName: meta.university_name || "University",
+                  faculty: meta.faculty || "Faculty",
                 })
               );
               sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
+              sessionStorage.setItem("unicodetrack_active_admin_email", trimmedEmail);
               sessionStorage.removeItem("unicodetrack_pending_student_email");
               sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
               setActiveRole("admin");
+              setActiveAdminEmail(trimmedEmail);
               router.push("/dashboard");
               return;
             }
@@ -205,12 +218,16 @@ function LoginContent() {
               name: matchingAdmin.universityName
                 ? `${matchingAdmin.universityName} Administrator`
                 : "University Administrator",
+              universityName: matchingAdmin.universityName || "University",
+              faculty: matchingAdmin.faculty || "Faculty",
             })
           );
           sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
+          sessionStorage.setItem("unicodetrack_active_admin_email", trimmedEmail);
           sessionStorage.removeItem("unicodetrack_pending_student_email");
           sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
           setActiveRole("admin");
+          setActiveAdminEmail(trimmedEmail);
           router.push("/dashboard");
           return;
         }
@@ -228,9 +245,11 @@ function LoginContent() {
             })
           );
           sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
+          sessionStorage.setItem("unicodetrack_active_admin_email", "admin@university.edu");
           sessionStorage.removeItem("unicodetrack_pending_student_email");
           sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
           setActiveRole("admin");
+          setActiveAdminEmail("admin@university.edu");
         } catch {
           // Ignore
         }

@@ -17,6 +17,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS public.departments (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
+    admin_email VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.courses (
     id VARCHAR(50) PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
+    admin_email VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -40,6 +42,7 @@ CREATE TABLE IF NOT EXISTS public.lecturers (
     status VARCHAR(50) DEFAULT 'Active' CHECK (status IN ('Active', 'Pending First Login', 'Deactivated')),
     has_changed_default_password BOOLEAN DEFAULT FALSE,
     default_password VARCHAR(255),
+    admin_email VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -58,6 +61,7 @@ CREATE TABLE IF NOT EXISTS public.students (
     account_status VARCHAR(20) DEFAULT 'active' CHECK (account_status IN ('active', 'inactive')),
     must_change_password BOOLEAN DEFAULT TRUE NOT NULL,
     default_password VARCHAR(255),
+    admin_email VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -102,6 +106,7 @@ CREATE TABLE IF NOT EXISTS public.projects (
     lecturer_id VARCHAR(100),
     lecturer_name VARCHAR(255),
     database_design_config JSONB,
+    admin_email VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );

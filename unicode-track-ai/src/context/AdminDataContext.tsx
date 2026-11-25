@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { Department, Course, Lecturer, Student, ActivityLog, Project } from "@/types/admin";
 import { ProjectGroup, ProjectTimelineActivity, ProposalSubmission, LecturerFeedback, GitHubCommit, GitHubBranch, ProjectStudentAssignment } from "@/types/project";
 import { EvaluationRubric, ProjectEvaluation, DEFAULT_ACADEMIC_RUBRIC_CRITERIA } from "@/types/evaluation";
@@ -142,6 +142,8 @@ interface AdminDataContextType {
   // Active Role & Personas
   activeRole: "admin" | "lecturer" | "student";
   setActiveRole: (role: "admin" | "lecturer" | "student") => void;
+  activeAdminEmail: string;
+  setActiveAdminEmail: (email: string) => void;
   activeLecturerEmail: string;
   setActiveLecturerEmail: (email: string) => void;
   activeStudentEmail: string;
@@ -170,16 +172,19 @@ const initialActivities: ActivityLog[] = [];
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
-  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
-  const [courses, setCourses] = useState<Course[]>(initialCourses);
-  const [lecturers, setLecturers] = useState<Lecturer[]>(initialLecturers);
-  const [students, setStudents] = useState<Student[]>(initialStudents);
-  const [activities, setActivities] = useState<ActivityLog[]>(initialActivities);
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [activeRole, setActiveRole] = useState<"admin" | "lecturer" | "student">("lecturer");
+  // Master state arrays (storing all academic entities across all tenant admins)
+  const [masterDepartments, setMasterDepartments] = useState<Department[]>(initialDepartments);
+  const [masterCourses, setMasterCourses] = useState<Course[]>(initialCourses);
+  const [masterLecturers, setMasterLecturers] = useState<Lecturer[]>(initialLecturers);
+  const [masterStudents, setMasterStudents] = useState<Student[]>(initialStudents);
+  const [masterActivities, setMasterActivities] = useState<ActivityLog[]>(initialActivities);
+  const [masterProjects, setMasterProjects] = useState<Project[]>(initialProjects);
+
+  const [activeRole, setActiveRole] = useState<"admin" | "lecturer" | "student">("admin");
+  const [activeAdminEmail, setActiveAdminEmail] = useState<string>("admin@university.edu");
   const [activeLecturerEmail, setActiveLecturerEmail] = useState<string>("");
   const [activeStudentEmail, setActiveStudentEmail] = useState<string>("");
-  const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail);
+
   const [groups, setGroups] = useState<ProjectGroup[]>(initialGroups);
   const [studentAssignments, setStudentAssignments] = useState<ProjectStudentAssignment[]>(initialStudentAssignments);
   const [timelineActivities, setTimelineActivities] = useState<ProjectTimelineActivity[]>(initialTimelineActivities);
@@ -195,30 +200,54 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       if (storedRole === "admin" || storedRole === "lecturer" || storedRole === "student") {
         setActiveRole(storedRole);
       }
+      const storedAdmin = sessionStorage.getItem("unicodetrack_active_admin_email");
+      if (storedAdmin) {
+        setActiveAdminEmail(storedAdmin.trim().toLowerCase());
+      }
       const user = sessionStorage.getItem("unicodetrack_authenticated_user");
       if (user) {
         const parsed = JSON.parse(user);
-        if (parsed.email && parsed.role === "lecturer") {
-          setActiveLecturerEmail(parsed.email);
-        } else if (parsed.email && parsed.role === "student") {
-          setActiveStudentEmail(parsed.email);
+        if (parsed.email) {
+          if (parsed.role === "admin") {
+            setActiveAdminEmail(parsed.email.trim().toLowerCase());
+          } else if (parsed.role === "lecturer") {
+            setActiveLecturerEmail(parsed.email.trim().toLowerCase());
+          } else if (parsed.role === "student") {
+            setActiveStudentEmail(parsed.email.trim().toLowerCase());
+          }
         }
       }
 
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.departments) setDepartments(parsed.departments);
-        if (parsed.courses) setCourses(parsed.courses);
+        if (parsed.departments && Array.isArray(parsed.departments)) {
+          setMasterDepartments(parsed.departments.map((d: Department) => ({ ...d, adminEmail: d.adminEmail || "admin@university.edu" })));
+        }
+        if (parsed.courses && Array.isArray(parsed.courses)) {
+          setMasterCourses(parsed.courses.map((c: Course) => ({ ...c, adminEmail: c.adminEmail || "admin@university.edu" })));
+        }
         if (parsed.lecturers && Array.isArray(parsed.lecturers)) {
-          setLecturers(parsed.lecturers.filter((l: Lecturer) => l.email.toLowerCase() !== "check@gmail.com"));
+          setMasterLecturers(
+            parsed.lecturers
+              .filter((l: Lecturer) => l.email.toLowerCase() !== "check@gmail.com")
+              .map((l: Lecturer) => ({ ...l, adminEmail: l.adminEmail || "admin@university.edu" }))
+          );
         }
         if (parsed.students && Array.isArray(parsed.students)) {
-          setStudents(parsed.students);
+          setMasterStudents(
+            parsed.students.map((s: Student) => ({ ...s, adminEmail: s.adminEmail || "admin@university.edu" }))
+          );
         }
-        if (parsed.activities) setActivities(parsed.activities);
+        if (parsed.activities && Array.isArray(parsed.activities)) {
+          setMasterActivities(
+            parsed.activities.map((a: ActivityLog) => ({ ...a, adminEmail: a.adminEmail || "admin@university.edu" }))
+          );
+        }
         if (parsed.projects && Array.isArray(parsed.projects)) {
-          setProjects(parsed.projects);
+          setMasterProjects(
+            parsed.projects.map((p: Project) => ({ ...p, adminEmail: p.adminEmail || "admin@university.edu" }))
+          );
         }
         if (parsed.groups && Array.isArray(parsed.groups)) {
           setGroups(parsed.groups);
@@ -247,7 +276,6 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, []);
 
-  
   // Sync real database tables from Supabase on mount
   useEffect(() => {
     if (typeof window === "undefined" || !isSupabaseConfigured()) return;
@@ -257,126 +285,150 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       // 1. Fetch departments
       supabase.from("departments").select("*").then(({ data, error }) => {
         if (!error && data && data.length > 0) {
-          setDepartments(data.map((d: any) => ({
-            id: d.id,
-            name: d.name,
-            createdAt: d.created_at ? d.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
-          })));
+          setMasterDepartments((prev) => {
+            const dbDepts = data.map((d: any) => ({
+              id: d.id,
+              name: d.name,
+              createdAt: d.created_at ? d.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+              adminEmail: d.admin_email || "admin@university.edu",
+            }));
+            const map = new Map(prev.map((item) => [item.id, item]));
+            dbDepts.forEach((d: Department) => map.set(d.id, { ...map.get(d.id), ...d }));
+            return Array.from(map.values());
+          });
         }
       });
 
       // 2. Fetch courses
       supabase.from("courses").select("*").then(({ data, error }) => {
         if (!error && data && data.length > 0) {
-          setCourses(data.map((c: any) => ({
-            id: c.id,
-            code: c.course_code || c.code,
-            name: c.course_name || c.name,
-            createdAt: c.created_at ? c.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
-          })));
+          setMasterCourses((prev) => {
+            const dbCourses = data.map((c: any) => ({
+              id: c.id,
+              code: c.course_code || c.code,
+              name: c.course_name || c.name,
+              createdAt: c.created_at ? c.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+              adminEmail: c.admin_email || "admin@university.edu",
+            }));
+            const map = new Map(prev.map((item) => [item.id, item]));
+            dbCourses.forEach((c: Course) => map.set(c.id, { ...map.get(c.id), ...c }));
+            return Array.from(map.values());
+          });
         }
       });
 
-      // 3. Fetch profiles (lecturers and students)
-      supabase.from("profiles").select("*").then(({ data, error }) => {
+      // 3. Fetch lecturers from Supabase
+      supabase.from("lecturers").select("*").then(({ data, error }) => {
         if (!error && data && data.length > 0) {
           const dbLecturers: Lecturer[] = data
-            .filter((p: any) => p.role === "lecturer")
-            .map((p: any) => ({
-              id: p.id,
-              name: p.full_name || p.email.split("@")[0],
-              email: p.email,
-              position: "Senior",
-              assignedCourses: [],
-              status: p.account_status === "inactive" ? "Deactivated" : "Active",
-              hasChangedDefaultPassword: !p.must_change_password,
-              defaultPassword: "",
-              createdAt: p.created_at ? p.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+            .filter((l: any) => l.email?.toLowerCase() !== "check@gmail.com")
+            .map((l: any) => ({
+              id: l.id,
+              name: l.name,
+              email: l.email,
+              position: l.position || "Senior",
+              assignedCourses: l.assigned_courses || [],
+              status: l.status || "Active",
+              hasChangedDefaultPassword: Boolean(l.has_changed_default_password),
+              defaultPassword: l.default_password || "",
+              createdAt: l.created_at ? l.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+              adminEmail: l.admin_email || "admin@university.edu",
             }));
           if (dbLecturers.length > 0) {
-            setLecturers(dbLecturers);
+            setMasterLecturers((prev) => {
+              const map = new Map(prev.map((item) => [item.id, item]));
+              dbLecturers.forEach((l) => map.set(l.id, { ...map.get(l.id), ...l }));
+              return Array.from(map.values());
+            });
           }
+        }
+      });
 
-          const dbStudents: Student[] = data
-            .filter((p: any) => p.role === "student")
-            .map((p: any) => ({
-              id: p.id,
-              fullName: p.full_name || p.email.split("@")[0],
-              email: p.email,
-              departmentId: "",
-              academicYear: 1,
-              semester: 1,
-              defaultPassword: "",
-              profilePhotoUrl: p.profile_photo_url || null,
-              accountStatus: p.account_status || "active",
-              mustChangePassword: Boolean(p.must_change_password),
-              createdAt: p.created_at ? p.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
-            }));
+      // 4. Fetch students from Supabase
+      supabase.from("students").select("*").then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          const dbStudents: Student[] = data.map((s: any) => ({
+            id: s.student_id || s.id,
+            studentId: s.student_id,
+            fullName: s.full_name,
+            email: s.email,
+            departmentId: s.department_id || "",
+            academicYear: s.academic_year || 1,
+            semester: s.semester || 1,
+            defaultPassword: s.default_password || "",
+            profilePhotoUrl: s.profile_photo_url || null,
+            accountStatus: s.account_status || "active",
+            mustChangePassword: Boolean(s.must_change_password),
+            createdAt: s.created_at ? s.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+            adminEmail: s.admin_email || "admin@university.edu",
+          }));
           if (dbStudents.length > 0) {
-            setStudents(dbStudents);
+            setMasterStudents((prev) => {
+              const map = new Map(prev.map((item) => [item.id, item]));
+              dbStudents.forEach((s) => map.set(s.id, { ...map.get(s.id), ...s }));
+              return Array.from(map.values());
+            });
           }
         }
       });
 
-      // 4. Fetch projects
+      // 5. Fetch projects
       supabase.from("projects").select("*").then(({ data, error }) => {
-        if (!error && data) {
-          if (data.length > 0) {
-            setProjects(data.map((p: any) => ({
-              id: p.id,
-              title: p.title,
-              description: p.description,
-              type: p.type || (p.project_type === "individual" ? "Individual Project" : "Group Project"),
-              departmentId: p.department_id,
-              courseCode: p.course_code,
-              academicYear: p.academic_year || 1,
-              semester: p.semester || 1,
-              deadline: p.deadline,
-              status: p.status || "Draft",
-              lecturerId: p.lecturer_id,
-              lecturerName: p.lecturer_name,
-              requirements: p.requirements,
-              githubRequired: p.github_required ?? true,
-              erDiagramRequired: p.er_diagram_required ?? true,
-              databaseRequired: p.database_required ?? true,
-              finalReportRequired: p.final_report_required ?? true,
-              createdAt: p.created_at ? p.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
-            })));
-          } else {
-            setProjects([]);
-          }
+        if (!error && data && data.length > 0) {
+          const dbProjects: Project[] = data.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            type: p.type || (p.project_type === "individual" ? "Individual Project" : "Group Project"),
+            departmentId: p.department_id,
+            courseCode: p.course_code,
+            academicYear: p.academic_year || 1,
+            semester: p.semester || 1,
+            deadline: p.deadline,
+            status: p.status || "Draft",
+            lecturerId: p.lecturer_id,
+            lecturerName: p.lecturer_name,
+            requirements: p.requirements,
+            githubRequired: p.github_required ?? true,
+            erDiagramRequired: p.er_diagram_required ?? true,
+            databaseRequired: p.database_required ?? true,
+            finalReportRequired: p.final_report_required ?? true,
+            createdAt: p.created_at ? p.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
+            adminEmail: p.admin_email || "admin@university.edu",
+          }));
+          setMasterProjects((prev) => {
+            const map = new Map(prev.map((item) => [item.id, item]));
+            dbProjects.forEach((p) => map.set(p.id, { ...map.get(p.id), ...p }));
+            return Array.from(map.values());
+          });
         }
       });
 
-      // 5. Fetch student groups
+      // 6. Fetch student groups
       supabase.from("student_groups").select("*").then(({ data, error }) => {
-        if (!error && data) {
-          if (data.length > 0) {
-            setGroups(data.map((g: any, index: number) => ({
-              id: g.id,
-              projectId: g.project_id || "",
-              groupNumber: index + 1,
-              groupName: g.group_name || `Group 0${index + 1}`,
-              proposalStatus: "submitted",
-              githubRepoStatus: "connected",
-              members: [],
-            } as any)));
-          } else {
-            setGroups([]);
-          }
+        if (!error && data && data.length > 0) {
+          setGroups(data.map((g: any, index: number) => ({
+            id: g.id,
+            projectId: g.project_id || "",
+            groupNumber: index + 1,
+            groupName: g.group_name || `Group 0${index + 1}`,
+            proposalStatus: "submitted",
+            githubRepoStatus: "connected",
+            members: [],
+          } as any)));
         }
       });
     } catch {}
   }, []);
 
-  // Sync projects from Supabase on mount
+  // Sync projects from Supabase API on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
     fetch("/api/projects")
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.projects && data.projects.length > 0) {
-          setProjects((prev) => {
+          setMasterProjects((prev) => {
             const existingIds = new Set(prev.map((p) => p.id));
             const newFromDb = data.projects.filter((p: Project) => !existingIds.has(p.id));
             if (newFromDb.length > 0) {
@@ -386,19 +438,77 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           });
         }
       })
-      .catch(() => {
-        // Silently continue if Supabase is offline
-      });
+      .catch(() => {});
   }, []);
+
+  // Resolve which Admin faculty this session belongs to
+  const effectiveAdminEmail = useMemo(() => {
+    if (activeRole === "admin") {
+      return (activeAdminEmail || "admin@university.edu").trim().toLowerCase();
+    }
+    if (activeRole === "lecturer") {
+      const currentLec = masterLecturers.find(
+        (l) => l.email.toLowerCase() === activeLecturerEmail.toLowerCase()
+      );
+      return (currentLec?.adminEmail || activeAdminEmail || "admin@university.edu").trim().toLowerCase();
+    }
+    if (activeRole === "student") {
+      const currentStd = masterStudents.find(
+        (s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()
+      );
+      return (currentStd?.adminEmail || activeAdminEmail || "admin@university.edu").trim().toLowerCase();
+    }
+    return (activeAdminEmail || "admin@university.edu").trim().toLowerCase();
+  }, [activeRole, activeAdminEmail, activeLecturerEmail, activeStudentEmail, masterLecturers, masterStudents]);
+
+  // Scoped views for the current active admin/faculty
+  // Multi-tenancy: One admin cannot see or access another admin's lecturers, students, courses, or departments
+  const departments = useMemo(() => {
+    return masterDepartments.filter(
+      (d) => (d.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
+    );
+  }, [masterDepartments, effectiveAdminEmail]);
+
+  const courses = useMemo(() => {
+    return masterCourses.filter(
+      (c) => (c.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
+    );
+  }, [masterCourses, effectiveAdminEmail]);
+
+  const lecturers = useMemo(() => {
+    return masterLecturers.filter(
+      (l) => (l.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
+    );
+  }, [masterLecturers, effectiveAdminEmail]);
+
+  const students = useMemo(() => {
+    return masterStudents.filter(
+      (s) => (s.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
+    );
+  }, [masterStudents, effectiveAdminEmail]);
+
+  const projects = useMemo(() => {
+    return masterProjects.filter(
+      (p) => (p.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
+    );
+  }, [masterProjects, effectiveAdminEmail]);
+
+  const activities = useMemo(() => {
+    return masterActivities.filter(
+      (a) => (a.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
+    );
+  }, [masterActivities, effectiveAdminEmail]);
+
+  const currentLecturer = masterLecturers.find((l) => l.email.toLowerCase() === activeLecturerEmail.toLowerCase());
 
   // Sync to localStorage
   const persist = (
-    deptList = departments,
-    crsList = courses,
-    lecList = lecturers,
-    stdList = students,
-    actList = activities,
-    projList = projects,
+    deptList = masterDepartments,
+    crsList = masterCourses,
+    lecList = masterLecturers,
+    stdList = masterStudents,
+    actList = masterActivities,
+    projList = masterProjects,
     grpList = groups,
     timelineList = timelineActivities
   ) => {
@@ -416,9 +526,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           timelineActivities: timelineList,
         })
       );
-    } catch {
-      // Ignore write errors
-    }
+    } catch {}
   };
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
@@ -433,41 +541,53 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   const addActivity = (action: string, target: string, type: ActivityLog["type"]) => {
     const newAct: ActivityLog = {
       id: `act-${Date.now()}`,
-      user: "Administrator",
+      user: activeRole === "admin" ? "Administrator" : "User",
       action,
       target,
       time: "Just now",
       type,
+      adminEmail: effectiveAdminEmail,
     };
-    const updated = [newAct, ...activities.slice(0, 19)];
-    setActivities(updated);
+    const updated = [newAct, ...masterActivities.slice(0, 49)];
+    setMasterActivities(updated);
     return updated;
   };
 
-  // Department Actions
+  // ==========================================
+  // Department Actions (Admin Only)
+  // ==========================================
   const addDepartment = (name: string) => {
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can create departments." };
+    }
     const trimmed = name.trim();
     if (!trimmed) {
       return { success: false, error: "Department Name is required" };
     }
     const exists = departments.some((d) => d.name.toLowerCase() === trimmed.toLowerCase());
     if (exists) {
-      return { success: false, error: "A department with this name already exists" };
+      return { success: false, error: "A department with this name already exists in your faculty" };
     }
 
     const newDept: Department = {
       id: `dept-${Date.now()}`,
       name: trimmed,
       createdAt: new Date().toISOString().split("T")[0],
+      adminEmail: effectiveAdminEmail,
     };
-    const updatedDepts = [newDept, ...departments];
-    setDepartments(updatedDepts);
+    const updatedDepts = [newDept, ...masterDepartments];
+    setMasterDepartments(updatedDepts);
     const updatedActs = addActivity("created new department", trimmed, "department");
-    persist(updatedDepts, courses, lecturers, students, updatedActs);
+    persist(updatedDepts, masterCourses, masterLecturers, masterStudents, updatedActs);
+
     if (isSupabaseConfigured()) {
       try {
         const supabase = createClient();
-        supabase.from("departments").insert({ id: newDept.id, name: newDept.name }).then(({ error }) => {
+        supabase.from("departments").insert({
+          id: newDept.id,
+          name: newDept.name,
+          admin_email: newDept.adminEmail,
+        }).then(({ error }) => {
           if (error) console.error("Supabase insert department error:", error.message);
         });
       } catch {}
@@ -477,6 +597,9 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const editDepartment = (id: string, name: string) => {
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can edit departments." };
+    }
     const trimmed = name.trim();
     if (!trimmed) {
       return { success: false, error: "Department Name is required" };
@@ -485,28 +608,52 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       (d) => d.id !== id && d.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (exists) {
-      return { success: false, error: "Another department already has this name" };
+      return { success: false, error: "Another department in your faculty already has this name" };
     }
 
-    const updatedDepts = departments.map((d) => (d.id === id ? { ...d, name: trimmed } : d));
-    setDepartments(updatedDepts);
+    const updatedDepts = masterDepartments.map((d) => (d.id === id ? { ...d, name: trimmed } : d));
+    setMasterDepartments(updatedDepts);
     const updatedActs = addActivity("updated department name to", trimmed, "department");
-    persist(updatedDepts, courses, lecturers, students, updatedActs);
+    persist(updatedDepts, masterCourses, masterLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("departments").update({ name: trimmed }).eq("id", id).then(({ error }) => {
+          if (error) console.error("Supabase update department error:", error.message);
+        });
+      } catch {}
+    }
     showToast(`Department updated to "${trimmed}"`, "success");
     return { success: true };
   };
 
   const deleteDepartment = (id: string) => {
-    const dept = departments.find((d) => d.id === id);
-    const updatedDepts = departments.filter((d) => d.id !== id);
-    setDepartments(updatedDepts);
+    if (activeRole !== "admin") return;
+    const dept = masterDepartments.find((d) => d.id === id);
+    const updatedDepts = masterDepartments.filter((d) => d.id !== id);
+    setMasterDepartments(updatedDepts);
     const updatedActs = addActivity("deleted department", dept?.name || id, "department");
-    persist(updatedDepts, courses, lecturers, students, updatedActs);
+    persist(updatedDepts, masterCourses, masterLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("departments").delete().eq("id", id).then(({ error }) => {
+          if (error) console.error("Supabase delete department error:", error.message);
+        });
+      } catch {}
+    }
     showToast(`Department "${dept?.name}" removed`, "info");
   };
 
-  // Course Actions
+  // ==========================================
+  // Course Actions (Admin Only)
+  // ==========================================
   const addCourse = (code: string, name: string) => {
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can create courses." };
+    }
     const trimmedCode = code.trim().toUpperCase();
     const trimmedName = name.trim();
 
@@ -515,7 +662,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
     const duplicateCode = courses.some((c) => c.code.toUpperCase() === trimmedCode);
     if (duplicateCode) {
-      return { success: false, error: `Course Code "${trimmedCode}" already exists` };
+      return { success: false, error: `Course Code "${trimmedCode}" already exists in your faculty` };
     }
 
     const newCourse: Course = {
@@ -523,15 +670,24 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       code: trimmedCode,
       name: trimmedName,
       createdAt: new Date().toISOString().split("T")[0],
+      adminEmail: effectiveAdminEmail,
     };
-    const updatedCourses = [newCourse, ...courses];
-    setCourses(updatedCourses);
+    const updatedCourses = [newCourse, ...masterCourses];
+    setMasterCourses(updatedCourses);
     const updatedActs = addActivity("added course", `${trimmedCode}: ${trimmedName}`, "course");
-    persist(departments, updatedCourses, lecturers, students, updatedActs);
+    persist(masterDepartments, updatedCourses, masterLecturers, masterStudents, updatedActs);
+
     if (isSupabaseConfigured()) {
       try {
         const supabase = createClient();
-        supabase.from("courses").insert({ id: newCourse.id, course_code: newCourse.code, course_name: newCourse.name }).then(({ error }) => {
+        supabase.from("courses").insert({
+          id: newCourse.id,
+          code: newCourse.code,
+          course_code: newCourse.code,
+          name: newCourse.name,
+          course_name: newCourse.name,
+          admin_email: newCourse.adminEmail,
+        }).then(({ error }) => {
           if (error) console.error("Supabase insert course error:", error.message);
         });
       } catch {}
@@ -541,6 +697,9 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const editCourse = (id: string, code: string, name: string) => {
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can edit courses." };
+    }
     const trimmedCode = code.trim().toUpperCase();
     const trimmedName = name.trim();
 
@@ -551,47 +710,76 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       (c) => c.id !== id && c.code.toUpperCase() === trimmedCode
     );
     if (duplicateCode) {
-      return { success: false, error: `Course Code "${trimmedCode}" is already in use` };
+      return { success: false, error: `Course Code "${trimmedCode}" is already in use in your faculty` };
     }
 
-    const updatedCourses = courses.map((c) =>
+    const updatedCourses = masterCourses.map((c) =>
       c.id === id ? { ...c, code: trimmedCode, name: trimmedName } : c
     );
-    setCourses(updatedCourses);
+    setMasterCourses(updatedCourses);
     const updatedActs = addActivity("updated course details for", trimmedCode, "course");
-    persist(departments, updatedCourses, lecturers, students, updatedActs);
+    persist(masterDepartments, updatedCourses, masterLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("courses").update({
+          code: trimmedCode,
+          course_code: trimmedCode,
+          name: trimmedName,
+          course_name: trimmedName,
+        }).eq("id", id).then(({ error }) => {
+          if (error) console.error("Supabase update course error:", error.message);
+        });
+      } catch {}
+    }
     showToast(`Course ${trimmedCode} updated`, "success");
     return { success: true };
   };
 
   const deleteCourse = (id: string) => {
-    const crs = courses.find((c) => c.id === id);
-    const updatedCourses = courses.filter((c) => c.id !== id);
-    setCourses(updatedCourses);
+    if (activeRole !== "admin") return;
+    const crs = masterCourses.find((c) => c.id === id);
+    const updatedCourses = masterCourses.filter((c) => c.id !== id);
+    setMasterCourses(updatedCourses);
     const updatedActs = addActivity("deleted course", crs?.code || id, "course");
-    persist(departments, updatedCourses, lecturers, students, updatedActs);
+    persist(masterDepartments, updatedCourses, masterLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("courses").delete().eq("id", id).then(({ error }) => {
+          if (error) console.error("Supabase delete course error:", error.message);
+        });
+      } catch {}
+    }
     showToast(`Course "${crs?.code}" removed`, "info");
   };
 
-  // Lecturer Actions
+  // ==========================================
+  // Lecturer Actions (Admin Only)
+  // ==========================================
   const addLecturer = (data: {
     name: string;
     email: string;
     position: "Senior" | "Probationary";
     assignedCourses: string[];
   }) => {
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can create lecturer accounts." };
+    }
     const trimmedName = data.name.trim();
     const trimmedEmail = data.email.trim().toLowerCase();
 
     if (!trimmedName) return { success: false, error: "Lecturer Name is required" };
     if (!trimmedEmail) return { success: false, error: "Email Address is required" };
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
       return { success: false, error: "Please enter a valid institutional email" };
     }
 
-    const exists = lecturers.some((l) => l.email.toLowerCase() === trimmedEmail);
+    const exists = masterLecturers.some((l) => l.email.toLowerCase() === trimmedEmail);
     if (exists) {
       return { success: false, error: `Lecturer with email "${trimmedEmail}" already exists` };
     }
@@ -606,62 +794,123 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       hasChangedDefaultPassword: false,
       defaultPassword: "UniCode@2004",
       createdAt: new Date().toISOString().split("T")[0],
+      adminEmail: effectiveAdminEmail,
     };
 
-    const updatedLecturers = [newLecturer, ...lecturers];
-    setLecturers(updatedLecturers);
+    const updatedLecturers = [newLecturer, ...masterLecturers];
+    setMasterLecturers(updatedLecturers);
     const updatedActs = addActivity(
       "created lecturer account for",
       `${trimmedName} (${trimmedEmail})`,
       "lecturer"
     );
-    persist(departments, courses, updatedLecturers, students, updatedActs);
+    persist(masterDepartments, masterCourses, updatedLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("lecturers").insert({
+          id: newLecturer.id,
+          name: newLecturer.name,
+          email: newLecturer.email,
+          position: newLecturer.position,
+          assigned_courses: newLecturer.assignedCourses,
+          status: newLecturer.status,
+          default_password: newLecturer.defaultPassword,
+          has_changed_default_password: false,
+          admin_email: newLecturer.adminEmail,
+        }).then(({ error }) => {
+          if (error) console.error("Supabase insert lecturer error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast(`Lecturer account created for ${trimmedName}!`, "success");
     return { success: true, lecturer: newLecturer };
   };
 
   const editLecturer = (id: string, updates: Partial<Lecturer>) => {
-    const updatedLecturers = lecturers.map((l) => (l.id === id ? { ...l, ...updates } : l));
-    setLecturers(updatedLecturers);
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can edit lecturer accounts." };
+    }
+    const updatedLecturers = masterLecturers.map((l) => (l.id === id ? { ...l, ...updates } : l));
+    setMasterLecturers(updatedLecturers);
     const updatedActs = addActivity("updated lecturer record", id, "lecturer");
-    persist(departments, courses, updatedLecturers, students, updatedActs);
+    persist(masterDepartments, masterCourses, updatedLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const payload: any = {};
+        if (updates.name) payload.name = updates.name;
+        if (updates.position) payload.position = updates.position;
+        if (updates.assignedCourses) payload.assigned_courses = updates.assignedCourses;
+        if (updates.status) payload.status = updates.status;
+        supabase.from("lecturers").update(payload).eq("id", id).then(({ error }) => {
+          if (error) console.error("Supabase update lecturer error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast("Lecturer details updated successfully", "success");
     return { success: true };
   };
 
   const toggleLecturerStatus = (id: string) => {
-    const lec = lecturers.find((l) => l.id === id);
+    if (activeRole !== "admin") return;
+    const lec = masterLecturers.find((l) => l.id === id);
     if (!lec) return;
     const nextStatus: "Active" | "Deactivated" =
       lec.status === "Deactivated" ? "Active" : "Deactivated";
-    const updatedLecturers: Lecturer[] = lecturers.map((l) =>
+    const updatedLecturers: Lecturer[] = masterLecturers.map((l) =>
       l.id === id ? { ...l, status: nextStatus } : l
     );
-    setLecturers(updatedLecturers);
+    setMasterLecturers(updatedLecturers);
     const updatedActs = addActivity(
       `${nextStatus === "Deactivated" ? "deactivated" : "reactivated"} lecturer`,
       lec.name,
       "lecturer"
     );
-    persist(departments, courses, updatedLecturers, students, updatedActs);
+    persist(masterDepartments, masterCourses, updatedLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("lecturers").update({ status: nextStatus }).eq("id", id).then(({ error }) => {
+          if (error) console.error("Supabase toggle lecturer status error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast(`Lecturer ${lec.name} is now ${nextStatus}`, nextStatus === "Active" ? "success" : "info");
   };
 
   const deleteLecturer = (id: string) => {
-    const lec = lecturers.find((l) => l.id === id);
-    const updatedLecturers = lecturers.filter((l) => l.id !== id);
-    setLecturers(updatedLecturers);
+    if (activeRole !== "admin") return;
+    const lec = masterLecturers.find((l) => l.id === id);
+    const updatedLecturers = masterLecturers.filter((l) => l.id !== id);
+    setMasterLecturers(updatedLecturers);
     const updatedActs = addActivity("removed lecturer account", lec?.name || id, "lecturer");
-    persist(departments, courses, updatedLecturers, students, updatedActs);
+    persist(masterDepartments, masterCourses, updatedLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("lecturers").delete().eq("id", id).then(({ error }) => {
+          if (error) console.error("Supabase delete lecturer error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast(`Lecturer ${lec?.name} removed`, "info");
   };
 
   const changeLecturerPassword = (email: string, newPass: string) => {
     const trimmedEmail = email.trim().toLowerCase();
-    const lec = lecturers.find((l) => l.email.toLowerCase() === trimmedEmail);
+    const lec = masterLecturers.find((l) => l.email.toLowerCase() === trimmedEmail);
     if (!lec) return false;
 
-    const updatedLecturers: Lecturer[] = lecturers.map((l) =>
+    const updatedLecturers: Lecturer[] = masterLecturers.map((l) =>
       l.email.toLowerCase() === trimmedEmail
         ? {
             ...l,
@@ -671,22 +920,36 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           }
         : l
     );
-    setLecturers(updatedLecturers);
+    setMasterLecturers(updatedLecturers);
     const updatedActs = addActivity("completed first-login password change", trimmedEmail, "system");
-    persist(departments, courses, updatedLecturers, students, updatedActs);
+    persist(masterDepartments, masterCourses, updatedLecturers, masterStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("lecturers").update({
+          has_changed_default_password: true,
+          status: "Active",
+          default_password: newPass,
+        }).eq("email", trimmedEmail).then(({ error }) => {
+          if (error) console.error("Supabase update lecturer password error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast("Password updated successfully! Welcome to your dashboard.", "success");
     return true;
   };
 
+  // Cross-tenant lookup so any lecturer can sign in from any admin workspace
   const findLecturerByEmail = (email: string) => {
     const normalized = email.trim().toLowerCase();
-    const found = lecturers.find((l) => l.email.toLowerCase() === normalized);
-    if (found) return found;
-    // no test account bypass
-    return undefined;
+    return masterLecturers.find((l) => l.email.toLowerCase() === normalized);
   };
 
-  // Student Actions
+  // ==========================================
+  // Student Actions (Admin Only)
+  // ==========================================
   const addStudent = (data: {
     fullName: string;
     email: string;
@@ -695,6 +958,9 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     semester: 1 | 2;
     defaultPassword: string;
   }) => {
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can create student accounts." };
+    }
     const trimmedName = data.fullName.trim();
     const trimmedEmail = data.email.trim().toLowerCase();
 
@@ -702,12 +968,12 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: "Full Name is required" };
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
     if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
       return { success: false, error: "Please enter a valid university email address" };
     }
 
-    if (students.some((s) => s.email.toLowerCase() === trimmedEmail)) {
+    if (masterStudents.some((s) => s.email.toLowerCase() === trimmedEmail)) {
       return {
         success: false,
         error: `A student with email "${trimmedEmail}" is already registered.`,
@@ -742,12 +1008,36 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       accountStatus: "active",
       mustChangePassword: true,
       createdAt: new Date().toISOString().split("T")[0],
+      adminEmail: effectiveAdminEmail,
     };
 
-    const updatedStudents = [newStudent, ...students];
-    setStudents(updatedStudents);
+    const updatedStudents = [newStudent, ...masterStudents];
+    setMasterStudents(updatedStudents);
     const updatedActs = addActivity("registered new student account", trimmedName, "student");
-    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    persist(masterDepartments, masterCourses, masterLecturers, updatedStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const deptObj = masterDepartments.find((d) => d.id === newStudent.departmentId);
+        supabase.from("students").insert({
+          student_id: newStudent.id,
+          full_name: newStudent.fullName,
+          email: newStudent.email,
+          department_id: newStudent.departmentId,
+          department: deptObj?.name || "Computer Science",
+          academic_year: newStudent.academicYear,
+          semester: newStudent.semester,
+          default_password: newStudent.defaultPassword,
+          account_status: newStudent.accountStatus,
+          must_change_password: true,
+          admin_email: newStudent.adminEmail,
+        }).then(({ error }) => {
+          if (error) console.error("Supabase insert student error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast(`Student ${trimmedName} created successfully!`, "success");
 
     return {
@@ -763,16 +1053,19 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     id: string,
     updates: Partial<Omit<Student, "id" | "createdAt">>
   ) => {
-    const std = students.find((s) => s.id === id);
+    if (activeRole !== "admin") {
+      return { success: false, error: "Access denied. Only university administrators can edit student records." };
+    }
+    const std = masterStudents.find((s) => s.id === id);
     if (!std) return { success: false, error: "Student not found" };
 
     if (updates.email) {
       const trimmedEmail = updates.email.trim().toLowerCase();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
       if (!emailRegex.test(trimmedEmail)) {
         return { success: false, error: "Please enter a valid university email address" };
       }
-      if (students.some((s) => s.id !== id && s.email.toLowerCase() === trimmedEmail)) {
+      if (masterStudents.some((s) => s.id !== id && s.email.toLowerCase() === trimmedEmail)) {
         return {
           success: false,
           error: `Email "${trimmedEmail}" is already used by another student.`,
@@ -785,35 +1078,63 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       updates.fullName = updates.fullName.trim();
     }
 
-    const updatedStudents = students.map((s) =>
+    const updatedStudents = masterStudents.map((s) =>
       s.id === id ? { ...s, ...updates } : s
     );
-    setStudents(updatedStudents);
+    setMasterStudents(updatedStudents);
     const updatedActs = addActivity(
       "updated student profile",
       updates.fullName || std.fullName,
       "student"
     );
-    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    persist(masterDepartments, masterCourses, masterLecturers, updatedStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const payload: any = {};
+        if (updates.fullName) payload.full_name = updates.fullName;
+        if (updates.email) payload.email = updates.email;
+        if (updates.departmentId) payload.department_id = updates.departmentId;
+        if (updates.academicYear) payload.academic_year = updates.academicYear;
+        if (updates.semester) payload.semester = updates.semester;
+        if (updates.accountStatus) payload.account_status = updates.accountStatus;
+        supabase.from("students").update(payload).eq("student_id", id).then(({ error }) => {
+          if (error) console.error("Supabase update student error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast("Student details updated successfully", "success");
     return { success: true };
   };
 
   const toggleStudentStatus = (id: string) => {
-    const std = students.find((s) => s.id === id);
+    if (activeRole !== "admin") return;
+    const std = masterStudents.find((s) => s.id === id);
     if (!std) return;
     const nextStatus: "active" | "inactive" =
       std.accountStatus === "active" ? "inactive" : "active";
-    const updatedStudents = students.map((s) =>
+    const updatedStudents = masterStudents.map((s) =>
       s.id === id ? { ...s, accountStatus: nextStatus } : s
     );
-    setStudents(updatedStudents);
+    setMasterStudents(updatedStudents);
     const updatedActs = addActivity(
       `${nextStatus === "inactive" ? "deactivated" : "reactivated"} student account`,
       std.fullName,
       "student"
     );
-    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    persist(masterDepartments, masterCourses, masterLecturers, updatedStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("students").update({ account_status: nextStatus }).eq("student_id", id).then(({ error }) => {
+          if (error) console.error("Supabase toggle student status error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast(
       `Student ${std.fullName} is now ${nextStatus === "active" ? "Active" : "Deactivated"}`,
       nextStatus === "active" ? "success" : "info"
@@ -821,67 +1142,89 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteStudent = (id: string) => {
-    const std = students.find((s) => s.id === id);
-    const updatedStudents = students.filter((s) => s.id !== id);
-    setStudents(updatedStudents);
+    if (activeRole !== "admin") return;
+    const std = masterStudents.find((s) => s.id === id);
+    const updatedStudents = masterStudents.filter((s) => s.id !== id);
+    setMasterStudents(updatedStudents);
     const updatedActs = addActivity(
       "removed student account",
       std?.fullName || id,
       "student"
     );
-    persist(departments, courses, lecturers, updatedStudents, updatedActs);
+    persist(masterDepartments, masterCourses, masterLecturers, updatedStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("students").delete().eq("student_id", id).then(({ error }) => {
+          if (error) console.error("Supabase delete student error:", error.message);
+        });
+      } catch {}
+    }
+
     showToast(`Student ${std?.fullName || "record"} deleted`, "info");
   };
 
+  // Cross-tenant lookup so any student can sign in from any admin workspace
   const findStudentByEmail = (email: string) => {
-    return students.find((s) => s.email.toLowerCase() === email.trim().toLowerCase());
+    return masterStudents.find((s) => s.email.toLowerCase() === email.trim().toLowerCase());
   };
 
   const changeStudentPassword = (email: string, newPass: string) => {
     const trimmedEmail = email.trim().toLowerCase();
-    const std = students.find((s) => s.email.toLowerCase() === trimmedEmail);
+    const std = masterStudents.find((s) => s.email.toLowerCase() === trimmedEmail);
     if (!std) return false;
 
-    const updatedStudents = students.map((s) =>
+    const updatedStudents = masterStudents.map((s) =>
       s.email.toLowerCase() === trimmedEmail
         ? {
             ...s,
             mustChangePassword: false,
             defaultPassword: newPass,
-            accountStatus: "active" as const,
           }
         : s
     );
-    setStudents(updatedStudents);
+    setMasterStudents(updatedStudents);
     const updatedActs = addActivity(
-      "completed first-time student password change",
+      "student updated account password",
       trimmedEmail,
       "student"
     );
-    persist(departments, courses, lecturers, updatedStudents, updatedActs);
-    showToast("Password updated successfully! Welcome to your student dashboard.", "success");
+    persist(masterDepartments, masterCourses, masterLecturers, updatedStudents, updatedActs);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        supabase.from("students").update({
+          must_change_password: false,
+          default_password: newPass,
+        }).eq("email", trimmedEmail).then(({ error }) => {
+          if (error) console.error("Supabase update student password error:", error.message);
+        });
+      } catch {}
+    }
+
+    showToast("Password updated successfully!", "success");
     return true;
   };
 
-  // Project Actions (Lecturer & Admin)
+  // ==========================================
+  // Project Management (Scoped by Admin Faculty)
+  // ==========================================
   const addProject = (
     data: Omit<Project, "id" | "createdAt">,
     initialProjectGroups?: ProjectGroup[]
   ) => {
-    if (!data.title.trim()) {
-      return { success: false, error: "Project Title is required." };
-    }
-    if (!data.courseCode) {
-      return { success: false, error: "Academic Course assignment is required." };
-    }
-    if (!data.departmentId) {
-      return { success: false, error: "Department selection is required." };
+    const trimmedTitle = data.title.trim();
+    if (!trimmedTitle) {
+      return { success: false, error: "Project Title is required" };
     }
 
     const newProject: Project = {
       ...data,
       id: `proj-${Date.now().toString(36)}`,
       createdAt: new Date().toISOString().split("T")[0],
+      adminEmail: effectiveAdminEmail,
     };
 
     let nextGroups = groups;
@@ -897,14 +1240,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       setGroups(nextGroups);
     }
 
-    const updatedProjects = [newProject, ...projects];
-    setProjects(updatedProjects);
+    const updatedProjects = [newProject, ...masterProjects];
+    setMasterProjects(updatedProjects);
     const updatedActs = addActivity(
       `${data.status === "Published" ? "published" : "created draft for"} academic project`,
       data.title,
       "project"
     );
-    persist(departments, courses, lecturers, students, updatedActs, updatedProjects, nextGroups);
+    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects, nextGroups);
 
     // Save project and academic groups to Supabase database
     fetch("/api/projects", {
@@ -926,13 +1269,13 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const editProject = (id: string, updates: Partial<Project>) => {
-    const proj = projects.find((p) => p.id === id);
+    const proj = masterProjects.find((p) => p.id === id);
     if (!proj) return { success: false, error: "Project not found" };
 
-    const updatedProjects = projects.map((p) => (p.id === id ? { ...p, ...updates } : p));
-    setProjects(updatedProjects);
+    const updatedProjects = masterProjects.map((p) => (p.id === id ? { ...p, ...updates } : p));
+    setMasterProjects(updatedProjects);
     const updatedActs = addActivity("updated academic project", updates.title || proj.title, "project");
-    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects);
 
     // Sync to Supabase
     fetch("/api/projects", {
@@ -946,14 +1289,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const publishProject = (id: string) => {
-    const proj = projects.find((p) => p.id === id);
+    const proj = masterProjects.find((p) => p.id === id);
     if (!proj) return;
-    const updatedProjects: Project[] = projects.map((p) =>
+    const updatedProjects: Project[] = masterProjects.map((p) =>
       p.id === id ? { ...p, status: "Published" as const } : p
     );
-    setProjects(updatedProjects);
+    setMasterProjects(updatedProjects);
     const updatedActs = addActivity("published academic project", proj.title, "project");
-    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects);
 
     // Sync published status to Supabase
     fetch("/api/projects", {
@@ -967,7 +1310,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
   const getProjectsForStudent = (studentEmail?: string): Project[] => {
     const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
-    const currentStudent = students.find((s) => s.email.toLowerCase() === email);
+    const currentStudent = masterStudents.find((s) => s.email.toLowerCase() === email);
 
     // Projects where student is a group member
     const assignedProjectIds = new Set(
@@ -1008,28 +1351,28 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const archiveProject = (id: string) => {
-    const proj = projects.find((p) => p.id === id);
+    const proj = masterProjects.find((p) => p.id === id);
     if (!proj) return;
     const nextStatus = proj.status === "Archived" ? ("Published" as const) : ("Archived" as const);
-    const updatedProjects: Project[] = projects.map((p) =>
+    const updatedProjects: Project[] = masterProjects.map((p) =>
       p.id === id ? { ...p, status: nextStatus } : p
     );
-    setProjects(updatedProjects);
+    setMasterProjects(updatedProjects);
     const updatedActs = addActivity(
       `${nextStatus === "Archived" ? "archived" : "restored"} project`,
       proj.title,
       "project"
     );
-    persist(departments, courses, lecturers, students, updatedActs, updatedProjects);
+    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects);
     showToast(`Project "${proj.title}" is now ${nextStatus}`, "info");
   };
 
   const deleteProject = (id: string) => {
-    const proj = projects.find((p) => p.id === id);
-    const updatedProjects = projects.filter((p) => p.id !== id);
-    setProjects(updatedProjects);
+    const proj = masterProjects.find((p) => p.id === id);
+    const updatedProjects = masterProjects.filter((p) => p.id !== id);
+    setMasterProjects(updatedProjects);
     const updatedActs = addActivity("removed project", proj?.title || id, "project");
-    persist(departments, courses, lecturers, students, updatedActs, updatedProjects, groups, timelineActivities);
+    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects, groups, timelineActivities);
     showToast(`Project "${proj?.title || "record"}" removed`, "info");
   };
 
@@ -1727,6 +2070,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         publishERFeedback,
         activeRole,
         setActiveRole,
+        activeAdminEmail,
+        setActiveAdminEmail,
         activeLecturerEmail,
         setActiveLecturerEmail,
         activeStudentEmail,

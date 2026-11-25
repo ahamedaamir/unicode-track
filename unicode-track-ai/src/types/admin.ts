@@ -4,6 +4,7 @@ export interface Department {
   id: string;
   name: string;
   createdAt: string;
+  adminEmail?: string;
 }
 
 export interface Course {
@@ -11,6 +12,7 @@ export interface Course {
   code: string;
   name: string;
   createdAt: string;
+  adminEmail?: string;
 }
 
 export interface Lecturer {
@@ -23,6 +25,7 @@ export interface Lecturer {
   hasChangedDefaultPassword: boolean;
   defaultPassword: string;
   createdAt: string;
+  adminEmail?: string;
 }
 
 export interface Student {
@@ -38,6 +41,7 @@ export interface Student {
   accountStatus: "active" | "inactive";
   mustChangePassword?: boolean;
   createdAt: string;
+  adminEmail?: string;
 }
 
 export interface Project {
@@ -78,6 +82,7 @@ export interface Project {
   assignedStudentCount?: number;
   databaseDesignConfig?: ProjectDatabaseDesignConfig;
   createdAt: string;
+  adminEmail?: string;
 }
 
 export interface ActivityLog {
@@ -87,4 +92,5 @@ export interface ActivityLog {
   target: string;
   time: string;
   type: "department" | "course" | "lecturer" | "student" | "project" | "system";
+  adminEmail?: string;
 }

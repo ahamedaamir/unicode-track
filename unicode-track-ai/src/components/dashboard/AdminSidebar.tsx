@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -47,10 +47,32 @@ export function AdminSidebar({
     students,
     projects,
     activeRole,
+    activeAdminEmail,
     activeLecturerEmail,
     activeStudentEmail,
     getProjectsForStudent,
   } = useAdminData();
+
+  const [sessionAdmin, setSessionAdmin] = useState<{ name?: string; email?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("unicodetrack_authenticated_user");
+      if (stored) {
+        setSessionAdmin(JSON.parse(stored));
+      }
+    } catch {}
+  }, []);
+
+  const adminDisplayName = sessionAdmin?.name || "University Administrator";
+  const adminDisplayEmail = sessionAdmin?.email || activeAdminEmail || "admin@university.edu";
+  const adminInitials = adminDisplayName
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "UA";
 
   const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
   const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || students[0];
@@ -221,6 +243,14 @@ export function AdminSidebar({
 
   const handleLogout = () => {
     if (confirm("Are you sure you want to sign out of the university workspace?")) {
+      try {
+        sessionStorage.removeItem("unicodetrack_authenticated_user");
+        sessionStorage.removeItem("unicodetrack_pending_user_role");
+        sessionStorage.removeItem("unicodetrack_active_admin_email");
+        sessionStorage.removeItem("unicodetrack_active_lecturer_email");
+        sessionStorage.removeItem("unicodetrack_pending_student_email");
+        sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
+      } catch {}
       router.push("/login");
     }
   };
@@ -353,7 +383,7 @@ export function AdminSidebar({
             <div className="w-7 h-7 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center shrink-0">
               {isStudent
                 ? (currentStudent?.fullName || "S").slice(0, 2).toUpperCase()
-                : "UA"}
+                : adminInitials}
             </div>
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0 flex-1">
@@ -361,14 +391,14 @@ export function AdminSidebar({
                   <p className="text-xs font-semibold text-foreground truncate">
                     {isStudent
                       ? currentStudent?.fullName || "Student"
-                      : "University Administrator"}
+                      : adminDisplayName}
                   </p>
                   <ShieldCheck className="w-3 h-3 text-accent shrink-0" />
                 </div>
-                <p className="text-[10px] text-muted-foreground truncate">
+                <p className="text-[10px] text-muted-foreground truncate font-mono">
                   {isStudent
                     ? "Student Portal"
-                    : "University Administrator"}
+                    : adminDisplayEmail}
                 </p>
               </div>
             )}

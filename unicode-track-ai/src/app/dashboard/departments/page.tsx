@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 
 export default function DepartmentsPage() {
-  const { departments, addDepartment, editDepartment, deleteDepartment } = useAdminData();
+  const { departments, addDepartment, editDepartment, deleteDepartment, activeRole } = useAdminData();
+  const isAdmin = activeRole === "admin";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -92,14 +93,16 @@ export default function DepartmentsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={handleOpenAdd}
-          variant="primary"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-        >
-          Add Department
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={handleOpenAdd}
+            variant="primary"
+            size="md"
+            icon={<Plus className="w-4 h-4" />}
+          >
+            Add Department
+          </Button>
+        )}
       </div>
 
       {/* Search Bar & Summary Banner */}

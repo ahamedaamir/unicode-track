@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAdminData } from "@/context/AdminDataContext";
@@ -23,10 +23,30 @@ interface AdminTopNavbarProps {
 
 export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
   const pathname = usePathname();
-  const { activeRole } = useAdminData();
+  const { activeRole, activeAdminEmail } = useAdminData();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sessionAdmin, setSessionAdmin] = useState<{ name?: string; email?: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("unicodetrack_authenticated_user");
+      if (stored) {
+        setSessionAdmin(JSON.parse(stored));
+      }
+    } catch {}
+  }, []);
+
+  const adminDisplayEmail = sessionAdmin?.email || activeAdminEmail || "admin@university.edu";
+  const adminDisplayName = sessionAdmin?.name || "University Administrator";
+  const adminInitials = adminDisplayName
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "UA";
 
   if (
     activeRole !== "admin" ||
@@ -159,11 +179,11 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
             className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-[10px] hover:bg-muted transition-colors focus:outline-none cursor-pointer"
           >
             <div className="w-8 h-8 rounded-[8px] bg-accent-soft text-accent border border-accent-border font-bold text-xs flex items-center justify-center">
-              UA
+              {adminInitials}
             </div>
             <div className="hidden lg:block text-left text-xs leading-tight">
-              <p className="font-bold text-foreground">University Administrator</p>
-              <p className="text-[10px] text-muted-foreground">Administrator</p>
+              <p className="font-bold text-foreground truncate max-w-[150px]">{adminDisplayName}</p>
+              <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{adminDisplayEmail}</p>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
           </button>
@@ -171,8 +191,8 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
           {profileOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-card rounded-[16px] shadow-2xl border border-border p-2 z-40 text-xs animate-in fade-in-50">
               <div className="p-2 border-b border-border">
-                <p className="font-bold text-foreground">University Administrator</p>
-                <p className="text-[11px] text-muted-foreground">admin@university.edu</p>
+                <p className="font-bold text-foreground truncate">{adminDisplayName}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{adminDisplayEmail}</p>
                 <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-accent bg-accent-soft px-2 py-0.5 rounded-full border border-accent-border">
                   <ShieldCheck className="w-3 h-3" /> University Administrator
                 </span>
