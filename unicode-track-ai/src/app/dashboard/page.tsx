@@ -159,31 +159,31 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* 4 Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
-            <span className="text-xs text-slate-400 font-medium block">Courses</span>
-            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
+            <span className="text-xs text-slate-400 font-medium block truncate">Courses</span>
+            <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
               {assignedCourses.length || 3}
             </span>
           </div>
 
-          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
-            <span className="text-xs text-slate-400 font-medium block">Active projects</span>
-            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
+            <span className="text-xs text-slate-400 font-medium block truncate">Active projects</span>
+            <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
               {activeProjectsCount || 4}
             </span>
           </div>
 
-          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
-            <span className="text-xs text-slate-400 font-medium block">Student groups</span>
-            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
+            <span className="text-xs text-slate-400 font-medium block truncate">Student groups</span>
+            <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
               {lecturerGroups.length || 3}
             </span>
           </div>
 
-          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-5 sm:p-6">
-            <span className="text-xs text-slate-400 font-medium block">To evaluate</span>
-            <span className="text-3xl sm:text-4xl font-extrabold text-white block mt-2">
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
+            <span className="text-xs text-slate-400 font-medium block truncate">To evaluate</span>
+            <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
               {pendingAIEvaluationsCount || 6}
             </span>
           </div>
