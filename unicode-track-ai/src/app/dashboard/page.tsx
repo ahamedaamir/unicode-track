@@ -72,17 +72,42 @@ export default function DashboardOverviewPage() {
   );
 
   const lecturerProjectIds = new Set(lecturerProjects.map((p) => p.id));
-  const lecturerGroups = groups.filter((g) => lecturerProjectIds.has(g.projectId) || groups.slice(0, 4).some(rg => rg.id === g.id));
+  const lecturerGroups = groups.filter((g) => lecturerProjectIds.has(g.projectId));
   const totalAssignedStudents = lecturerGroups.reduce((acc, g) => acc + g.members.length, 0);
 
   const pendingProposalsCount = lecturerGroups.filter(
     (g) => g.proposal && (g.proposal.status === "submitted" || g.proposal.status === "under_review")
-  ).length || 3;
+  ).length;
 
-  const pendingERReviewsCount = 4;
-  const pendingAIEvaluationsCount = 6;
-  const pendingFinalSubmissionsCount = 5;
-  const activeProjectsCount = lecturerProjects.filter((p) => p.status === "Published").length || lecturerProjects.length;
+  const activeProjectsCount = lecturerProjects.filter((p) => p.status === "Published").length;
+
+  const toEvaluateCount = React.useMemo(() => {
+    const endedProjects = lecturerProjects.filter((p) => {
+      if (p.deadline) {
+        const d = new Date(p.deadline).getTime();
+        return !isNaN(d) && d < Date.now();
+      }
+      return false;
+    });
+
+    const submittedGroups = lecturerGroups.filter((g) => 
+      g.proposalStatus === "submitted" || 
+      g.repoStatus === "connected" ||
+      g.proposal?.status === "submitted"
+    );
+
+    return Math.max(submittedGroups.length, endedProjects.length);
+  }, [lecturerProjects, lecturerGroups]);
+
+  const pendingAIEvaluationsCount = toEvaluateCount;
+
+  const pendingERReviewsCount = React.useMemo(() => {
+    return lecturerGroups.filter((g) => g.repoStatus === "connected" && g.evaluationStatus !== "published").length;
+  }, [lecturerGroups]);
+
+  const pendingFinalSubmissionsCount = React.useMemo(() => {
+    return lecturerGroups.filter((g) => g.proposalStatus === "submitted" || g.proposalStatus === "under_review").length;
+  }, [lecturerGroups]);
   
   const upcomingDeadlines = lecturerProjects
     .filter((p) => p.deadline)
@@ -101,32 +126,20 @@ export default function DashboardOverviewPage() {
   }, [currentLecturer]);
 
   const recentProjectsList = React.useMemo(() => {
-    if (lecturerProjects.length >= 3) {
-      return lecturerProjects.slice(0, 3).map((p, idx) => ({
-        title: p.title,
-        sub: `${p.courseCode} · ${p.type === "Group Project" || p.projectType === "group" ? "Group" : "Individual"}`,
-        status: idx === 2 ? "Draft" : (p.status === "Published" ? "Published" : "Draft"),
-      }));
-    }
-    return [
-      { title: "Mini Project", sub: "ICT2142 · Group", status: "Published" },
-      { title: "C Mini Shell", sub: "ICT2132 · Individual", status: "Published" },
-      { title: "Faculty Management System", sub: "ICT2152 · Group", status: "Draft" },
-    ];
+    return lecturerProjects.slice(0, 4).map((p) => ({
+      id: p.id,
+      title: p.title,
+      sub: `${p.courseCode} · ${p.type === "Group Project" || p.projectType === "group" ? "Group" : "Individual"}`,
+      status: p.status || "Draft",
+    }));
   }, [lecturerProjects]);
 
   const recentGroupsList = React.useMemo(() => {
-    if (lecturerGroups.length >= 3) {
-      return lecturerGroups.slice(0, 3).map((g, idx) => ({
-        name: g.groupName || `Group 0${idx + 1} · Team ${["CyberNova", "Quantum", "Orbit"][idx] || "Alpha"}`,
-        progress: idx === 0 ? 75 : idx === 1 ? 52 : 30,
-      }));
-    }
-    return [
-      { name: "Group 01 · Team CyberNova", progress: 75 },
-      { name: "Group 02 · Team Quantum", progress: 52 },
-      { name: "Group 03 · Team Orbit", progress: 30 },
-    ];
+    return lecturerGroups.slice(0, 4).map((g) => ({
+      id: g.id,
+      name: g.groupName || `Group 0${g.groupNumber}`,
+      progress: g.progress || 0,
+    }));
   }, [lecturerGroups]);
 
   if (isLecturer) {
@@ -163,28 +176,28 @@ export default function DashboardOverviewPage() {
           <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
             <span className="text-xs text-slate-400 font-medium block truncate">Courses</span>
             <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
-              {assignedCourses.length || 3}
+              {assignedCourses.length}
             </span>
           </div>
 
           <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
             <span className="text-xs text-slate-400 font-medium block truncate">Active projects</span>
             <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
-              {activeProjectsCount || 4}
+              {activeProjectsCount}
             </span>
           </div>
 
           <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
             <span className="text-xs text-slate-400 font-medium block truncate">Student groups</span>
             <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
-              {lecturerGroups.length || 3}
+              {lecturerGroups.length}
             </span>
           </div>
 
           <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-3.5 sm:p-5 md:p-6">
             <span className="text-xs text-slate-400 font-medium block truncate">To evaluate</span>
             <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white block mt-1.5 sm:mt-2">
-              {pendingAIEvaluationsCount || 6}
+              {toEvaluateCount}
             </span>
           </div>
         </div>
@@ -192,7 +205,7 @@ export default function DashboardOverviewPage() {
         {/* Two-Column Section: Recent projects & Student groups */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Left: Recent projects */}
-          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-6 flex flex-col">
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-6 flex flex-col min-h-[220px]">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
               <h3 className="text-base sm:text-lg font-bold text-white">Recent projects</h3>
               <Link
@@ -203,29 +216,47 @@ export default function DashboardOverviewPage() {
               </Link>
             </div>
 
-            <div className="divide-y divide-slate-800/60 flex-1">
-              {recentProjectsList.map((p, idx) => (
-                <div key={idx} className="py-4 flex items-center justify-between gap-3">
-                  <div>
-                    <h4 className="text-sm font-bold text-white">{p.title}</h4>
-                    <span className="text-xs text-slate-400 mt-0.5 block">{p.sub}</span>
-                  </div>
-                  <span
-                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-                      p.status === "Published"
-                        ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
-                        : "bg-amber-950/80 text-amber-400 border border-amber-800/60"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
+            {recentProjectsList.length === 0 ? (
+              <div className="py-10 text-center flex flex-col items-center justify-center flex-1">
+                <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-2.5">
+                  <FolderGit2 className="w-5 h-5" />
                 </div>
-              ))}
-            </div>
+                <p className="text-sm font-semibold text-white">No active projects yet</p>
+                <p className="text-xs text-slate-400 max-w-xs mt-1">
+                  Create and publish coursework projects for your assigned batches.
+                </p>
+                <Link
+                  href="/dashboard/projects/create"
+                  className="mt-3.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#14b8a6] hover:bg-[#0d9488] text-white font-bold text-xs rounded-lg transition-all"
+                >
+                  + Create project
+                </Link>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-800/60 flex-1">
+                {recentProjectsList.map((p) => (
+                  <div key={p.id} className="py-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-sm font-bold text-white">{p.title}</h4>
+                      <span className="text-xs text-slate-400 mt-0.5 block">{p.sub}</span>
+                    </div>
+                    <span
+                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+                        p.status === "Published"
+                          ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
+                          : "bg-amber-950/80 text-amber-400 border border-amber-800/60"
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right: Student groups */}
-          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-6 flex flex-col">
+          <div className="bg-[#0e1626] border border-[#1e293b] rounded-2xl p-6 flex flex-col min-h-[220px]">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
               <h3 className="text-base sm:text-lg font-bold text-white">Student groups</h3>
               <Link
@@ -236,22 +267,34 @@ export default function DashboardOverviewPage() {
               </Link>
             </div>
 
-            <div className="divide-y divide-slate-800/60 flex-1">
-              {recentGroupsList.map((g, idx) => (
-                <div key={idx} className="py-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-sm font-bold text-white">{g.name}</span>
-                    <span className="text-slate-400 font-medium">{g.progress}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-slate-800/90 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#14b8a6] rounded-full transition-all duration-300"
-                      style={{ width: `${g.progress}%` }}
-                    />
-                  </div>
+            {recentGroupsList.length === 0 ? (
+              <div className="py-10 text-center flex flex-col items-center justify-center flex-1">
+                <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 mb-2.5">
+                  <Users className="w-5 h-5" />
                 </div>
-              ))}
-            </div>
+                <p className="text-sm font-semibold text-white">No student groups yet</p>
+                <p className="text-xs text-slate-400 max-w-xs mt-1">
+                  Enrolled groups will be listed here once assigned to active projects.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-800/60 flex-1">
+                {recentGroupsList.map((g) => (
+                  <div key={g.id} className="py-4 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-sm font-bold text-white">{g.name}</span>
+                      <span className="text-slate-400 font-medium">{g.progress}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-800/90 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#14b8a6] rounded-full transition-all duration-300"
+                        style={{ width: `${g.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

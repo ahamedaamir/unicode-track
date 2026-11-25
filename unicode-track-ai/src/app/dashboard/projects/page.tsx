@@ -110,37 +110,20 @@ function LecturerProjectsContent() {
     const isGroup = proj.type === "Group Project" || proj.projectType === "group";
     if (isGroup) {
       const projGroups = groups.filter((g) => g.projectId === proj.id);
-      if (projGroups.length > 0) {
-        return projGroups.map((g) => ({
-          name: g.groupName || `Group ${g.groupNumber}`,
-          sub: `${g.members?.length || 4} members`,
-          hasRepo: !!g.repoUrl,
-          id: g.id,
-        }));
-      }
-      return [1, 2, 3, 4].map((n) => ({
-        name: `Group ${n}`,
-        sub: "4 members",
-        hasRepo: n !== 3,
-        id: `grp-${proj.id}-${n}`,
+      return projGroups.map((g) => ({
+        name: g.groupName || `Group ${g.groupNumber}`,
+        sub: `${g.members?.length || 0} members`,
+        hasRepo: !!g.repoUrl,
+        id: g.id,
       }));
     } else {
       const assignments = studentAssignments.filter((a) => a.projectId === proj.id);
-      if (assignments.length > 0) {
-        return assignments.map((a) => ({
-          name: a.studentId || "TG/2004/2004",
-          sub: a.studentName || "Personal submission",
-          hasRepo: !!a.repoUrl,
-          id: a.id,
-        }));
-      }
-      return [
-        { name: "TG/2004/2004", sub: "Alex Chen", hasRepo: true, id: "std-1" },
-        { name: "TG/2004/2011", sub: "Sarah Lin", hasRepo: true, id: "std-2" },
-        { name: "TG/2004/2037", sub: "Kasun D.", hasRepo: false, id: "std-3" },
-        { name: "TG/2004/2058", sub: "Priya Patel", hasRepo: true, id: "std-4" },
-        { name: "TG/2004/2063", sub: "Liam Davis", hasRepo: true, id: "std-5" },
-      ];
+      return assignments.map((a) => ({
+        name: a.studentId || "TG/2004/2004",
+        sub: a.studentName || "Personal submission",
+        hasRepo: !!a.repoUrl,
+        id: a.id,
+      }));
     }
   }, [proj, groups, studentAssignments]);
 
@@ -341,7 +324,7 @@ function LecturerProjectsContent() {
           const count = temporalProjects.filter(
             (p) => p.academicYear === y && p.semester === s
           ).length;
-          const displayCount = count > 0 ? count : tab === "current" ? 3 : 8;
+          const displayCount = count;
           return (
             <div
               key={b}
@@ -388,7 +371,7 @@ function LecturerProjectsContent() {
             <span className="text-slate-400 text-xs block mt-0.5">{c.n}</span>
             <br />
             <span className="proj-tag">
-              {courseProjects.length > 0 ? courseProjects.length : 2} projects
+              {courseProjects.length} projects
             </span>
           </div>
         ))}
@@ -412,53 +395,34 @@ function LecturerProjectsContent() {
       <h1 className="text-2xl font-bold text-white tracking-tight">{course?.c}</h1>
       <p className="sub text-sm text-slate-400 mb-4">{course?.n} · pick a project.</p>
 
-      <div className="proj-grid">
-        {(courseProjects.length > 0
-          ? courseProjects
-          : [
-            {
-              id: "proj-1",
-              title: "Faculty Management System",
-              type: "Group Project" as const,
-              courseCode: course?.c || "CS492",
-              academicYear: 2 as const,
-              semester: 1 as const,
-              departmentId: "dept-1",
-              createdAt: "2026-11-10",
-              description: "University management with C modules",
-              status: "Published" as const,
-            },
-            {
-              id: "proj-2",
-              title: "C Mini Shell",
-              type: "Individual Project" as const,
-              courseCode: course?.c || "CS492",
-              academicYear: 2 as const,
-              semester: 1 as const,
-              departmentId: "dept-1",
-              createdAt: "2026-11-12",
-              description: "Embedded C command shell with queues",
-              status: "Published" as const,
-            },
-          ]
-        ).map((p) => {
-          const isGroup = p.type === "Group Project" || p.projectType === "group";
-          return (
-            <div
-              key={p.id}
-              className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
-              onClick={() => go({ proj: p })}
-            >
-              <b className="text-white block text-base font-semibold">{p.title}</b>
-              <span className="text-slate-400 text-xs block mt-0.5">{tab === "current" ? "Due in 12 days" : "Ended 3 days ago"}</span>
-              <br />
-              <span className={`proj-tag ${isGroup ? "" : "no"}`}>
-                {isGroup ? "Group project" : "Personal project"}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      {courseProjects.length === 0 ? (
+        <div className="proj-card text-center py-10 space-y-3">
+          <p className="text-slate-400 text-sm">No projects created for {course?.c} yet.</p>
+          <button className="proj-btn p text-xs" onClick={() => go({ view: "create" })}>
+            + Create project
+          </button>
+        </div>
+      ) : (
+        <div className="proj-grid">
+          {courseProjects.map((p) => {
+            const isGroup = p.type === "Group Project" || p.projectType === "group";
+            return (
+              <div
+                key={p.id}
+                className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
+                onClick={() => go({ proj: p })}
+              >
+                <b className="text-white block text-base font-semibold">{p.title}</b>
+                <span className="text-slate-400 text-xs block mt-0.5">{tab === "current" ? "Active" : "Archived"}</span>
+                <br />
+                <span className={`proj-tag ${isGroup ? "" : "no"}`}>
+                  {isGroup ? "Group project" : "Personal project"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 
@@ -482,22 +446,33 @@ function LecturerProjectsContent() {
           {isGroup ? "Select a group." : "Select a student index."}
         </p>
 
-        <div className="proj-grid">
-          {targetsList.map((tItem) => (
-            <div
-              key={tItem.name}
-              className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
-              onClick={() => go({ tgt: tItem.name, view: "workspace", fileIndex: 0 })}
-            >
-              <b className={`${isGroup ? "" : "font-mono"} text-white block text-base font-semibold`}>{tItem.name}</b>
-              <span className="text-slate-400 text-xs block mt-0.5">{tItem.sub}</span>
-              <br />
-              <span className={`proj-tag ${tItem.hasRepo ? "ok" : "no"}`}>
-                {tItem.hasRepo ? "Repo linked" : "No repo linked"}
-              </span>
-            </div>
-          ))}
-        </div>
+        {targetsList.length === 0 ? (
+          <div className="proj-card text-center py-10 space-y-2">
+            <p className="text-slate-400 text-sm">
+              {isGroup ? "No student groups assigned to this project yet." : "No student submissions assigned yet."}
+            </p>
+            <span className="text-slate-500 text-xs">
+              {isGroup ? "Upload a group roster PDF or assign groups." : "Enrolled students will appear here."}
+            </span>
+          </div>
+        ) : (
+          <div className="proj-grid">
+            {targetsList.map((tItem) => (
+              <div
+                key={tItem.name}
+                className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
+                onClick={() => go({ tgt: tItem.name, view: "workspace", fileIndex: 0 })}
+              >
+                <b className={`${isGroup ? "" : "font-mono"} text-white block text-base font-semibold`}>{tItem.name}</b>
+                <span className="text-slate-400 text-xs block mt-0.5">{tItem.sub}</span>
+                <br />
+                <span className={`proj-tag ${tItem.hasRepo ? "ok" : "no"}`}>
+                  {tItem.hasRepo ? "Repo linked" : "No repo linked"}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </>
     );
   };
