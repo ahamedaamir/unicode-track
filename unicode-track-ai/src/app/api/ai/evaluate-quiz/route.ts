@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { callLiveGemini, getGeminiApiKey } from "@/services/ai/gemini-client";
 
 interface QuizQuestionItem {
   questionNumber: number;
@@ -45,17 +45,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey =
-      process.env.GEMINI_API_KEY ||
-      process.env.GOOGLE_API_KEY ||
-      process.env.GOOGLE_GENAI_API_KEY;
+    const apiKey = getGeminiApiKey();
 
     let evaluatedResults: any[] = [];
     let evaluationSource: "gemini" | "fallback" = "fallback";
 
-    if (apiKey && !apiKey.includes("placeholder")) {
+    if (apiKey) {
       try {
-        const ai = new GoogleGenAI({ apiKey });
 
         const prompt = `You are a university computer science professor and automated grading agent.
 You are evaluating student coding quiz submissions for:
@@ -120,12 +116,14 @@ Respond ONLY with a valid, clean JSON object matching this EXACT JSON schema:
 
 Ensure "awardedMarks" is an integer or float between 0 and "maxMarks" for that question. Do NOT include markdown code fences or conversational text outside the JSON object.`;
 
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+        const result = await callLiveGemini({
           contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          },
         });
 
-        const rawText = response?.text?.trim() || "";
+        const rawText = result.text.trim();
         const cleanJson = rawText
           .replace(/^```json\s*/i, "")
           .replace(/^```\s*/i, "")

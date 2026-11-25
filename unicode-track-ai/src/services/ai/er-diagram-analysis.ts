@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { callLiveGemini, getGeminiApiKey } from "./gemini-client";
 import {
   ERDiagramSubmission,
   ERDiagramAIAnalysis,
@@ -345,18 +345,15 @@ export async function analyzeERDiagramWithGemini(
 
   let parsedResponse: ERDiagramAnalysisResponse;
 
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GOOGLE_GENAI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
-  if (apiKey && !apiKey.includes("placeholder")) {
+  let activeModelUsed = "gemini-3.5-flash";
+
+  if (apiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey });
       const prompt = buildERAnalysisPrompt(input, schemaFiles);
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+      const result = await callLiveGemini({
         contents: prompt,
         config: {
           temperature: 0.2, // Consistent academic analysis
@@ -364,7 +361,8 @@ export async function analyzeERDiagramWithGemini(
         },
       });
 
-      const text = response?.text?.trim() || "";
+      activeModelUsed = result.model || "gemini-3.5-flash";
+      const text = result.text?.trim() || "";
       const jsonStart = text.indexOf("{");
       const jsonEnd = text.lastIndexOf("}");
 
@@ -420,7 +418,7 @@ export async function analyzeERDiagramWithGemini(
     submissionId: submission.id,
     version: submission.version,
     analyzedAt: now,
-    aiModel: "gemini-2.5-flash",
+    aiModel: activeModelUsed,
     overallCorrectnessScore: parsedResponse.overallCorrectnessScore || 82,
     completenessScore: parsedResponse.completenessScore || 85,
     implementationConsistencyScore: parsedResponse.implementationConsistencyScore || (schemaFiles.length > 0 ? 88 : 25),

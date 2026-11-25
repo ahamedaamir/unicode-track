@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { callLiveGemini, getGeminiApiKey } from "@/services/ai/gemini-client";
 
 interface EvaluateRequestPayload {
   projectId: string;
@@ -34,10 +34,7 @@ export async function POST(req: NextRequest) {
       rubricMaxScore = 100,
     } = body;
 
-    const apiKey =
-      process.env.GEMINI_API_KEY ||
-      process.env.GOOGLE_API_KEY ||
-      process.env.GOOGLE_GENAI_API_KEY;
+    const apiKey = getGeminiApiKey();
 
     let aiResult: {
       finalMarks: number;
@@ -53,9 +50,8 @@ export async function POST(req: NextRequest) {
       source: "gemini" | "fallback";
     };
 
-    if (apiKey && !apiKey.includes("placeholder")) {
+    if (apiKey) {
       try {
-        const ai = new GoogleGenAI({ apiKey });
 
         const prompt = `You are a university academic evaluator and senior computer science professor grading an undergraduate ${projectType} capstone project.
 Evaluate the student submission by cross-referencing and matching:
@@ -112,13 +108,15 @@ Return STRICTLY a JSON object matching this schema (no markdown formatting, no b
   "discrepancies": ["..."]
 }`;
 
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+        const result = await callLiveGemini({
           contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+          },
         });
 
-        if (response && response.text) {
-          const rawText = response.text.trim();
+        if (result && result.text) {
+          const rawText = result.text.trim();
           const cleanJson = rawText
             .replace(/^```json\s*/i, "")
             .replace(/^```\s*/i, "")

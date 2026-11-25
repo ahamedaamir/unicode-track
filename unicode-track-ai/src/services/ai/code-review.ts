@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { callLiveGemini, getGeminiApiKey } from "./gemini-client";
 import {
   EvaluationRubric,
   ProjectEvaluation,
@@ -335,18 +335,15 @@ export async function evaluateProjectCodeWithGemini(
     generalSuggestions: string[];
   };
 
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GOOGLE_GENAI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
-  if (apiKey && !apiKey.includes("placeholder")) {
+  let activeModelUsed = "gemini-3.5-flash";
+
+  if (apiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey });
       const prompt = buildCodeReviewPrompt(input, sourceFiles);
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+      const result = await callLiveGemini({
         contents: prompt,
         config: {
           temperature: 0.2, // Low temperature for consistent academic grading
@@ -354,7 +351,8 @@ export async function evaluateProjectCodeWithGemini(
         },
       });
 
-      const text = response?.text?.trim() || "";
+      activeModelUsed = result.model || "gemini-3.5-flash";
+      const text = result.text?.trim() || "";
       const jsonStart = text.indexOf("{");
       const jsonEnd = text.lastIndexOf("}");
 
@@ -436,7 +434,7 @@ export async function evaluateProjectCodeWithGemini(
     totalScore,
     maxScore,
     percentage: overallPercentage,
-    aiModel: "gemini-2.5-flash",
+    aiModel: activeModelUsed,
     summary: rawResult.summary || "Comprehensive academic review completed against project rubric.",
     gitTelemetryAnalysis: rawResult.gitTelemetryAnalysis || "Regular commit velocity and balanced team collaboration observed.",
     criterionScores: validatedScores,
