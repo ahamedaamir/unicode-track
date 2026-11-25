@@ -520,7 +520,7 @@ export default function EnvironmentTestPage() {
   const lineCount = currentCode.split("\n").length;
 
   return (
-    <div className="max-w-[1200px] mx-auto py-3 px-2 sm:px-4 space-y-6">
+    <div className="w-full py-2 space-y-5">
       {/* Breadcrumb Navigation */}
       <div className="crumb flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
         <Link href="/dashboard" className="hover:text-teal-400 transition-colors">
@@ -671,11 +671,11 @@ export default function EnvironmentTestPage() {
         )}
 
         {/* Editor and Terminal Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-stretch">
           {/* Left: Code Editor */}
-          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm">
+          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm h-[640px] sm:h-[700px] lg:h-[740px] xl:h-[780px]">
             {/* Editor Header */}
-            <div className="flex items-center justify-between px-3.5 py-2.5 bg-muted border-b border-border text-xs">
+            <div className="flex items-center justify-between px-4 py-3 bg-muted border-b border-border text-xs">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-accent"></span>
                 <span className="font-mono font-bold text-foreground">{currentLangConfig.filename}</span>
@@ -686,14 +686,13 @@ export default function EnvironmentTestPage() {
             </div>
 
             {/* Editor Body */}
-            <div className="relative flex flex-1 bg-[#0d0d0f] font-mono text-xs leading-relaxed min-h-[400px]">
+            <div className="relative flex flex-1 bg-[#0d0d0f] font-mono leading-relaxed overflow-hidden">
               {/* Line numbers gutter */}
               <div
-                className="select-none py-3 px-2 text-right text-muted-foreground/50 bg-[#0d0d0f] border-r border-border font-mono"
-                style={{ width: "3.2rem" }}
+                className="select-none py-4 px-2 text-right text-muted-foreground/40 bg-[#0a0a0c] border-r border-border font-mono text-xs sm:text-[13px] w-12 sm:w-14 shrink-0 overflow-hidden"
               >
                 {Array.from({ length: lineCount }).map((_, i) => (
-                  <div key={i}>{i + 1}</div>
+                  <div key={i} className="leading-relaxed">{i + 1}</div>
                 ))}
               </div>
 
@@ -706,13 +705,13 @@ export default function EnvironmentTestPage() {
                 }
                 onKeyDown={handleKeyDown}
                 spellCheck={false}
-                className="flex-1 p-3 bg-transparent text-foreground font-mono resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-auto"
+                className="flex-1 p-4 bg-transparent text-foreground font-mono text-xs sm:text-[13.5px] md:text-[14px] resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-auto selection:bg-accent/30"
                 style={{ tabSize: 4 }}
               />
             </div>
 
             {/* Editor Footer / Action Bar */}
-            <div className="flex items-center justify-between p-3 bg-muted border-t border-border">
+            <div className="flex items-center justify-between px-4 py-3 bg-muted border-t border-border">
               <div className="text-[11px] text-muted-foreground hidden sm:block">
                 Press <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono">Enter</kbd> to run
               </div>
@@ -731,9 +730,9 @@ export default function EnvironmentTestPage() {
           </div>
 
           {/* Right: Terminal Console Output */}
-          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm">
+          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm h-[640px] sm:h-[700px] lg:h-[740px] xl:h-[780px]">
             {/* Terminal Header */}
-            <div className="flex items-center justify-between px-3.5 py-2.5 bg-muted border-b border-border text-xs">
+            <div className="flex items-center justify-between px-4 py-3 bg-muted border-b border-border text-xs">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-danger/80"></span>
@@ -771,24 +770,26 @@ export default function EnvironmentTestPage() {
             </div>
 
             {/* Terminal Screen */}
-            <div className="flex-1 bg-[#0d0d0f] p-3.5 font-mono text-xs leading-relaxed text-foreground overflow-auto min-h-[400px]">
+            <div className="flex-1 bg-[#0d0d0f] p-4 sm:p-5 font-mono leading-relaxed text-foreground overflow-auto">
               {terminalHistory ? (
-                <pre className="whitespace-pre-wrap break-words font-mono text-[12.5px] leading-relaxed">
+                <pre className="whitespace-pre-wrap break-words font-mono text-xs sm:text-[13px] md:text-[13.5px] leading-relaxed">
                   {terminalHistory}
                 </pre>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center py-16 space-y-2">
-                  <Terminal className="w-8 h-8 text-muted-foreground/40 mb-1" />
-                  <p className="font-medium text-muted-foreground">Console is ready</p>
-                  <p className="text-xs max-w-xs text-muted-foreground/70">
-                    Click <strong className="text-accent">Run {currentLangConfig.name} Program</strong> or press Ctrl+Enter to compile and run your code.
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center py-16 space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-muted/60 border border-border/80">
+                    <Terminal className="w-9 h-9 text-accent/70" />
+                  </div>
+                  <p className="text-sm sm:text-base font-semibold text-foreground">Console is ready</p>
+                  <p className="text-xs sm:text-sm max-w-sm text-muted-foreground leading-normal">
+                    Click <strong className="text-accent">Run {currentLangConfig.name} Program</strong> or press <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono text-[11px]">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono text-[11px]">Enter</kbd> to compile and execute.
                   </p>
                 </div>
               )}
             </div>
 
             {/* Terminal Footer Status Bar */}
-            <div className="px-3.5 py-2 bg-muted border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+            <div className="px-4 py-2.5 bg-muted border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
               <span className="flex items-center gap-1.5 font-mono">
                 <span className="w-2 h-2 rounded-full bg-accent"></span>
                 Runtime: <code>{currentLangConfig.version}</code>

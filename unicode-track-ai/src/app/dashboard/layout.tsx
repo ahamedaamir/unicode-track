@@ -51,6 +51,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isLecturer = activeRole === "lecturer";
+  const isWidePage = pathname?.includes("/dashboard/test") || pathname?.includes("/workspace");
 
   useEffect(() => {
     try {
@@ -118,7 +119,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         <Suspense fallback={<div className="h-16 bg-background border-b border-border" />}>
           <AdminTopNavbar onToggleMobileMenu={() => setMobileOpen(!mobileOpen)} />
         </Suspense>
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-5">
+        <main className={`flex-1 p-4 sm:p-6 md:p-8 w-full mx-auto space-y-5 ${isWidePage ? "max-w-[1920px]" : "max-w-7xl"}`}>
           {children}
         </main>
       </div>
