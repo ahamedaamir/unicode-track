@@ -685,9 +685,8 @@ function LecturerProjectsContent() {
           {reportsList.map((x, idx) => (
             <div
               key={x[0]}
-              className={`proj-row py-3.5 ${
-                idx < reportsList.length - 1 ? "border-b border-[#1e293b]" : ""
-              }`}
+              className={`proj-row py-3.5 ${idx < reportsList.length - 1 ? "border-b border-[#1e293b]" : ""
+                }`}
             >
               <div className="proj-ic">{x[1]}</div>
               <div>
