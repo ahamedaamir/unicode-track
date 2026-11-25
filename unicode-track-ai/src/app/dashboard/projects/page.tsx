@@ -345,11 +345,11 @@ function LecturerProjectsContent() {
           return (
             <div
               key={b}
-              className="proj-card proj-tile"
+              className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
               onClick={() => go({ batch: b })}
             >
-              <b>Batch {b}</b>
-              <span>
+              <b className="text-white block text-base font-semibold">Batch {b}</b>
+              <span className="text-slate-400 text-xs block mt-1">
                 {tab === "current"
                   ? `${displayCount} active projects`
                   : `${displayCount} archived projects`}
@@ -381,11 +381,11 @@ function LecturerProjectsContent() {
         {availableCourses.map((c) => (
           <div
             key={c.c}
-            className="proj-card proj-tile"
+            className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
             onClick={() => go({ course: c })}
           >
-            <b>{c.c}</b>
-            <span>{c.n}</span>
+            <b className="text-white block text-base font-semibold">{c.c}</b>
+            <span className="text-slate-400 text-xs block mt-0.5">{c.n}</span>
             <br />
             <span className="proj-tag">
               {courseProjects.length > 0 ? courseProjects.length : 2} projects
@@ -446,11 +446,11 @@ function LecturerProjectsContent() {
           return (
             <div
               key={p.id}
-              className="proj-card proj-tile"
+              className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
               onClick={() => go({ proj: p })}
             >
-              <b>{p.title}</b>
-              <span>{tab === "current" ? "Due in 12 days" : "Ended 3 days ago"}</span>
+              <b className="text-white block text-base font-semibold">{p.title}</b>
+              <span className="text-slate-400 text-xs block mt-0.5">{tab === "current" ? "Due in 12 days" : "Ended 3 days ago"}</span>
               <br />
               <span className={`proj-tag ${isGroup ? "" : "no"}`}>
                 {isGroup ? "Group project" : "Personal project"}
@@ -486,11 +486,11 @@ function LecturerProjectsContent() {
           {targetsList.map((tItem) => (
             <div
               key={tItem.name}
-              className="proj-card proj-tile"
+              className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
               onClick={() => go({ tgt: tItem.name, view: "workspace", fileIndex: 0 })}
             >
-              <b className={isGroup ? "" : "font-mono"}>{tItem.name}</b>
-              <span>{tItem.sub}</span>
+              <b className={`${isGroup ? "" : "font-mono"} text-white block text-base font-semibold`}>{tItem.name}</b>
+              <span className="text-slate-400 text-xs block mt-0.5">{tItem.sub}</span>
               <br />
               <span className={`proj-tag ${tItem.hasRepo ? "ok" : "no"}`}>
                 {tItem.hasRepo ? "Repo linked" : "No repo linked"}

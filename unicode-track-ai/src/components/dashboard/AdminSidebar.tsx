@@ -23,7 +23,8 @@ import {
   CheckSquare,
   Inbox,
   FileText,
-  Terminal
+  Terminal,
+  FileQuestion
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -101,6 +102,12 @@ export function AdminSidebar({
       count: undefined,
     },
     {
+      name: "Quizzes",
+      href: "/dashboard/quizzes",
+      icon: FileQuestion,
+      count: undefined,
+    },
+    {
       name: "Profile",
       href: "/dashboard/profile",
       icon: User,
@@ -131,6 +138,12 @@ export function AdminSidebar({
       name: "Test",
       href: "/dashboard/test",
       icon: Terminal,
+      count: undefined,
+    },
+    {
+      name: "Quizzes",
+      href: "/dashboard/quizzes",
+      icon: FileQuestion,
       count: undefined,
     },
     {
@@ -188,6 +201,12 @@ export function AdminSidebar({
       name: "Test",
       href: "/dashboard/test",
       icon: Terminal,
+      count: undefined,
+    },
+    {
+      name: "Quizzes",
+      href: "/dashboard/quizzes",
+      icon: FileQuestion,
       count: undefined,
     },
     {

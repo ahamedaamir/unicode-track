@@ -142,12 +142,20 @@ export default function DashboardOverviewPage() {
               Welcome back, {lecturerDisplayName}
             </h1>
           </div>
-          <Link
-            href="/dashboard/projects/create"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#14b8a6] hover:bg-[#0d9488] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all shrink-0"
-          >
-            + Create project
-          </Link>
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/dashboard/quizzes"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0e1626] hover:bg-[#131d31] border border-[#1e293b] text-slate-200 hover:text-white rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0"
+            >
+              Quizzes
+            </Link>
+            <Link
+              href="/dashboard/projects/create"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#14b8a6] hover:bg-[#0d9488] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all shrink-0"
+            >
+              + Create project
+            </Link>
+          </div>
         </div>
 
         {/* 4 Stats Cards */}

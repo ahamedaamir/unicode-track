@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, Suspense, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { AdminDataProvider, useAdminData } from "@/context/AdminDataContext";
 import { AdminSidebar } from "@/components/dashboard/AdminSidebar";
 import { AdminTopNavbar } from "@/components/dashboard/AdminTopNavbar";
@@ -44,11 +44,20 @@ function ToastBanner() {
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { activeRole } = useAdminData();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isLecturer = activeRole === "lecturer";
+  const isDarkPage =
+    isLecturer ||
+    pathname.startsWith("/dashboard/projects") ||
+    pathname.startsWith("/dashboard/evaluation") ||
+    pathname.startsWith("/dashboard/hackathons") ||
+    pathname.startsWith("/dashboard/test") ||
+    pathname.startsWith("/dashboard/quizzes") ||
+    pathname.startsWith("/dashboard/profile");
 
   useEffect(() => {
     try {
@@ -73,7 +82,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={`min-h-screen flex ${
-        isLecturer ? "bg-[#070b13] text-slate-100" : "bg-[#F8FAFC] text-[#0B1220]"
+        isDarkPage ? "bg-[#070b13] text-slate-100" : "bg-[#F8FAFC] text-[#0B1220]"
       } font-sans antialiased`}
     >
       {/* Sidebar */}
@@ -93,7 +102,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         </Suspense>
         <main
           className={`flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto ${
-            isLecturer ? "bg-[#070b13] text-slate-100" : ""
+            isDarkPage ? "bg-[#070b13] text-slate-100" : ""
           }`}
         >
           {children}
@@ -109,7 +118,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <AdminDataProvider>
-      <DashboardShell>{children}</DashboardShell>
+      <Suspense fallback={<div className="min-h-screen bg-[#070b13]" />}>
+        <DashboardShell>{children}</DashboardShell>
+      </Suspense>
     </AdminDataProvider>
   );
 }

@@ -395,11 +395,13 @@ export function CreateProjectPrototypeForm({
         {DEPTS.map((dItem) => (
           <div
             key={dItem.name}
-            className={`proj-card proj-tile ${dept === dItem.name ? "on" : ""}`}
+            className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
+              dept === dItem.name ? "on border-teal-500 bg-teal-500/15" : ""
+            }`}
             onClick={() => setDept(dItem.name)}
           >
-            <b>{dItem.name}</b>
-            <span>{dItem.sub}</span>
+            <b className="text-white block text-base font-semibold">{dItem.name}</b>
+            <span className="text-slate-400 text-xs block mt-0.5">{dItem.sub}</span>
           </div>
         ))}
       </div>
@@ -409,11 +411,13 @@ export function CreateProjectPrototypeForm({
         {courses.map((cItem) => (
           <div
             key={cItem.c}
-            className={`proj-card proj-tile ${course === cItem.c ? "on" : ""}`}
+            className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
+              course === cItem.c ? "on border-teal-500 bg-teal-500/15" : ""
+            }`}
             onClick={() => setCourse(cItem.c)}
           >
-            <b>{cItem.c}</b>
-            <span>{cItem.n}</span>
+            <b className="text-white block text-base font-semibold">{cItem.c}</b>
+            <span className="text-slate-400 text-xs block mt-0.5">{cItem.n}</span>
           </div>
         ))}
       </div>
@@ -423,7 +427,9 @@ export function CreateProjectPrototypeForm({
         {BATCHES.map((b) => (
           <div
             key={b}
-            className={`chip ${batch === b ? "on" : ""}`}
+            className={`chip bg-[#0e1626] border border-[#1e293b] text-slate-300 hover:border-teal-500 ${
+              batch === b ? "on bg-teal-500 border-teal-500 text-[#070b13] font-bold" : ""
+            }`}
             onClick={() => setBatch(b)}
           >
             {b}
@@ -439,18 +445,22 @@ export function CreateProjectPrototypeForm({
       <div className="proj-sec">Project type</div>
       <div className="proj-grid">
         <div
-          className={`proj-card proj-tile ${type === "group" ? "on" : ""}`}
+          className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
+            type === "group" ? "on border-teal-500 bg-teal-500/15" : ""
+          }`}
           onClick={() => setType("group")}
         >
-          <b>Group project</b>
-          <span>Students work in groups, one repo per group</span>
+          <b className="text-white block text-base font-semibold">Group project</b>
+          <span className="text-slate-400 text-xs block mt-0.5">Students work in groups, one repo per group</span>
         </div>
         <div
-          className={`proj-card proj-tile ${type === "individual" ? "on" : ""}`}
+          className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
+            type === "individual" ? "on border-teal-500 bg-teal-500/15" : ""
+          }`}
           onClick={() => setType("individual")}
         >
-          <b>Individual project</b>
-          <span>Each student submits their own work</span>
+          <b className="text-white block text-base font-semibold">Individual project</b>
+          <span className="text-slate-400 text-xs block mt-0.5">Each student submits their own work</span>
         </div>
       </div>
 
@@ -679,7 +689,9 @@ export function CreateProjectPrototypeForm({
         {["Details", "Schedule", "Requirements", "Deliverables"].map((n, i) => (
           <div
             key={n}
-            className={`chip ${i === step ? "on" : ""}`}
+            className={`chip bg-[#0e1626] border border-[#1e293b] text-slate-300 ${
+              i === step ? "on bg-teal-500 border-teal-500 text-[#070b13] font-bold" : ""
+            }`}
             style={{ cursor: "default" }}
           >
             {i + 1}. {n}
