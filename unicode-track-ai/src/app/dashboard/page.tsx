@@ -152,7 +152,7 @@ export default function DashboardOverviewPage() {
             <span className="text-xs text-muted-foreground font-medium block mb-1.5">
               Academic year 2026/2027
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+            <h1 suppressHydrationWarning className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
               Welcome back, {lecturerDisplayName}
             </h1>
           </div>

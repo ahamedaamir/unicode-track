@@ -197,19 +197,17 @@ export function LecturerGroupCard({
               return (
                 <div
                   key={member.email || idx}
-                  className={`p-2 rounded-xl border flex items-center justify-between text-xs transition-colors ${
-                    isLead
-                      ? "bg-teal-50/40 border-teal-200/90"
-                      : "bg-slate-50/70 border-slate-200/80"
-                  }`}
+                  className={`p-2 rounded-xl border flex items-center justify-between text-xs transition-colors ${isLead
+                    ? "bg-teal-50/40 border-teal-200/90"
+                    : "bg-slate-50/70 border-slate-200/80"
+                    }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div
-                      className={`w-7 h-7 rounded-full font-bold flex items-center justify-center text-[10px] shrink-0 ${
-                        isLead
-                          ? "bg-teal-600 text-white shadow-2xs"
-                          : "bg-slate-200 text-slate-700"
-                      }`}
+                      className={`w-7 h-7 rounded-full font-bold flex items-center justify-center text-[10px] shrink-0 ${isLead
+                        ? "bg-teal-600 text-white shadow-2xs"
+                        : "bg-slate-200 text-slate-700"
+                        }`}
                     >
                       {member.fullName.slice(0, 2).toUpperCase()}
                     </div>

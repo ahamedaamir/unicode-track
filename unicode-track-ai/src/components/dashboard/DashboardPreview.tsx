@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  CheckCircle2, 
-  GitBranch, 
-  GitCommit, 
-  Clock, 
-  Sparkles, 
-  ShieldCheck, 
-  TrendingUp, 
-  FolderGit2, 
+import {
+  CheckCircle2,
+  GitBranch,
+  GitCommit,
+  Clock,
+  Sparkles,
+  ShieldCheck,
+  TrendingUp,
+  FolderGit2,
   ChevronRight
 } from "lucide-react";
 
@@ -99,31 +99,28 @@ export function DashboardPreview() {
           <div className="flex items-center gap-1.5 bg-muted p-1 rounded-[10px] border border-border text-xs self-start sm:self-auto">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                activeTab === "overview"
-                  ? "bg-card text-foreground shadow-2xs border border-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${activeTab === "overview"
+                ? "bg-card text-foreground shadow-2xs border border-border"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               Overview
             </button>
             <button
               onClick={() => setActiveTab("git")}
-              className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${
-                activeTab === "git"
-                  ? "bg-card text-foreground shadow-2xs border border-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-3 py-1 rounded-md font-medium transition-all cursor-pointer ${activeTab === "git"
+                ? "bg-card text-foreground shadow-2xs border border-border"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               GitHub Sync
             </button>
             <button
               onClick={() => setActiveTab("ai")}
-              className={`px-3 py-1 rounded-md font-medium transition-all flex items-center gap-1 cursor-pointer ${
-                activeTab === "ai"
-                  ? "bg-card text-accent shadow-2xs border border-border"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-3 py-1 rounded-md font-medium transition-all flex items-center gap-1 cursor-pointer ${activeTab === "ai"
+                ? "bg-card text-accent shadow-2xs border border-border"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
               <Sparkles className="w-3 h-3 text-accent" />
               AI Review

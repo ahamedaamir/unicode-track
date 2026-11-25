@@ -334,7 +334,7 @@ export function AdminSidebar({
           >
             {(!collapsed || mobileOpen) && (
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-foreground truncate">
+                <p suppressHydrationWarning className="text-xs font-semibold text-foreground truncate">
                   {currentLecturer?.name?.toLowerCase().includes("check")
                     ? "Dr. Check Lecturer"
                     : currentLecturer?.name || "Dr. Check Lecturer"}
