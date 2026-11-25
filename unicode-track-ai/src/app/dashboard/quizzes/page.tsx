@@ -384,7 +384,7 @@ export default function QuizzesPage() {
         {/* 1. Topic */}
         <div className="proj-sec">Topic</div>
         <input
-          className="proj-in text-base py-3 px-3.5 bg-[#0e1626] border border-[#1e293b] text-white rounded-lg focus:outline-none focus:border-teal-500 mb-4"
+          className="proj-in text-base py-3 px-3.5 bg-muted border border-border text-foreground rounded-[10px] focus:outline-none focus:border-accent mb-4"
           placeholder="e.g. Pointers in C"
           value={formTopic}
           onChange={(e) => setFormTopic(e.target.value)}
@@ -392,7 +392,7 @@ export default function QuizzesPage() {
 
         {/* 2. Practical Questions Upload */}
         <div className="proj-sec">Practical questions</div>
-        <label className="proj-card proj-tile block border-dashed text-center p-6 cursor-pointer hover:border-teal-500 mb-4">
+        <label className="proj-card proj-tile block border-dashed text-center p-6 cursor-pointer hover:border-accent mb-4 rounded-[16px]">
           <input
             type="file"
             accept=".pdf"
@@ -403,11 +403,11 @@ export default function QuizzesPage() {
               }
             }}
           />
-          <b className="text-white text-base">
+          <b className="text-foreground text-base">
             {formPdfName || "Upload questions PDF"}
           </b>
           <br />
-          <span className="text-slate-400 text-xs">
+          <span className="text-muted-foreground text-xs">
             {formPdfName
               ? "Click to replace"
               : "Number the questions in the PDF. Gemini will put them in order."}
@@ -504,15 +504,15 @@ export default function QuizzesPage() {
             {activeQuiz.q.map((questionText: string, idx: number) => (
               <div
                 key={idx}
-                className="proj-row py-2.5 px-3 rounded-lg bg-[#070b13] border border-[#1e293b]"
+                className="proj-row py-2.5 px-3 rounded-[10px] bg-[#0d0d0f] border border-border"
               >
-                <div className="proj-ic text-xs">{idx + 1}</div>
-                <span className="text-xs text-slate-200">{questionText}</span>
+                <div className="proj-ic text-xs font-mono">{idx + 1}</div>
+                <span className="text-xs text-foreground">{questionText}</span>
               </div>
             ))}
           </div>
 
-          <div className="proj-row pt-3 border-t border-[#1e293b]">
+          <div className="proj-row pt-3 border-t border-border">
             <button className="proj-btn p" onClick={() => setView("list")}>
               Back to quizzes
             </button>
@@ -630,14 +630,14 @@ export default function QuizzesPage() {
         {/* Upcoming Questions List OR Full Lecturer Marks Table */}
         {!isFinished ? (
           <div className="proj-card space-y-3">
-            <b className="text-sm text-white block">Questions (in order)</b>
+            <b className="text-sm text-foreground block">Questions (in order)</b>
             {activeQuiz.q.map((questionText: string, idx: number) => (
               <div
                 key={idx}
-                className="proj-row py-2.5 px-3 rounded-lg bg-[#070b13] border border-[#1e293b]"
+                className="proj-row py-2.5 px-3 rounded-[10px] bg-[#0d0d0f] border border-border"
               >
-                <div className="proj-ic text-xs">{idx + 1}</div>
-                <span className="text-xs text-slate-200">{questionText}</span>
+                <div className="proj-ic text-xs font-mono">{idx + 1}</div>
+                <span className="text-xs text-foreground">{questionText}</span>
               </div>
             ))}
           </div>
@@ -645,10 +645,10 @@ export default function QuizzesPage() {
           <div className="proj-card overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-[#1e293b] text-slate-400">
+                <tr className="border-b border-border text-muted-foreground">
                   <th className="py-2.5 px-2">Student</th>
                   {activeQuiz.q.map((_: unknown, i: number) => (
-                    <th key={i} className="py-2.5 px-2 text-center">
+                    <th key={i} className="py-2.5 px-2 text-center font-mono">
                       Q{i + 1}
                     </th>
                   ))}
@@ -656,13 +656,13 @@ export default function QuizzesPage() {
                   <th className="py-2.5 px-2">Remark</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1e293b]">
+              <tbody className="divide-y divide-border">
                 {activeQuiz.res?.map((record: StudentQuizResult, sIdx: number) => {
                   const studentTotal = calculateSum(record.m);
 
                   return (
                     <tr key={record.s}>
-                      <td className="py-2.5 px-2 font-mono font-semibold text-white whitespace-nowrap">
+                      <td className="py-2.5 px-2 font-mono font-semibold text-foreground whitespace-nowrap">
                         {record.s}
                       </td>
                       {record.m.map((scoreVal: number, qIdx: number) => (
@@ -671,7 +671,7 @@ export default function QuizzesPage() {
                             type="number"
                             min="0"
                             max="5"
-                            className="w-12 p-1 text-center border border-[#1e293b] bg-[#070b13] text-white rounded font-mono text-xs focus:border-teal-500 focus:outline-none"
+                            className="w-12 p-1 text-center border border-border bg-muted text-foreground rounded-[10px] font-mono text-xs focus:border-accent focus:outline-none"
                             value={scoreVal}
                             onChange={(e) =>
                               handleUpdateStudentMark(sIdx, qIdx, Number(e.target.value))
@@ -680,9 +680,9 @@ export default function QuizzesPage() {
                         </td>
                       ))}
                       <td className="py-2.5 px-2 text-center whitespace-nowrap font-mono">
-                        <b className="text-teal-400">{studentTotal}</b> / {questionCount * 5}
+                        <b className="text-accent">{studentTotal}</b> / {questionCount * 5}
                       </td>
-                      <td className="py-2.5 px-2 text-slate-400 text-[11px] leading-relaxed">
+                      <td className="py-2.5 px-2 text-muted-foreground text-[11px] leading-relaxed">
                         {record.rem}
                       </td>
                     </tr>
@@ -740,17 +740,17 @@ export default function QuizzesPage() {
         <>
           {topBanner}
           <div className="proj-card text-center py-12 space-y-4">
-            <b className="text-lg text-white block">Quiz submitted</b>
-            <p className="text-xs text-slate-400">
+            <b className="text-lg text-foreground block">Quiz submitted</b>
+            <p className="text-xs text-muted-foreground">
               Your marks appear here when the quiz ends.
             </p>
 
             {studentShowMarks ? (
-              <div className="proj-card max-w-[280px] mx-auto py-4 bg-[#070b13] border border-teal-500/40 animate-in fade-in-50">
-                <b className="text-3xl text-teal-400 block font-mono">
+              <div className="proj-card max-w-[280px] mx-auto py-4 bg-[#0d0d0f] border border-accent/40 animate-in fade-in-50">
+                <b className="text-3xl text-accent block font-mono">
                   {totalScore} / {questionCount * 5}
                 </b>
-                <span className="text-xs text-slate-400 mt-1 block">Your marks</span>
+                <span className="text-xs text-muted-foreground mt-1 block">Your marks</span>
               </div>
             ) : (
               <button
@@ -770,17 +770,17 @@ export default function QuizzesPage() {
         {topBanner}
         <div className="proj-card space-y-3">
           <div className="proj-row">
-            <b className="text-sm text-white">
+            <b className="text-sm text-foreground">
               Question {studentQuestionIndex + 1} of {questionCount}
             </b>
           </div>
 
-          <p className="text-xs text-slate-200 leading-relaxed">
+          <p className="text-xs text-foreground leading-relaxed">
             {activeQuiz.q[studentQuestionIndex]}
           </p>
 
           <textarea
-            className="w-full p-3 font-mono text-xs text-[#d6deeb] bg-[#070b13] border border-[#1e293b] rounded-lg focus:outline-none focus:border-teal-500 leading-relaxed resize-none"
+            className="w-full p-3 font-mono text-xs text-foreground bg-[#0d0d0f] border border-border rounded-[10px] focus:outline-none focus:border-accent leading-relaxed resize-none"
             rows={10}
             placeholder="// type your C code here"
             value={studentAnswers[studentQuestionIndex] || ""}

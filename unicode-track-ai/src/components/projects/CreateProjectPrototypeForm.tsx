@@ -354,16 +354,16 @@ export function CreateProjectPrototypeForm({
         <div className="crumb">
           <a onClick={handleBackNavigation}>Projects</a> / <span>Create project</span>
         </div>
-        <h1 className="text-[22px] font-bold tracking-tight text-white mb-1">
+        <h1 className="text-[22px] font-bold tracking-tight text-foreground mb-1">
           Project published
         </h1>
-        <p className="text-slate-400 text-sm mb-4">
+        <p className="text-muted-foreground text-sm mb-4">
           Students in the selected batch can now see it.
         </p>
 
         <div className="proj-card space-y-4">
-          <b className="text-white text-base">{title}</b>
-          <p className="text-slate-400 text-sm">
+          <b className="text-foreground text-base">{title}</b>
+          <p className="text-muted-foreground text-sm">
             {course} · Batch {batch} · {type === "group" ? "Group" : "Individual"} project
           </p>
           <div className="proj-row mt-4">
@@ -384,7 +384,7 @@ export function CreateProjectPrototypeForm({
     <>
       <div className="proj-sec">Project title</div>
       <input
-        className="proj-in text-base py-3 px-3.5 bg-[#0e1626] border border-[#1e293b] text-white rounded-lg focus:outline-none focus:border-teal-500"
+        className="proj-in text-base py-3 px-3.5 bg-muted border border-border text-foreground rounded-[10px] focus:outline-none focus:border-accent"
         placeholder="e.g. Faculty Management System"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -395,13 +395,13 @@ export function CreateProjectPrototypeForm({
         {DEPTS.map((dItem) => (
           <div
             key={dItem.name}
-            className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
-              dept === dItem.name ? "on border-teal-500 bg-teal-500/15" : ""
+            className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
+              dept === dItem.name ? "on border-accent bg-accent/10" : ""
             }`}
             onClick={() => setDept(dItem.name)}
           >
-            <b className="text-white block text-base font-semibold">{dItem.name}</b>
-            <span className="text-slate-400 text-xs block mt-0.5">{dItem.sub}</span>
+            <b className="text-foreground block text-base font-semibold">{dItem.name}</b>
+            <span className="text-muted-foreground text-xs block mt-0.5">{dItem.sub}</span>
           </div>
         ))}
       </div>
@@ -411,13 +411,13 @@ export function CreateProjectPrototypeForm({
         {courses.map((cItem) => (
           <div
             key={cItem.c}
-            className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
-              course === cItem.c ? "on border-teal-500 bg-teal-500/15" : ""
+            className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
+              course === cItem.c ? "on border-accent bg-accent/10" : ""
             }`}
             onClick={() => setCourse(cItem.c)}
           >
-            <b className="text-white block text-base font-semibold">{cItem.c}</b>
-            <span className="text-slate-400 text-xs block mt-0.5">{cItem.n}</span>
+            <b className="text-foreground block text-base font-semibold font-mono">{cItem.c}</b>
+            <span className="text-muted-foreground text-xs block mt-0.5">{cItem.n}</span>
           </div>
         ))}
       </div>
@@ -427,8 +427,8 @@ export function CreateProjectPrototypeForm({
         {BATCHES.map((b) => (
           <div
             key={b}
-            className={`chip bg-[#0e1626] border border-[#1e293b] text-slate-300 hover:border-teal-500 ${
-              batch === b ? "on bg-teal-500 border-teal-500 text-[#070b13] font-bold" : ""
+            className={`chip bg-muted border border-border text-muted-foreground hover:border-accent cursor-pointer ${
+              batch === b ? "on bg-accent text-background border-accent font-bold" : ""
             }`}
             onClick={() => setBatch(b)}
           >
@@ -445,29 +445,29 @@ export function CreateProjectPrototypeForm({
       <div className="proj-sec">Project type</div>
       <div className="proj-grid">
         <div
-          className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
-            type === "group" ? "on border-teal-500 bg-teal-500/15" : ""
+          className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
+            type === "group" ? "on border-accent bg-accent/10" : ""
           }`}
           onClick={() => setType("group")}
         >
-          <b className="text-white block text-base font-semibold">Group project</b>
-          <span className="text-slate-400 text-xs block mt-0.5">Students work in groups, one repo per group</span>
+          <b className="text-foreground block text-base font-semibold">Group project</b>
+          <span className="text-muted-foreground text-xs block mt-0.5">Students work in groups, one repo per group</span>
         </div>
         <div
-          className={`proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all ${
-            type === "individual" ? "on border-teal-500 bg-teal-500/15" : ""
+          className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
+            type === "individual" ? "on border-accent bg-accent/10" : ""
           }`}
           onClick={() => setType("individual")}
         >
-          <b className="text-white block text-base font-semibold">Individual project</b>
-          <span className="text-slate-400 text-xs block mt-0.5">Each student submits their own work</span>
+          <b className="text-foreground block text-base font-semibold">Individual project</b>
+          <span className="text-muted-foreground text-xs block mt-0.5">Each student submits their own work</span>
         </div>
       </div>
 
       {type === "group" && (
         <>
           <div className="proj-sec">Groups</div>
-          <label className="proj-card proj-tile block border-dashed text-center p-6 cursor-pointer hover:border-teal-500">
+          <label className="proj-card proj-tile block border-dashed text-center p-6 cursor-pointer hover:border-accent rounded-[16px]">
             <input
               type="file"
               accept=".pdf"
@@ -479,9 +479,9 @@ export function CreateProjectPrototypeForm({
                 }
               }}
             />
-            <b>{pdfName || "Upload group list (PDF)"}</b>
+            <b className="text-foreground">{pdfName || "Upload group list (PDF)"}</b>
             <br />
-            <span className="text-slate-400 text-xs">
+            <span className="text-muted-foreground text-xs">
               {pdfName ? "Click to replace" : "Click to choose a file"}
             </span>
           </label>
@@ -558,19 +558,19 @@ export function CreateProjectPrototypeForm({
       ))}
 
       <div
-        className="proj-card proj-tile text-center border-dashed cursor-pointer py-3"
+        className="proj-card proj-tile text-center border-dashed cursor-pointer py-3 rounded-[16px] hover:border-accent"
         onClick={() => setReqs([...reqs, { t: "", m: "" }])}
       >
-        <b>+ Add requirement</b>
+        <b className="text-foreground">+ Add requirement</b>
       </div>
 
       <div className="proj-card proj-row mt-3">
-        <b>Total marks</b>
+        <b className="text-foreground">Total marks</b>
         <span className="proj-sp"></span>
         <b
-          className="text-xl"
+          className="text-xl font-mono tabular-nums"
           style={{
-            color: reqTot() === 100 ? "#16a34a" : "#d97706",
+            color: reqTot() === 100 ? "var(--success)" : "var(--warning)",
           }}
         >
           {reqTot()} / 100
@@ -597,7 +597,7 @@ export function CreateProjectPrototypeForm({
             <div className="proj-row">
               <div className="proj-ic">{initials}</div>
               <div>
-                <b>{n}</b>
+                <b className="text-foreground">{n}</b>
                 <br />
                 <span className={`proj-tag ${item.on ? "ok" : "no"}`}>
                   {item.on ? "Required" : "Not required"}
@@ -633,7 +633,7 @@ export function CreateProjectPrototypeForm({
             </div>
 
             {item.on && (
-              <div className="proj-two mt-3.5 pt-3 border-t border-[#1e293b]">
+              <div className="proj-two mt-3.5 pt-3 border-t border-border">
                 <div>
                   <label className="proj-label">Opens</label>
                   <input
@@ -679,18 +679,18 @@ export function CreateProjectPrototypeForm({
         <a onClick={handleBackNavigation}>Projects</a> / <span>Create project</span>
       </div>
 
-      <h1 className="text-[22px] font-bold tracking-tight text-white mb-1">
+      <h1 className="text-[22px] font-bold tracking-tight text-foreground mb-1">
         Create project
       </h1>
-      <p className="text-slate-400 text-sm mb-4">Step {step + 1} of 4</p>
+      <p className="text-muted-foreground text-sm mb-4">Step {step + 1} of 4</p>
 
       {/* Step Chips matching prototype */}
       <div className="chips">
         {["Details", "Schedule", "Requirements", "Deliverables"].map((n, i) => (
           <div
             key={n}
-            className={`chip bg-[#0e1626] border border-[#1e293b] text-slate-300 ${
-              i === step ? "on bg-teal-500 border-teal-500 text-[#070b13] font-bold" : ""
+            className={`chip bg-muted border border-border text-muted-foreground ${
+              i === step ? "on bg-accent text-background border-accent font-bold" : ""
             }`}
             style={{ cursor: "default" }}
           >

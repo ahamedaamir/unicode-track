@@ -291,8 +291,8 @@ function LecturerProjectsContent() {
           </span>
         ))}
       </div>
-      <h1 className="text-2xl font-bold text-white tracking-tight">Projects</h1>
-      <p className="sub text-sm text-slate-400 mb-4">Choose a view and a batch to continue.</p>
+      <h1 className="text-2xl font-bold text-foreground tracking-tight">Projects</h1>
+      <p className="sub text-sm text-muted-foreground mb-4">Choose a view and a batch to continue.</p>
 
       {/* Action to create project matching prototype */}
       <div className="proj-row mb-3.5">
@@ -328,11 +328,11 @@ function LecturerProjectsContent() {
           return (
             <div
               key={b}
-              className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
+              className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer"
               onClick={() => go({ batch: b })}
             >
-              <b className="text-white block text-base font-semibold">Batch {b}</b>
-              <span className="text-slate-400 text-xs block mt-1">
+              <b className="text-foreground block text-base font-semibold">Batch {b}</b>
+              <span className="text-muted-foreground text-xs block mt-1">
                 {tab === "current"
                   ? `${displayCount} active projects`
                   : `${displayCount} archived projects`}
@@ -357,18 +357,18 @@ function LecturerProjectsContent() {
           </span>
         ))}
       </div>
-      <h1 className="text-2xl font-bold text-white tracking-tight">Batch {batch}</h1>
-      <p className="sub text-sm text-slate-400 mb-4">Select a course.</p>
+      <h1 className="text-2xl font-bold text-foreground tracking-tight">Batch {batch}</h1>
+      <p className="sub text-sm text-muted-foreground mb-4">Select a course.</p>
 
       <div className="proj-grid">
         {availableCourses.map((c) => (
           <div
             key={c.c}
-            className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
+            className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer"
             onClick={() => go({ course: c })}
           >
-            <b className="text-white block text-base font-semibold">{c.c}</b>
-            <span className="text-slate-400 text-xs block mt-0.5">{c.n}</span>
+            <b className="text-foreground block text-base font-semibold font-mono">{c.c}</b>
+            <span className="text-muted-foreground text-xs block mt-0.5">{c.n}</span>
             <br />
             <span className="proj-tag">
               {courseProjects.length} projects
@@ -392,12 +392,12 @@ function LecturerProjectsContent() {
           </span>
         ))}
       </div>
-      <h1 className="text-2xl font-bold text-white tracking-tight">{course?.c}</h1>
-      <p className="sub text-sm text-slate-400 mb-4">{course?.n} · pick a project.</p>
+      <h1 className="text-2xl font-bold text-foreground tracking-tight font-mono">{course?.c}</h1>
+      <p className="sub text-sm text-muted-foreground mb-4">{course?.n} · pick a project.</p>
 
       {courseProjects.length === 0 ? (
-        <div className="proj-card text-center py-10 space-y-3">
-          <p className="text-slate-400 text-sm">No projects created for {course?.c} yet.</p>
+        <div className="proj-card text-center py-10 space-y-3 bg-card border border-border rounded-[16px]">
+          <p className="text-muted-foreground text-sm">No projects created for {course?.c} yet.</p>
           <button className="proj-btn p text-xs" onClick={() => go({ view: "create" })}>
             + Create project
           </button>
@@ -409,11 +409,11 @@ function LecturerProjectsContent() {
             return (
               <div
                 key={p.id}
-                className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
+                className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer"
                 onClick={() => go({ proj: p })}
               >
-                <b className="text-white block text-base font-semibold">{p.title}</b>
-                <span className="text-slate-400 text-xs block mt-0.5">{tab === "current" ? "Active" : "Archived"}</span>
+                <b className="text-foreground block text-base font-semibold">{p.title}</b>
+                <span className="text-muted-foreground text-xs block mt-0.5">{tab === "current" ? "Active" : "Archived"}</span>
                 <br />
                 <span className={`proj-tag ${isGroup ? "" : "no"}`}>
                   {isGroup ? "Group project" : "Personal project"}
@@ -441,17 +441,17 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">{proj?.title}</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">{proj?.title}</h1>
+        <p className="sub text-sm text-muted-foreground mb-4">
           {isGroup ? "Select a group." : "Select a student index."}
         </p>
 
         {targetsList.length === 0 ? (
-          <div className="proj-card text-center py-10 space-y-2">
-            <p className="text-slate-400 text-sm">
+          <div className="proj-card text-center py-10 space-y-2 bg-card border border-border rounded-[16px]">
+            <p className="text-muted-foreground text-sm">
               {isGroup ? "No student groups assigned to this project yet." : "No student submissions assigned yet."}
             </p>
-            <span className="text-slate-500 text-xs">
+            <span className="text-muted-foreground text-xs">
               {isGroup ? "Upload a group roster PDF or assign groups." : "Enrolled students will appear here."}
             </span>
           </div>
@@ -460,11 +460,11 @@ function LecturerProjectsContent() {
             {targetsList.map((tItem) => (
               <div
                 key={tItem.name}
-                className="proj-card proj-tile bg-[#0e1626] border border-[#1e293b] text-white hover:border-teal-500 rounded-xl transition-all"
+                className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer"
                 onClick={() => go({ tgt: tItem.name, view: "workspace", fileIndex: 0 })}
               >
-                <b className={`${isGroup ? "" : "font-mono"} text-white block text-base font-semibold`}>{tItem.name}</b>
-                <span className="text-slate-400 text-xs block mt-0.5">{tItem.sub}</span>
+                <b className={`${isGroup ? "" : "font-mono"} text-foreground block text-base font-semibold`}>{tItem.name}</b>
+                <span className="text-muted-foreground text-xs block mt-0.5">{tItem.sub}</span>
                 <br />
                 <span className={`proj-tag ${tItem.hasRepo ? "ok" : "no"}`}>
                   {tItem.hasRepo ? "Repo linked" : "No repo linked"}
@@ -515,30 +515,30 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">
           {tgt} · {proj?.title}
         </h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <p className="sub text-sm text-muted-foreground mb-4">
           Linked repository:{" "}
-          <span className="font-mono text-teal-400">github.com/uor-ict/c-mini-shell</span>
+          <span className="font-mono text-accent">github.com/uor-ict/c-mini-shell</span>
         </p>
 
         {/* Stats Grid */}
         <div className="proj-stats">
           <div className="proj-card">
-            <b>3</b>
+            <b className="font-mono tabular-nums text-foreground">3</b>
             <span>Branches</span>
           </div>
           <div className="proj-card">
-            <b>80</b>
+            <b className="font-mono tabular-nums text-foreground">80</b>
             <span>Total commits</span>
           </div>
           <div className="proj-card">
-            <b>{members.length}</b>
+            <b className="font-mono tabular-nums text-foreground">{members.length}</b>
             <span>{isGroup ? "Contributors" : "Contributor"}</span>
           </div>
           <div className="proj-card">
-            <b>2 h ago</b>
+            <b className="text-foreground">2 h ago</b>
             <span>Last activity</span>
           </div>
         </div>
@@ -546,13 +546,13 @@ function LecturerProjectsContent() {
         {/* Two Columns: Branches & Commits per member */}
         <div className="proj-two mb-4">
           <div className="proj-card">
-            <b className="text-base text-white">Branches</b>
+            <b className="text-base text-foreground">Branches</b>
             {branches.map((bItem) => (
               <div key={bItem[0]} className="mt-3">
                 <div className="proj-row">
-                  <span className="font-mono text-xs text-slate-200">{bItem[0]}</span>
+                  <span className="font-mono text-xs text-foreground">{bItem[0]}</span>
                   <span className="proj-sp"></span>
-                  <span className="text-xs text-slate-400">{bItem[1]} commits</span>
+                  <span className="text-xs text-muted-foreground font-mono">{bItem[1]} commits</span>
                 </div>
                 <div className="proj-bar">
                   <i style={{ width: `${(bItem[1] / 42) * 100}%` }}></i>
@@ -562,15 +562,15 @@ function LecturerProjectsContent() {
           </div>
 
           <div className="proj-card">
-            <b className="text-base text-white">
+            <b className="text-base text-foreground">
               {isGroup ? "Commits per member" : "Commits"}
             </b>
             {members.map((mItem) => (
               <div key={mItem[0]} className="mt-3">
                 <div className="proj-row">
-                  <span className="text-xs font-medium text-slate-200">{mItem[0]}</span>
+                  <span className="text-xs font-medium text-foreground">{mItem[0]}</span>
                   <span className="proj-sp"></span>
-                  <span className="text-xs text-slate-400">{mItem[1]}</span>
+                  <span className="text-xs text-muted-foreground font-mono">{mItem[1]}</span>
                 </div>
                 <div className="proj-bar">
                   <i style={{ width: `${(mItem[1] / 42) * 100}%` }}></i>
@@ -587,7 +587,7 @@ function LecturerProjectsContent() {
             <div key={d[0]} className="proj-card proj-doc" style={{ minWidth: 210 }}>
               <div className="proj-ic">{d[1]}</div>
               <div>
-                <b className="text-xs block text-white">{d[0]}</b>
+                <b className="text-xs block text-foreground">{d[0]}</b>
                 <span className={`proj-tag ${d[2] ? "ok" : "no"}`}>
                   {d[2] ? "Uploaded" : "Not yet"}
                 </span>
@@ -651,8 +651,8 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Submitted reports</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Submitted reports</h1>
+        <p className="sub text-sm text-muted-foreground mb-4">
           {tgt} · {proj?.title}
         </p>
 
@@ -660,13 +660,14 @@ function LecturerProjectsContent() {
           {reportsList.map((x, idx) => (
             <div
               key={x[0]}
-              className={`proj-row py-3.5 ${idx < reportsList.length - 1 ? "border-b border-[#1e293b]" : ""
-                }`}
+              className={`proj-row py-3.5 ${
+                idx < reportsList.length - 1 ? "border-b border-border" : ""
+              }`}
             >
               <div className="proj-ic">{x[1]}</div>
               <div>
-                <b className="text-sm text-white block">{x[0]}</b>
-                <span className="text-xs text-slate-400 font-mono">
+                <b className="text-sm text-foreground block">{x[0]}</b>
+                <span className="text-xs text-muted-foreground font-mono">
                   {x[3]} · {x[2]}
                 </span>
               </div>
@@ -715,8 +716,8 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Evaluate project</h1>
-        <p className="sub text-sm text-slate-400 mb-4">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Evaluate project</h1>
+        <p className="sub text-sm text-muted-foreground mb-4">
           {tgt} · {proj?.title} · Past project
         </p>
 
@@ -725,13 +726,13 @@ function LecturerProjectsContent() {
           {/* Card 1: Run Project */}
           <div className="proj-card">
             <div className="proj-row">
-              <b className="text-base text-white">Run project</b>
+              <b className="text-base text-foreground">Run project</b>
               <span className="proj-sp"></span>
               <span className="proj-tag">C · gcc</span>
             </div>
             <pre
               id="term"
-              className="proj-pre mt-3 rounded-lg overflow-auto"
+              className="proj-pre mt-3 rounded-[10px] overflow-auto"
               style={{ minHeight: 160 }}
             >
               {termOutput}
@@ -755,8 +756,8 @@ function LecturerProjectsContent() {
 
           {/* Card 2: AI Evaluation */}
           <div className="proj-card">
-            <b className="text-base text-white">AI evaluation</b>
-            <p className="text-xs text-slate-400 my-2 leading-relaxed">
+            <b className="text-base text-foreground">AI evaluation</b>
+            <p className="text-xs text-muted-foreground my-2 leading-relaxed">
               Gemini compares the proposal, code, ER diagram and final report. Marks are advisory
               and fully editable.
             </p>
@@ -769,7 +770,7 @@ function LecturerProjectsContent() {
               {isEvaluating ? "Analyzing..." : "Evaluate with Gemini"}
             </button>
             {evalStep && (
-              <div id="evs" className="text-xs text-teal-400 font-mono mt-3">
+              <div id="evs" className="text-xs text-accent font-mono mt-3">
                 {evalStep}
               </div>
             )}
@@ -783,18 +784,18 @@ function LecturerProjectsContent() {
             <div className="proj-card space-y-4">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-[#1e293b] text-slate-400">
+                  <tr className="border-b border-border text-muted-foreground">
                     <th className="py-2.5 px-2">Criterion</th>
                     <th className="py-2.5 px-2">Weight</th>
                     <th className="py-2.5 px-2">Mark</th>
                     <th className="py-2.5 px-2">Evidence</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1e293b]">
+                <tbody className="divide-y divide-border">
                   {marks.map((x, idx) => (
                     <tr key={x[0]}>
-                      <td className="py-2.5 px-2 font-semibold text-slate-200">{x[0]}</td>
-                      <td className="py-2.5 px-2 text-slate-400">{x[2]}%</td>
+                      <td className="py-2.5 px-2 font-semibold text-foreground">{x[0]}</td>
+                      <td className="py-2.5 px-2 text-muted-foreground font-mono">{x[2]}%</td>
                       <td className="py-2.5 px-2">
                         <input
                           type="number"
@@ -811,25 +812,25 @@ function LecturerProjectsContent() {
                             });
                             setSavedText("Save marks & summary");
                           }}
-                          className="w-16 p-1.5 border border-[#1e293b] rounded-md bg-[#0e1626] text-white font-mono text-xs focus:border-teal-500 focus:outline-none"
+                          className="w-16 p-1.5 border border-border rounded-[10px] bg-muted text-foreground font-mono text-xs focus:border-accent focus:outline-none"
                         />{" "}
-                        <span className="text-slate-400 text-xs">/ {x[2]}</span>
+                        <span className="text-muted-foreground text-xs font-mono">/ {x[2]}</span>
                       </td>
-                      <td className="py-2.5 px-2 text-slate-400 font-mono text-[11px]">{x[3]}</td>
+                      <td className="py-2.5 px-2 text-muted-foreground font-mono text-[11px]">{x[3]}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <div className="proj-row my-3 pt-2 border-t border-[#1e293b]">
-                <b className="text-sm text-white">Final mark</b>
-                <b className="text-2xl text-teal-400 font-mono">
+              <div className="proj-row my-3 pt-2 border-t border-border">
+                <b className="text-sm text-foreground">Final mark</b>
+                <b className="text-2xl text-accent font-mono tabular-nums">
                   <span id="tot">{totalScore}</span> / 100
                 </b>
               </div>
 
               <div>
-                <b className="text-xs text-white block mb-1">Project summary</b>
+                <b className="text-xs text-foreground block mb-1">Project summary</b>
                 <textarea
                   id="sum"
                   rows={3}
@@ -838,7 +839,7 @@ function LecturerProjectsContent() {
                     setSummaryText(e.target.value);
                     setSavedText("Save marks & summary");
                   }}
-                  className="w-full p-2.5 border border-[#1e293b] rounded-lg bg-[#0e1626] text-xs text-slate-200 leading-relaxed font-sans focus:outline-none focus:border-teal-500"
+                  className="w-full p-2.5 border border-border rounded-[10px] bg-muted text-xs text-foreground leading-relaxed font-sans focus:outline-none focus:border-accent"
                 />
               </div>
 

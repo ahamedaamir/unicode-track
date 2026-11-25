@@ -16,13 +16,13 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const variantStyles = {
-    default: "bg-slate-100 text-slate-700 border-slate-200/80",
-    teal: "bg-teal-50 text-teal-700 border-teal-200/90 font-medium",
-    navy: "bg-[#0B1220] text-slate-100 border-[#1e293b]",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    warning: "bg-amber-50 text-amber-700 border-amber-200",
-    outline: "border-slate-300 text-slate-700 bg-white",
-    subtle: "bg-slate-100/80 text-slate-600 border-transparent",
+    default: "bg-muted text-muted-foreground border-border",
+    teal: "bg-accent-soft text-accent border-accent-border font-medium",
+    navy: "bg-muted text-foreground border-border",
+    success: "bg-success-soft text-success border-accent-border font-medium",
+    warning: "bg-warning-soft text-warning border-amber-900/60 font-medium",
+    outline: "border-border text-foreground bg-card",
+    subtle: "bg-muted text-muted-foreground border-transparent",
   };
 
   const sizeStyles = {
@@ -44,13 +44,11 @@ export function Badge({
         <span
           className={cn(
             "w-1.5 h-1.5 rounded-full shrink-0",
-            variant === "teal"
-              ? "bg-[#14B8A6] animate-pulse"
-              : variant === "success"
-              ? "bg-emerald-500"
+            variant === "teal" || variant === "success"
+              ? "bg-accent animate-pulse"
               : variant === "warning"
-              ? "bg-amber-500"
-              : "bg-slate-400"
+              ? "bg-warning"
+              : "bg-muted-foreground"
           )}
         />
       )}
@@ -58,4 +56,3 @@ export function Badge({
     </span>
   );
 }
-

@@ -531,11 +531,11 @@ export default function EnvironmentTestPage() {
       </div>
 
       {/* Page Header */}
-      <div className="flex items-center gap-2.5 border-b border-[#1e293b] pb-4">
-        <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400">
+      <div className="flex items-center gap-2.5 border-b border-border pb-4">
+        <div className="p-2 rounded-xl bg-accent/10 border border-accent/20 text-accent">
           <Terminal className="w-5 h-5" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Run
         </h1>
       </div>
@@ -545,19 +545,19 @@ export default function EnvironmentTestPage() {
         {/* C Card */}
         <div
           onClick={() => handleSelectLanguage("c")}
-          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-xl ${
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${
             selectedLang === "c"
-              ? "border-teal-500 bg-teal-500/15 ring-1 ring-teal-500/30"
-              : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
+              ? "border-accent bg-accent/10 ring-1 ring-accent/30"
+              : "border-border bg-card hover:border-accent/40"
           }`}
         >
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-teal-500/20 border border-teal-500/30 flex items-center justify-center font-bold text-teal-300 font-mono text-xs sm:text-sm shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center font-bold text-accent font-mono text-xs sm:text-sm shrink-0">
               C
             </div>
             <div className="min-w-0">
-              <b className="text-xs sm:text-sm text-white block truncate">C</b>
-              <span className="text-[11px] sm:text-xs text-slate-400 block truncate">GCC C11</span>
+              <b className="text-xs sm:text-sm text-foreground block truncate">C</b>
+              <span className="text-[11px] sm:text-xs text-muted-foreground block truncate font-mono">GCC C11</span>
             </div>
           </div>
         </div>
@@ -565,19 +565,19 @@ export default function EnvironmentTestPage() {
         {/* Python Card */}
         <div
           onClick={() => handleSelectLanguage("python")}
-          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-xl ${
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${
             selectedLang === "python"
-              ? "border-teal-500 bg-teal-500/15 ring-1 ring-teal-500/30"
-              : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
+              ? "border-accent bg-accent/10 ring-1 ring-accent/30"
+              : "border-border bg-card hover:border-accent/40"
           }`}
         >
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center font-bold text-amber-300 font-mono text-xs sm:text-sm shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-warning/20 border border-warning/30 flex items-center justify-center font-bold text-warning font-mono text-xs sm:text-sm shrink-0">
               PY
             </div>
             <div className="min-w-0">
-              <b className="text-xs sm:text-sm text-white block truncate">Python</b>
-              <span className="text-[11px] sm:text-xs text-slate-400 block truncate">Python 3.13</span>
+              <b className="text-xs sm:text-sm text-foreground block truncate">Python</b>
+              <span className="text-[11px] sm:text-xs text-muted-foreground block truncate font-mono">Python 3.13</span>
             </div>
           </div>
         </div>
@@ -585,10 +585,10 @@ export default function EnvironmentTestPage() {
         {/* Java Card */}
         <div
           onClick={() => handleSelectLanguage("java")}
-          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-xl ${
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-[16px] ${
             selectedLang === "java"
-              ? "border-teal-500 bg-teal-500/15 ring-1 ring-teal-500/30"
-              : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
+              ? "border-accent bg-accent/10 ring-1 ring-accent/30"
+              : "border-border bg-card hover:border-accent/40"
           }`}
         >
           <div className="flex items-center gap-2.5 sm:gap-3">
@@ -596,8 +596,8 @@ export default function EnvironmentTestPage() {
               JV
             </div>
             <div className="min-w-0">
-              <b className="text-xs sm:text-sm text-white block truncate">Java</b>
-              <span className="text-[11px] sm:text-xs text-slate-400 block truncate">OpenJDK 25</span>
+              <b className="text-xs sm:text-sm text-foreground block truncate">Java</b>
+              <span className="text-[11px] sm:text-xs text-muted-foreground block truncate font-mono">OpenJDK 25</span>
             </div>
           </div>
         </div>
@@ -608,15 +608,15 @@ export default function EnvironmentTestPage() {
         {/* Preset templates bar */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-400 font-medium">Templates:</span>
+            <span className="text-xs text-muted-foreground font-medium">Templates:</span>
             {Object.keys(currentLangConfig.presets).map((key) => (
               <button
                 key={key}
                 onClick={() => handleSelectPreset(key)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                className={`px-3 py-1 rounded-[10px] text-xs font-medium transition-colors ${
                   currentPreset === key
-                    ? "bg-teal-500/20 text-teal-300 border border-teal-500/40 font-semibold"
-                    : "bg-[#0e1626] text-slate-400 border border-[#1e293b] hover:text-white"
+                    ? "bg-accent/20 text-accent border border-accent/40 font-semibold"
+                    : "bg-muted text-muted-foreground border border-border hover:text-foreground"
                 }`}
               >
                 {currentLangConfig.presets[key].name}
@@ -627,10 +627,10 @@ export default function EnvironmentTestPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowStdin(!showStdin)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+              className={`px-2.5 py-1 rounded-[10px] text-xs font-medium border transition-colors ${
                 showStdin
-                  ? "bg-teal-500/20 text-teal-300 border-teal-500/40"
-                  : "bg-[#0e1626] text-slate-400 border-[#1e293b] hover:text-white"
+                  ? "bg-accent/20 text-accent border-accent/40"
+                  : "bg-muted text-muted-foreground border-border hover:text-foreground"
               }`}
               title="Toggle standard input (stdin)"
             >
@@ -638,7 +638,7 @@ export default function EnvironmentTestPage() {
             </button>
             <button
               onClick={handleDownloadCode}
-              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-[#0e1626] text-slate-400 border border-[#1e293b] hover:text-white flex items-center gap-1"
+              className="px-2.5 py-1 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1"
               title={`Download ${currentLangConfig.filename}`}
             >
               <Download className="w-3.5 h-3.5" />
@@ -650,7 +650,7 @@ export default function EnvironmentTestPage() {
                   handleSelectPreset("hello");
                 }
               }}
-              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-[#0e1626] text-slate-400 border border-[#1e293b] hover:text-white flex items-center gap-1"
+              className="px-2.5 py-1 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1"
               title="Reset code"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -661,8 +661,8 @@ export default function EnvironmentTestPage() {
 
         {/* Optional Stdin Field */}
         {showStdin && (
-          <div className="p-3 bg-[#0e1626] border border-[#1e293b] rounded-xl space-y-1.5 animate-in fade-in-50">
-            <span className="font-semibold text-white text-xs block">Standard Input (stdin)</span>
+          <div className="p-3 bg-card border border-border rounded-[16px] space-y-1.5 animate-in fade-in-50">
+            <span className="font-semibold text-foreground text-xs block">Standard Input (stdin)</span>
             <textarea
               rows={2}
               value={currentStdin}
@@ -670,7 +670,7 @@ export default function EnvironmentTestPage() {
                 setStdinMap((prev) => ({ ...prev, [selectedLang]: e.target.value }))
               }
               placeholder="e.g. 42 99"
-              className="w-full p-2 bg-[#090d16] border border-[#1e293b] rounded-lg text-xs text-teal-300 font-mono focus:outline-none focus:border-teal-500"
+              className="w-full p-2 bg-[#0d0d0f] border border-border rounded-[10px] text-xs text-accent font-mono focus:outline-none focus:border-accent"
             />
           </div>
         )}
@@ -678,23 +678,23 @@ export default function EnvironmentTestPage() {
         {/* Editor and Terminal Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Left: Code Editor */}
-          <div className="flex flex-col bg-[#0e1626] border border-[#1e293b] rounded-xl overflow-hidden shadow-sm">
+          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm">
             {/* Editor Header */}
-            <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#0b1220] border-b border-[#1e293b] text-xs">
+            <div className="flex items-center justify-between px-3.5 py-2.5 bg-muted border-b border-border text-xs">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
-                <span className="font-mono font-bold text-white">{currentLangConfig.filename}</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-accent"></span>
+                <span className="font-mono font-bold text-foreground">{currentLangConfig.filename}</span>
               </div>
-              <div className="flex items-center gap-3 text-slate-400 text-[11px] font-mono">
+              <div className="flex items-center gap-3 text-muted-foreground text-[11px] font-mono">
                 <span>{lineCount} lines</span>
               </div>
             </div>
 
             {/* Editor Body */}
-            <div className="relative flex flex-1 bg-[#090d16] font-mono text-xs leading-relaxed min-h-[400px]">
+            <div className="relative flex flex-1 bg-[#0d0d0f] font-mono text-xs leading-relaxed min-h-[400px]">
               {/* Line numbers gutter */}
               <div
-                className="select-none py-3 px-2 text-right text-slate-600 bg-[#070b13] border-r border-[#1e293b] font-mono"
+                className="select-none py-3 px-2 text-right text-muted-foreground/50 bg-[#0d0d0f] border-r border-border font-mono"
                 style={{ width: "3.2rem" }}
               >
                 {Array.from({ length: lineCount }).map((_, i) => (
@@ -711,15 +711,15 @@ export default function EnvironmentTestPage() {
                 }
                 onKeyDown={handleKeyDown}
                 spellCheck={false}
-                className="flex-1 p-3 bg-transparent text-[#d6deeb] font-mono resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-auto"
+                className="flex-1 p-3 bg-transparent text-foreground font-mono resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-auto"
                 style={{ tabSize: 4 }}
               />
             </div>
 
             {/* Editor Footer / Action Bar */}
-            <div className="flex items-center justify-between p-3 bg-[#0b1220] border-t border-[#1e293b]">
-              <div className="text-[11px] text-slate-400 hidden sm:block">
-                Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">Enter</kbd> to run
+            <div className="flex items-center justify-between p-3 bg-muted border-t border-border">
+              <div className="text-[11px] text-muted-foreground hidden sm:block">
+                Press <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-foreground font-mono">Enter</kbd> to run
               </div>
 
               <div className="flex items-center gap-2">
@@ -736,16 +736,16 @@ export default function EnvironmentTestPage() {
           </div>
 
           {/* Right: Terminal Console Output */}
-          <div className="flex flex-col bg-[#0e1626] border border-[#1e293b] rounded-xl overflow-hidden shadow-sm">
+          <div className="flex flex-col bg-card border border-border rounded-[16px] overflow-hidden shadow-sm">
             {/* Terminal Header */}
-            <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#0b1220] border-b border-[#1e293b] text-xs">
+            <div className="flex items-center justify-between px-3.5 py-2.5 bg-muted border-b border-border text-xs">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-danger/80"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-warning/80"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent/80"></span>
                 </div>
-                <span className="font-mono text-slate-300 font-semibold ml-1.5">Terminal</span>
+                <span className="font-mono text-foreground font-semibold ml-1.5">Terminal</span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -753,22 +753,22 @@ export default function EnvironmentTestPage() {
                   <span
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                       executionResult.success
-                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                        : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                        ? "bg-accent/20 text-accent border border-accent/30"
+                        : "bg-danger/20 text-danger border border-danger/30"
                     }`}
                   >
                     {executionResult.success ? "Exit Code 0" : `Exit Code ${executionResult.exitCode ?? 1}`}
                   </span>
                 )}
                 {executionResult?.executionTimeSeconds && (
-                  <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-slate-500" />
+                  <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-muted-foreground" />
                     {executionResult.executionTimeSeconds}s
                   </span>
                 )}
                 <button
                   onClick={handleClearTerminal}
-                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                   title="Clear console"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -777,29 +777,29 @@ export default function EnvironmentTestPage() {
             </div>
 
             {/* Terminal Screen */}
-            <div className="flex-1 bg-[#070b13] p-3.5 font-mono text-xs leading-relaxed text-[#d6deeb] overflow-auto min-h-[400px]">
+            <div className="flex-1 bg-[#0d0d0f] p-3.5 font-mono text-xs leading-relaxed text-foreground overflow-auto min-h-[400px]">
               {terminalHistory ? (
                 <pre className="whitespace-pre-wrap break-words font-mono text-[12.5px] leading-relaxed">
                   {terminalHistory}
                 </pre>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-500 text-center py-16 space-y-2">
-                  <Terminal className="w-8 h-8 text-slate-600 mb-1" />
-                  <p className="font-medium text-slate-400">Console is ready</p>
-                  <p className="text-xs max-w-xs text-slate-600">
-                    Click <strong className="text-teal-400">Run {currentLangConfig.name} Program</strong> or press Ctrl+Enter to compile and run your code.
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center py-16 space-y-2">
+                  <Terminal className="w-8 h-8 text-muted-foreground/40 mb-1" />
+                  <p className="font-medium text-muted-foreground">Console is ready</p>
+                  <p className="text-xs max-w-xs text-muted-foreground/70">
+                    Click <strong className="text-accent">Run {currentLangConfig.name} Program</strong> or press Ctrl+Enter to compile and run your code.
                   </p>
                 </div>
               )}
             </div>
 
             {/* Terminal Footer Status Bar */}
-            <div className="px-3.5 py-2 bg-[#0b1220] border-t border-[#1e293b] flex items-center justify-between text-[11px] text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-teal-400"></span>
+            <div className="px-3.5 py-2 bg-muted border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5 font-mono">
+                <span className="w-2 h-2 rounded-full bg-accent"></span>
                 Runtime: <code>{currentLangConfig.version}</code>
               </span>
-              <span>CPU Timeout: <code>3.0s</code></span>
+              <span className="font-mono">CPU Timeout: <code>3.0s</code></span>
             </div>
           </div>
         </div>

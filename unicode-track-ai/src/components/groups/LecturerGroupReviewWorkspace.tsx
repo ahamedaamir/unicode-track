@@ -428,7 +428,7 @@ export function LecturerGroupReviewWorkspace({
       {/* ============================================================== */}
       {/* 1. TOP HEADER & TELEMETRY VALIDATION BAR                       */}
       {/* ============================================================== */}
-      <div className="bg-[#0B1220] text-white rounded-3xl p-6 sm:p-7 shadow-md border border-slate-800 space-y-5">
+      <div className="bg-card text-foreground rounded-[16px] p-6 sm:p-7 shadow-md border border-border space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -607,7 +607,7 @@ export function LecturerGroupReviewWorkspace({
                   <div className="flex items-center gap-3">
                     {/* Number Indicator & Reordering */}
                     <div className="flex items-center gap-1">
-                      <span className="w-8 h-8 rounded-xl bg-[#0B1220] text-teal-400 font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                      <span className="w-8 h-8 rounded-xl bg-muted text-accent border border-border font-mono font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                         #{grp.group_number}
                       </span>
                       <div className="flex flex-col gap-0.5">

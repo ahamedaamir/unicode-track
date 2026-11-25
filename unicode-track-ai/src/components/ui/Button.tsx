@@ -21,25 +21,25 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none cursor-pointer";
+    "inline-flex items-center justify-center font-semibold rounded-[10px] transition-all duration-150 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:opacity-50 disabled:pointer-events-none select-none cursor-pointer";
 
   const variantStyles = {
     primary:
-      "bg-[#14B8A6] text-white hover:bg-[#0D9488] active:bg-[#0F766E] shadow-sm hover:shadow focus-visible:ring-[#14B8A6]",
+      "bg-foreground text-background hover:bg-neutral-200 active:bg-neutral-300 shadow-sm",
     secondary:
-      "bg-[#0B1220] text-white hover:bg-[#1E293B] active:bg-[#0F172A] shadow-sm hover:shadow focus-visible:ring-[#0B1220]",
+      "bg-muted text-foreground border border-border hover:bg-[#242426] hover:border-zinc-700 active:bg-[#1a1a1c]",
     outline:
-      "border border-[#E2E8F0] bg-white text-slate-800 hover:bg-slate-50 hover:border-slate-300 active:bg-slate-100 focus-visible:ring-slate-400 shadow-xs",
+      "border border-border bg-transparent text-foreground hover:bg-muted active:bg-muted/80",
     ghost:
-      "text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200/80 focus-visible:ring-slate-300",
+      "text-muted-foreground hover:text-foreground hover:bg-muted active:bg-muted/80",
     tealOutline:
-      "border border-teal-500/30 bg-teal-50/60 text-teal-800 hover:bg-teal-100/70 hover:border-teal-500/50 active:bg-teal-200/60 focus-visible:ring-teal-500",
+      "border border-accent-border bg-accent-soft text-accent hover:border-accent hover:bg-accent-soft/80",
   };
 
   const sizeStyles = {
     sm: "text-xs px-3 py-1.5 gap-1.5 h-8",
     md: "text-sm px-4 py-2 gap-2 h-10",
-    lg: "text-base px-5 py-2.5 gap-2.5 h-12 rounded-xl",
+    lg: "text-base px-5 py-2.5 gap-2.5 h-12 rounded-[12px]",
   };
 
   const combinedClasses = cn(
@@ -67,4 +67,3 @@ export function Button({
     </button>
   );
 }
-
