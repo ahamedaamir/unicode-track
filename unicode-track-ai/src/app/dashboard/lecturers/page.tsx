@@ -29,8 +29,11 @@ export default function LecturersPage() {
     addLecturer, 
     editLecturer, 
     toggleLecturerStatus, 
-    deleteLecturer 
+    deleteLecturer,
+    activeRole,
   } = useAdminData();
+
+  const isAdmin = activeRole === "admin";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -161,14 +164,16 @@ export default function LecturersPage() {
           </p>
         </div>
 
-        <Button
-          onClick={handleOpenAdd}
-          variant="primary"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-        >
-          Add Lecturer
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={handleOpenAdd}
+            variant="primary"
+            size="md"
+            icon={<Plus className="w-4 h-4" />}
+          >
+            Add Lecturer
+          </Button>
+        )}
       </div>
 
       {/* Search Bar & Counter Bar */}

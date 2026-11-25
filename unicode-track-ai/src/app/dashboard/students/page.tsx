@@ -43,8 +43,11 @@ export default function StudentsPage() {
     addStudent, 
     editStudent, 
     toggleStudentStatus, 
-    deleteStudent 
+    deleteStudent,
+    activeRole,
   } = useAdminData();
+
+  const isAdmin = activeRole === "admin";
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -272,14 +275,16 @@ export default function StudentsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={handleOpenAddModal}
-          variant="primary"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-        >
-          Add Student
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={handleOpenAddModal}
+            variant="primary"
+            size="md"
+            icon={<Plus className="w-4 h-4" />}
+          >
+            Add Student
+          </Button>
+        )}
       </div>
 
       {/* Search & Filter Toolbar */}

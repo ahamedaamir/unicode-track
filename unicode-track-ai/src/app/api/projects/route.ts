@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
           lecturer_id: projectWithId.lecturerId || null,
           lecturer_name: projectWithId.lecturerName || null,
           database_design_config: projectWithId.databaseDesignConfig || null,
+          admin_email: projectWithId.adminEmail || null,
           updated_at: new Date().toISOString(),
         };
 
