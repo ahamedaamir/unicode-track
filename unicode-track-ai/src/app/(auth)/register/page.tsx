@@ -182,14 +182,61 @@ export default function UniversityAdminRegisterPage() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleStep3Submit = (e: React.FormEvent) => {
+  const handleStep3Submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateStep3()) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        setCurrentStep(4);
-      }, 400);
+    if (!validateStep3()) return;
+
+    setIsLoading(true);
+    try {
+      // 1. Call server API to create admin account in Supabase Auth & Database
+      await fetch("/api/auth/register-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      // 2. Persist to synchronized registered admins store
+      try {
+        const trimmedEmail = formData.email.trim().toLowerCase();
+        const savedAdmins = JSON.parse(localStorage.getItem("unicodetrack_registered_admins") || "[]");
+        const existingIdx = savedAdmins.findIndex((a: any) => a.email?.toLowerCase() === trimmedEmail);
+        const adminRecord = {
+          email: trimmedEmail,
+          password: formData.password,
+          universityName: formData.universityName,
+          faculty: formData.faculty,
+          location: formData.location,
+          role: "admin",
+          registeredAt: new Date().toISOString(),
+        };
+
+        if (existingIdx >= 0) {
+          savedAdmins[existingIdx] = adminRecord;
+        } else {
+          savedAdmins.push(adminRecord);
+        }
+        localStorage.setItem("unicodetrack_registered_admins", JSON.stringify(savedAdmins));
+      } catch {}
+
+      setCurrentStep(4);
+    } catch {
+      // Even if network is offline, save locally and advance
+      try {
+        const trimmedEmail = formData.email.trim().toLowerCase();
+        const savedAdmins = JSON.parse(localStorage.getItem("unicodetrack_registered_admins") || "[]");
+        savedAdmins.push({
+          email: trimmedEmail,
+          password: formData.password,
+          universityName: formData.universityName,
+          faculty: formData.faculty,
+          location: formData.location,
+          role: "admin",
+        });
+        localStorage.setItem("unicodetrack_registered_admins", JSON.stringify(savedAdmins));
+      } catch {}
+      setCurrentStep(4);
+    } finally {
+      setIsLoading(false);
     }
   };
 

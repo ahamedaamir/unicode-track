@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { useAdminData, AdminDataProvider } from "@/context/AdminDataContext";
 import { authenticateStudent } from "@/lib/auth/student-auth";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 function LoginContent() {
   const router = useRouter();
@@ -151,7 +152,71 @@ function LoginContent() {
         return;
       }
 
-      // 5. Administrator Credentials
+      // 5. Administrator Authentication
+      // 5a. Check Supabase Auth for registered administrator
+      if (isSupabaseConfigured()) {
+        try {
+          const supabase = createClient();
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email: trimmedEmail,
+            password,
+          });
+
+          if (!authError && authData?.user) {
+            const meta = authData.user.user_metadata || {};
+            const role = meta.role || "admin";
+
+            if (role === "admin") {
+              const adminName = meta.university_name
+                ? `${meta.university_name} Administrator`
+                : "University Administrator";
+
+              sessionStorage.setItem(
+                "unicodetrack_authenticated_user",
+                JSON.stringify({
+                  role: "admin",
+                  email: trimmedEmail,
+                  name: adminName,
+                })
+              );
+              sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
+              sessionStorage.removeItem("unicodetrack_pending_student_email");
+              sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
+              setActiveRole("admin");
+              router.push("/dashboard");
+              return;
+            }
+          }
+        } catch {}
+      }
+
+      // 5b. Check synchronized registered administrator credentials
+      try {
+        const savedAdmins = JSON.parse(localStorage.getItem("unicodetrack_registered_admins") || "[]");
+        const matchingAdmin = savedAdmins.find(
+          (a: any) => a.email?.toLowerCase() === trimmedEmail && a.password === password
+        );
+        if (matchingAdmin) {
+          sessionStorage.setItem(
+            "unicodetrack_authenticated_user",
+            JSON.stringify({
+              role: "admin",
+              email: matchingAdmin.email,
+              name: matchingAdmin.universityName
+                ? `${matchingAdmin.universityName} Administrator`
+                : "University Administrator",
+            })
+          );
+          sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
+          sessionStorage.removeItem("unicodetrack_pending_student_email");
+          sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
+          setActiveRole("admin");
+          router.push("/dashboard");
+          return;
+        }
+      } catch {}
+
+      // 5c. Default Administrator Credentials fallback
       if (trimmedEmail === "admin@university.edu" && password === "adminPassword123") {
         try {
           sessionStorage.setItem(
