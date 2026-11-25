@@ -96,7 +96,7 @@ export function AdminSidebar({
       count: undefined,
     },
     {
-      name: "Test",
+      name: "Run",
       href: "/dashboard/test",
       icon: Terminal,
       count: undefined,
@@ -135,7 +135,7 @@ export function AdminSidebar({
       count: undefined,
     },
     {
-      name: "Test",
+      name: "Run",
       href: "/dashboard/test",
       icon: Terminal,
       count: undefined,
@@ -198,7 +198,7 @@ export function AdminSidebar({
       count: projects.length,
     },
     {
-      name: "Test",
+      name: "Run",
       href: "/dashboard/test",
       icon: Terminal,
       count: undefined,

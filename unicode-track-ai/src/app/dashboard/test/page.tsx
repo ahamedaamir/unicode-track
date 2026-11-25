@@ -49,20 +49,11 @@ const LANGUAGES: Record<LanguageKey, LanguageConfig> = {
     commandSnippet: "gcc -O2 -std=c11 -Wall main.c -o program.exe && ./program.exe",
     presets: {
       hello: {
-        name: "Hello World & Iteration",
+        name: "Hello World",
         code: `#include <stdio.h>
 
 int main() {
-    printf("==========================================\\n");
-    printf(" UniCodeTrack AI — Environment Test System\\n");
-    printf(" Native C11 Execution via GCC Sandbox     \\n");
-    printf("==========================================\\n\\n");
-
-    for (int i = 1; i <= 5; i++) {
-        printf("[PASS] Core cycle %d initialized and executed successfully.\\n", i);
-    }
-
-    printf("\\nAll runtime tests completed with status 0.\\n");
+    printf("Hello, World!\\n");
     return 0;
 }`,
       },
@@ -146,35 +137,9 @@ int main() {
     commandSnippet: "py -u main.py",
     presets: {
       hello: {
-        name: "Hello World & Data Structures",
-        code: `#!/usr/bin/env python3
-"""
-UniCodeTrack AI — Python 3 Environment Test
-"""
-
-def main():
-    print("==========================================")
-    print(" UniCodeTrack AI — Python Test Sandbox    ")
-    print(" Python 3.13 Interpreted Execution        ")
-    print("==========================================\\n")
-
-    # List comprehension & transformations
-    numbers = [1, 2, 3, 4, 5, 6, 7, 8]
-    squares = [x ** 2 for x in numbers]
-    print(f"Original numbers : {numbers}")
-    print(f"Computed squares : {squares}")
-
-    # Dictionary mapping & iteration
-    metrics = {
-        "sandbox_version": "v3.13",
-        "status": "ready",
-        "concurrency": "isolated_process",
-    }
-    print("\\nPlatform Diagnostics:")
-    for key, value in metrics.items():
-        print(f"  • {key.ljust(18)}: {value}")
-
-    print("\\nPython runtime test passed with exit code 0.")
+        name: "Hello World",
+        code: `def main():
+    print("Hello, World!")
 
 if __name__ == "__main__":
     main()
@@ -263,23 +228,10 @@ workspace.display()
     commandSnippet: "javac Main.java && java Main",
     presets: {
       hello: {
-        name: "Hello World & Iteration",
+        name: "Hello World",
         code: `public class Main {
     public static void main(String[] args) {
-        System.out.println("==========================================");
-        System.out.println(" UniCodeTrack AI — Java Test Sandbox      ");
-        System.out.println(" OpenJDK 25 Bytecode Compilation & Runtime");
-        System.out.println("==========================================\\n");
-
-        for (int i = 1; i <= 5; i++) {
-            System.out.printf("[PASS] Java JVM Worker Thread %d ready and active.%n", i);
-        }
-
-        long freeMem = Runtime.getRuntime().freeMemory();
-        long totalMem = Runtime.getRuntime().totalMemory();
-        System.out.printf("%nJVM Allocated Memory : %d MB%n", totalMem / (1024 * 1024));
-        System.out.printf("JVM Free Memory      : %d MB%n", freeMem / (1024 * 1024));
-        System.out.println("\\nJava execution test finished with code 0.");
+        System.out.println("Hello, World!");
     }
 }
 `,
@@ -575,116 +527,78 @@ export default function EnvironmentTestPage() {
           Dashboard
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-        <span className="text-white font-medium">Test Environment</span>
+        <span className="text-white font-medium">Run</span>
       </div>
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#1e293b] pb-5">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400">
-              <Terminal className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">
-                Environment Testing Sandbox
-              </h1>
-              <p className="text-sm text-slate-400 mt-0.5">
-                Run isolated C, Python, and Java programs directly on the university platform.
-              </p>
-            </div>
-          </div>
+      <div className="flex items-center gap-2.5 border-b border-[#1e293b] pb-4">
+        <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400">
+          <Terminal className="w-5 h-5" />
         </div>
-
-        {/* Status badges */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            3 Compilers & Runtimes Ready
-          </span>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-white">
+          Run
+        </h1>
       </div>
 
       {/* 1. Language Selection Cards */}
-      <div>
-        <div className="proj-sec mb-3">Select Language Environment</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* C Language Card */}
-          <div
-            onClick={() => handleSelectLanguage("c")}
-            className={`proj-card proj-tile relative p-4 cursor-pointer transition-all rounded-xl ${
-              selectedLang === "c"
-                ? "border-teal-500 bg-teal-500/10 shadow-sm ring-1 ring-teal-500/30"
-                : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-teal-500/20 border border-teal-500/30 flex items-center justify-center font-bold text-teal-300 font-mono text-base">
-                  C
-                </div>
-                <div>
-                  <b className="text-base text-white block">C Language</b>
-                  <span className="text-xs text-slate-400">GCC C11 · MinGW 6.3</span>
-                </div>
-              </div>
-              <span className="proj-tag ok text-[11px]">Ready & Runnable</span>
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        {/* C Card */}
+        <div
+          onClick={() => handleSelectLanguage("c")}
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-xl ${
+            selectedLang === "c"
+              ? "border-teal-500 bg-teal-500/15 ring-1 ring-teal-500/30"
+              : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
+          }`}
+        >
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-teal-500/20 border border-teal-500/30 flex items-center justify-center font-bold text-teal-300 font-mono text-xs sm:text-sm shrink-0">
+              C
             </div>
-            <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Compile and run C code natively with <code>gcc -O2 -std=c11</code>. Pointers, memory allocation, and standard I/O.
-            </p>
+            <div className="min-w-0">
+              <b className="text-xs sm:text-sm text-white block truncate">C</b>
+              <span className="text-[11px] sm:text-xs text-slate-400 block truncate">GCC C11</span>
+            </div>
           </div>
+        </div>
 
-          {/* Python Card */}
-          <div
-            onClick={() => handleSelectLanguage("python")}
-            className={`proj-card proj-tile relative p-4 cursor-pointer transition-all rounded-xl ${
-              selectedLang === "python"
-                ? "border-teal-500 bg-teal-500/10 shadow-sm ring-1 ring-teal-500/30"
-                : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center font-bold text-amber-300 font-mono text-base">
-                  PY
-                </div>
-                <div>
-                  <b className="text-base text-white block">Python</b>
-                  <span className="text-xs text-slate-400">Python 3.13 Runtime</span>
-                </div>
-              </div>
-              <span className="proj-tag ok text-[11px]">Ready & Runnable</span>
+        {/* Python Card */}
+        <div
+          onClick={() => handleSelectLanguage("python")}
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-xl ${
+            selectedLang === "python"
+              ? "border-teal-500 bg-teal-500/15 ring-1 ring-teal-500/30"
+              : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
+          }`}
+        >
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center font-bold text-amber-300 font-mono text-xs sm:text-sm shrink-0">
+              PY
             </div>
-            <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Execute Python scripts with unbuffered streaming. Data structures, list comprehensions, and classes.
-            </p>
+            <div className="min-w-0">
+              <b className="text-xs sm:text-sm text-white block truncate">Python</b>
+              <span className="text-[11px] sm:text-xs text-slate-400 block truncate">Python 3.13</span>
+            </div>
           </div>
+        </div>
 
-          {/* Java Card */}
-          <div
-            onClick={() => handleSelectLanguage("java")}
-            className={`proj-card proj-tile relative p-4 cursor-pointer transition-all rounded-xl ${
-              selectedLang === "java"
-                ? "border-teal-500 bg-teal-500/10 shadow-sm ring-1 ring-teal-500/30"
-                : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 font-mono text-base">
-                  JV
-                </div>
-                <div>
-                  <b className="text-base text-white block">Java</b>
-                  <span className="text-xs text-slate-400">OpenJDK 25 (LTS)</span>
-                </div>
-              </div>
-              <span className="proj-tag ok text-[11px]">Ready & Runnable</span>
+        {/* Java Card */}
+        <div
+          onClick={() => handleSelectLanguage("java")}
+          className={`proj-card proj-tile p-3 sm:p-3.5 cursor-pointer transition-all rounded-xl ${
+            selectedLang === "java"
+              ? "border-teal-500 bg-teal-500/15 ring-1 ring-teal-500/30"
+              : "border-[#1e293b] bg-[#0e1626] hover:border-slate-600"
+          }`}
+        >
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 font-mono text-xs sm:text-sm shrink-0">
+              JV
             </div>
-            <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-              Compile with <code>javac</code> and run in OpenJDK 25 JVM. OOP modeling, collections, and algorithms.
-            </p>
+            <div className="min-w-0">
+              <b className="text-xs sm:text-sm text-white block truncate">Java</b>
+              <span className="text-[11px] sm:text-xs text-slate-400 block truncate">OpenJDK 25</span>
+            </div>
           </div>
         </div>
       </div>
@@ -748,12 +662,7 @@ export default function EnvironmentTestPage() {
         {/* Optional Stdin Field */}
         {showStdin && (
           <div className="p-3 bg-[#0e1626] border border-[#1e293b] rounded-xl space-y-1.5 animate-in fade-in-50">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span className="font-semibold text-white">Standard Input (stdin)</span>
-              <span className="text-[11px]">
-                Passed directly to <code>{selectedLang === "c" ? "scanf / getchar" : selectedLang === "python" ? "sys.stdin / input()" : "Scanner(System.in)"}</code>
-              </span>
-            </div>
+            <span className="font-semibold text-white text-xs block">Standard Input (stdin)</span>
             <textarea
               rows={2}
               value={currentStdin}
@@ -775,11 +684,9 @@ export default function EnvironmentTestPage() {
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
                 <span className="font-mono font-bold text-white">{currentLangConfig.filename}</span>
-                <span className="text-slate-500 font-mono text-[11px]">({currentLangConfig.runtimeLabel})</span>
               </div>
               <div className="flex items-center gap-3 text-slate-400 text-[11px] font-mono">
                 <span>{lineCount} lines</span>
-                <span>{currentCode.length} chars</span>
               </div>
             </div>
 
@@ -822,7 +729,7 @@ export default function EnvironmentTestPage() {
                   className="proj-btn p text-xs font-semibold px-4 py-2 flex items-center gap-2 shadow-sm disabled:opacity-50"
                 >
                   <Play className={`w-3.5 h-3.5 fill-current ${isRunning ? "animate-spin" : ""}`} />
-                  {isRunning ? `Running ${currentLangConfig.name}...` : `Run ${currentLangConfig.name} Program`}
+                  {isRunning ? "Running..." : "Run"}
                 </button>
               </div>
             </div>
@@ -838,7 +745,7 @@ export default function EnvironmentTestPage() {
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
                 </div>
-                <span className="font-mono text-slate-300 font-semibold ml-2">Console Terminal</span>
+                <span className="font-mono text-slate-300 font-semibold ml-1.5">Terminal</span>
               </div>
 
               <div className="flex items-center gap-2">
