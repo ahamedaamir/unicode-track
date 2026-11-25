@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { callLiveGemini, getGeminiApiKey } from "./gemini-client";
 import { z } from "zod";
 import { extractText } from "unpdf";
 import { Student } from "@/types/admin";
@@ -187,14 +187,10 @@ export function normalizeStr(str: string): string {
 export async function extractGroupsWithGemini(
   content: string
 ): Promise<GeminiGroupExtractionResponse> {
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GOOGLE_GENAI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
-  if (apiKey && !apiKey.includes("placeholder")) {
+  if (apiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey });
       const prompt = `You are an academic project extraction AI for UniCodeTrack AI.
 Analyze the following student group allocation text or document and extract the student groups and their members into structured JSON.
 
@@ -234,16 +230,15 @@ ${content}
 
 Return ONLY valid JSON.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+      const result = await callLiveGemini({
         contents: prompt,
         config: {
           responseMimeType: "application/json",
         },
       });
 
-      if (response && response.text) {
-        let cleanJson = response.text.trim();
+      if (result && result.text) {
+        let cleanJson = result.text.trim();
         if (cleanJson.startsWith("```json")) {
           cleanJson = cleanJson.replace(/^```json/, "").replace(/```$/, "").trim();
         } else if (cleanJson.startsWith("```")) {

@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { callLiveGemini, getGeminiApiKey } from "./gemini-client";
 import { 
   buildProjectRequirementsPrompt, 
   generateFallbackRequirements, 
@@ -12,27 +12,21 @@ import {
 export async function generateProjectRequirements(
   params: GenerateRequirementsParams
 ): Promise<{ text: string; source: "gemini" | "fallback" }> {
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GOOGLE_GENAI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
-  if (apiKey && !apiKey.includes("placeholder")) {
+  if (apiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey });
       const prompt = buildProjectRequirementsPrompt(params);
 
-      // Using the latest Gemini model
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+      const result = await callLiveGemini({
         contents: prompt,
       });
 
-      if (response && response.text) {
-        return { text: response.text, source: "gemini" };
+      if (result.text) {
+        return { text: result.text, source: "gemini" };
       }
-    } catch (err) {
-      console.warn("Gemini API call failed, activating academic fallback generator:", err);
+    } catch (err: any) {
+      console.warn("Live Gemini API call failed, activating academic fallback generator:", err?.message || err);
     }
   }
 

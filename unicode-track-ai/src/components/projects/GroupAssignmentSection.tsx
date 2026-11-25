@@ -856,7 +856,7 @@ export function GroupAssignmentSection({
               <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
                 <span>Gemini AI Group Extraction in Progress</span>
                 <span className="text-[10px] font-mono bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
-                  gemini-2.5-flash
+                  gemini-3.5-flash
                 </span>
               </h4>
               <p className="text-xs text-muted-foreground mt-0.5">{extractionStep}</p>
