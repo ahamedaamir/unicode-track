@@ -822,7 +822,7 @@ export default function QuizzesPage() {
   };
 
   return (
-    <div className="max-w-[1100px] mx-auto py-3 px-1 sm:px-4">
+    <div className="max-w-[1100px] mx-auto py-3 px-2.5 sm:px-4">
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="proj-card mb-4 border-emerald-500/40 bg-emerald-950/20 text-emerald-300 flex items-center justify-between text-xs p-3">

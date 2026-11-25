@@ -885,7 +885,7 @@ function LecturerProjectsContent() {
   };
 
   return (
-    <div className="max-w-[1100px] mx-auto py-2 px-1 sm:px-4">
+    <div className="max-w-[1100px] mx-auto py-2 px-2.5 sm:px-4">
       {view === "create" ? (
         <CreateProjectPrototypeForm onBackToProjects={() => go({ view: "list" })} />
       ) : view === "reports" ? (

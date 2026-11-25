@@ -350,7 +350,7 @@ export function CreateProjectPrototypeForm({
   // 1. Completion View
   if (done) {
     return (
-      <div className="max-w-[1100px] mx-auto py-2 px-1 sm:px-4">
+      <div className="max-w-[1100px] mx-auto py-2 px-2.5 sm:px-4">
         <div className="crumb">
           <a onClick={handleBackNavigation}>Projects</a> / <span>Create project</span>
         </div>
@@ -673,7 +673,7 @@ export function CreateProjectPrototypeForm({
   );
 
   return (
-    <div className="max-w-[1100px] mx-auto py-2 px-1 sm:px-4">
+    <div className="max-w-[1100px] mx-auto py-2 px-2.5 sm:px-4">
       {/* Breadcrumb matching prototype */}
       <div className="crumb">
         <a onClick={handleBackNavigation}>Projects</a> / <span>Create project</span>

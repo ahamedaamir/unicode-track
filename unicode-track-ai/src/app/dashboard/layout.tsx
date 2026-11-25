@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, Suspense, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { AdminDataProvider, useAdminData } from "@/context/AdminDataContext";
 import { AdminSidebar } from "@/components/dashboard/AdminSidebar";
 import { AdminTopNavbar } from "@/components/dashboard/AdminTopNavbar";
-import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, X, Menu, Code2 } from "lucide-react";
 
 function ToastBanner() {
   const { toast, dismissToast } = useAdminData();
@@ -97,11 +98,42 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile Header Bar for dark / lecturer / student pages where AdminTopNavbar is suppressed */}
+        {isDarkPage && (
+          <header className="md:hidden sticky top-0 z-40 h-14 bg-[#0b1220]/95 backdrop-blur-md border-b border-slate-800 px-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMobileOpen(true)}
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none"
+                aria-label="Open navigation menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <Link href="/dashboard" className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                  <Code2 className="w-4 h-4 text-teal-400" />
+                </div>
+                <span className="text-sm font-bold text-white tracking-tight">UniCodeTrack</span>
+                <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                  AI
+                </span>
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                {isLecturer ? "Lecturer" : activeRole === "student" ? "Student" : "Admin"}
+              </span>
+            </div>
+          </header>
+        )}
+
         <Suspense fallback={<div className="h-16 bg-white border-b border-slate-200" />}>
           <AdminTopNavbar onToggleMobileMenu={() => setMobileOpen(!mobileOpen)} />
         </Suspense>
         <main
-          className={`flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto ${
+          className={`flex-1 p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl w-full mx-auto ${
             isDarkPage ? "bg-[#070b13] text-slate-100" : ""
           }`}
         >
