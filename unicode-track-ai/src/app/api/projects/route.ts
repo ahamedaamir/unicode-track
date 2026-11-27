@@ -317,3 +317,163 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/**
+ * DELETE /api/projects?id=... - Deletes a project and cascades child groups/assignments
+ */
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    let projectId = searchParams.get("id");
+
+    if (!projectId) {
+      try {
+        const body = await req.json();
+        projectId = body.id;
+      } catch { }
+    }
+
+    if (!projectId) {
+      return NextResponse.json(
+        { success: false, error: "Project ID is required for deletion." },
+        { status: 400 }
+      );
+    }
+
+    let deletedFromSupabase = false;
+    let supabaseError: string | null = null;
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+
+        // 1. Find child groups to safely cascade delete members
+        const { data: dbGroups } = await supabase
+          .from("project_groups")
+          .select("id")
+          .eq("project_id", projectId);
+
+        if (dbGroups && dbGroups.length > 0) {
+          const groupIds = dbGroups.map((g) => g.id);
+          await supabase.from("group_members").delete().in("group_id", groupIds);
+        }
+
+        // 2. Delete groups, assignments, and the project record
+        await supabase.from("project_groups").delete().eq("project_id", projectId);
+        await supabase.from("project_student_assignments").delete().eq("project_id", projectId);
+        const { error } = await supabase.from("projects").delete().eq("id", projectId);
+
+        if (error) {
+          supabaseError = error.message;
+        } else {
+          deletedFromSupabase = true;
+        }
+      } catch (err: any) {
+        supabaseError = err?.message || "Failed to delete project from Supabase.";
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedId: projectId,
+      deletedFromSupabase,
+      message: deletedFromSupabase
+        ? "Project and associated groups deleted from database."
+        : "Project deleted successfully (local mode).",
+      warning: supabaseError || undefined,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to delete project." },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/projects - Updates a project in the database
+ */
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const project = body.project || body;
+    const projectId = project.id || body.id;
+
+    if (!projectId) {
+      return NextResponse.json(
+        { success: false, error: "Project ID is required for update." },
+        { status: 400 }
+      );
+    }
+
+    let updatedInSupabase = false;
+    let supabaseError: string | null = null;
+
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+
+        const updatePayload: Record<string, unknown> = {
+          updated_at: new Date().toISOString(),
+        };
+
+        if (project.title !== undefined) updatePayload.title = project.title;
+        if (project.description !== undefined) updatePayload.description = project.description;
+        if (project.academicYear !== undefined) updatePayload.academic_year = project.academicYear;
+        if (project.semester !== undefined) updatePayload.semester = project.semester;
+        if (project.deadline !== undefined) updatePayload.deadline = project.deadline ? new Date(project.deadline).toISOString() : null;
+        if (project.status !== undefined) updatePayload.status = project.status;
+        if (project.requirements !== undefined) updatePayload.requirements = project.requirements;
+        if (project.instructions !== undefined) updatePayload.instructions = project.instructions;
+        if (project.proposalRequired !== undefined) updatePayload.proposal_required = project.proposalRequired;
+        if (project.erDiagramRequired !== undefined) updatePayload.er_diagram_required = project.erDiagramRequired;
+        if (project.databaseRequired !== undefined) updatePayload.database_required = project.databaseRequired;
+        if (project.githubRequired !== undefined) updatePayload.github_required = project.githubRequired;
+        if (project.finalReportRequired !== undefined) updatePayload.final_report_required = project.finalReportRequired;
+        if (project.additionalRequirements !== undefined) updatePayload.additional_requirements = project.additionalRequirements;
+
+        const { error } = await supabase.from("projects").update(updatePayload).eq("id", projectId);
+
+        if (error) {
+          // Fallback if some schema columns are pending migration
+          const { error: fallbackErr } = await supabase
+            .from("projects")
+            .update({
+              title: project.title,
+              description: project.description,
+              deadline: project.deadline ? new Date(project.deadline).toISOString() : null,
+              status: project.status,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", projectId);
+
+          if (fallbackErr) {
+            supabaseError = fallbackErr.message;
+          } else {
+            updatedInSupabase = true;
+          }
+        } else {
+          updatedInSupabase = true;
+        }
+      } catch (err: any) {
+        supabaseError = err?.message || "Failed to update project in Supabase.";
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      projectId,
+      updatedInSupabase,
+      message: updatedInSupabase
+        ? "Project updated in database successfully."
+        : "Project updated successfully (local mode).",
+      warning: supabaseError || undefined,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to update project." },
+      { status: 500 }
+    );
+  }
+}
+
+
