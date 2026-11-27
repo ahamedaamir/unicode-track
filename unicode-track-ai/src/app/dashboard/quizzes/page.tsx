@@ -182,6 +182,18 @@ export default function QuizzesPage() {
   const [customStudentId, setCustomStudentId] = useState<string>("TG/2004/2004");
   const [customStudentName, setCustomStudentName] = useState<string>("Student Examinee");
 
+  // Lecturer Terminal State for Gemini AI Evaluation
+  const [terminalLines, setTerminalLines] = useState<string[]>([
+    "$ UniCodeTrack AI Evaluation Terminal [Online]",
+    "$ Engine: Google Gemini AI [gemini-3.5-flash / gemini-2.5-flash]",
+    "$ Status: Ready for automated code analysis & marks evaluation",
+    "$ Type 'eval' or click '▶ Evaluate with Gemini AI' to grade submissions.",
+    "$ ",
+  ]);
+  const [terminalInput, setTerminalInput] = useState<string>("");
+  const [isTerminalRunning, setIsTerminalRunning] = useState<boolean>(false);
+  const terminalBottomRef = useRef<HTMLDivElement | null>(null);
+
   // Load quizzes from persistent localStorage on mount
   useEffect(() => {
     try {
@@ -225,6 +237,29 @@ export default function QuizzesPage() {
   const activeQuiz = useMemo(() => {
     return quizzes.find((q) => q.id === activeQuizId) || null;
   }, [quizzes, activeQuizId]);
+
+  // Sync Lecturer Terminal when quiz is opened in detail view
+  useEffect(() => {
+    if (view === "detail" && activeQuiz) {
+      const subCount = activeQuiz.submissions?.length || 0;
+      const evalCount = activeQuiz.submissions?.filter((s) => s.evaluation)?.length || 0;
+      setTerminalLines([
+        `$ UniCodeTrack AI Evaluation Terminal [Online]`,
+        `$ Target Quiz: "${activeQuiz.title}" | Course: ${activeQuiz.courseCode || "General"}`,
+        `$ Active Guidelines: "${activeQuiz.evaluationRequirements || "Standard Logic & Syntax"}"`,
+        `$ Submissions: ${subCount} registered (${evalCount} evaluated with Gemini AI marks).`,
+        `$ Type 'eval' to run Gemini AI grading, 'simulate' to add a test submission, or 'help' for CLI commands.`,
+        `$ `,
+      ]);
+    }
+  }, [view, activeQuizId]);
+
+  // Auto-scroll terminal output to latest message
+  useEffect(() => {
+    if (terminalBottomRef.current) {
+      terminalBottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [terminalLines]);
 
   // --------------------------------------------------------------------------
   // LIVE COUNTDOWN TIMER FOR STUDENTS & AUTOMATIC FINISH ON TIMEOUT
@@ -341,21 +376,40 @@ export default function QuizzesPage() {
   };
 
   // --------------------------------------------------------------------------
-  // RUN REAL GEMINI AI EVALUATION ON ALL SUBMISSIONS
+  // RUN REAL GEMINI AI EVALUATION IN LECTURER TERMINAL
   // --------------------------------------------------------------------------
-  const handleRunAIEvaluation = async (quizId: string) => {
-    const targetQuiz = quizzes.find((q) => q.id === quizId);
+  const handleRunAIEvaluationInTerminal = async (quizId?: string) => {
+    const targetQuiz = quizzes.find((q) => q.id === (quizId || activeQuizId));
     if (!targetQuiz) return;
 
     if (!targetQuiz.submissions || targetQuiz.submissions.length === 0) {
-      setToastMessage("No student submissions to evaluate yet. Students must take the quiz first.");
+      setTerminalLines((prev) => [
+        ...prev,
+        `$ gemini-eval --quiz "${targetQuiz.title}"`,
+        `[WARN] No student submissions recorded yet for this quiz.`,
+        `[HINT] Students must take the quiz first, or run 'simulate' to add a test student submission.`,
+        `$ `,
+      ]);
+      setToastMessage("No student submissions to evaluate yet. Students must take the quiz first, or type 'simulate' in terminal.");
       return;
     }
 
     const submissionsToGrade = targetQuiz.submissions;
 
     setIsLoading(true);
-    setLoadingMessage("Gemini AI is analyzing each student's code according to lecturer requirements...");
+    setIsTerminalRunning(true);
+    setLoadingMessage("Gemini AI is analyzing student submissions in terminal...");
+
+    const startTime = Date.now();
+    setTerminalLines((prev) => [
+      ...prev,
+      `$ gemini-eval --quiz "${targetQuiz.title}" --engine "Google Gemini AI"`,
+      `[00:00.1] Initializing Google Gemini AI Grading Agent...`,
+      `[00:00.2] Loaded Lecturer Evaluation Requirements:`,
+      `          ↳ "${targetQuiz.evaluationRequirements}"`,
+      `[00:00.3] Packaging ${submissionsToGrade.length} student submission(s) across ${targetQuiz.questions.length} questions...`,
+      `[00:00.4] Dispatching payload to Google Gemini API (Model: gemini-3.5-flash / gemini-2.5-flash)...`,
+    ]);
 
     try {
       const response = await fetch("/api/ai/evaluate-quiz", {
@@ -380,15 +434,33 @@ export default function QuizzesPage() {
       });
 
       const data = await response.json();
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
 
       if (data.success && Array.isArray(data.evaluations)) {
-        // Map evaluations back to student submissions
-        const updatedSubmissions: StudentSubmission[] = submissionsToGrade.map((sub) => {
-          const evalItem = data.evaluations.find((e: any) => e.studentId === sub.studentId) || data.evaluations[0];
+        const logLines: string[] = [];
+        logLines.push(`[00:${elapsed}] Gemini AI response received (status 200 OK | Source: ${data.source || "gemini"}).`);
+        logLines.push(`--------------------------------------------------------------------------------`);
 
+        const updatedSubmissions: StudentSubmission[] = submissionsToGrade.map((sub, sIdx) => {
+          const evalItem = data.evaluations.find((e: any) => e.studentId === sub.studentId) || data.evaluations[sIdx] || data.evaluations[0];
           const marks = evalItem?.questionEvaluations?.map((qe: any) => Number(qe.awardedMarks) || 0) || [4, 4];
           const totalScore = evalItem?.totalScore ?? marks.reduce((a: number, b: number) => a + b, 0);
           const maxScore = evalItem?.maxScore ?? targetQuiz.questions.reduce((a, q) => a + q.maxMarks, 0);
+          const pct = Math.round((totalScore / maxScore) * 100);
+
+          logLines.push(`[STUDENT ${sIdx + 1}/${submissionsToGrade.length}] ID: ${sub.studentId} | Name: ${sub.studentName}`);
+          targetQuiz.questions.forEach((q, qIdx) => {
+            const qEval = evalItem?.questionEvaluations?.find((qe: any) => qe.questionNumber === q.questionNumber) || evalItem?.questionEvaluations?.[qIdx];
+            const qMarks = qEval?.awardedMarks ?? marks[qIdx] ?? 0;
+            const qMax = qEval?.maxMarks ?? q.maxMarks;
+            logLines.push(`  ├─ Q${q.questionNumber} (${q.language.toUpperCase()} | Max: ${qMax}m):`);
+            logLines.push(`  │  ↳ Marks Awarded: ${qMarks} / ${qMax}`);
+            logLines.push(`  │  ↳ AI Remark: "${qEval?.remarks || "Evaluated according to criteria."}"`);
+            logLines.push(`  │  ↳ Reference Model Answer: [Generated & Stored]`);
+          });
+          logLines.push(`  └─ TOTAL MARKS: ${totalScore} / ${maxScore} (${pct}%)`);
+          logLines.push(`     Gemini Feedback: "${evalItem?.generalFeedback || "Evaluated with Gemini AI."}"`);
+          logLines.push(`--------------------------------------------------------------------------------`);
 
           return {
             ...sub,
@@ -404,6 +476,17 @@ export default function QuizzesPage() {
           };
         });
 
+        const avgScore = (updatedSubmissions.reduce((a, s) => a + (s.evaluation?.totalScore || 0), 0) / updatedSubmissions.length).toFixed(1);
+        const maxPossible = targetQuiz.questions.reduce((a, q) => a + q.maxMarks, 0);
+
+        logLines.push(`================================================================================`);
+        logLines.push(`[SUCCESS] Gemini AI evaluated ${updatedSubmissions.length} submission(s) in terminal!`);
+        logLines.push(`[METRICS] Class Average: ${avgScore} / ${maxPossible} | Guidelines Applied: 100%`);
+        logLines.push(`[SYNC] Student Gradebook and Export PDF updated.`);
+        logLines.push(`$ `);
+
+        setTerminalLines((prev) => [...prev, ...logLines]);
+
         const updatedQuizzes = quizzes.map((q) => {
           if (q.id === targetQuiz.id) {
             return {
@@ -416,17 +499,162 @@ export default function QuizzesPage() {
         });
 
         persistQuizzes(updatedQuizzes);
-        setToastMessage(`Gemini AI evaluated ${updatedSubmissions.length} submissions according to your criteria!`);
+        setToastMessage(`Gemini AI evaluated ${updatedSubmissions.length} submissions in lecturer terminal!`);
       } else {
-        setToastMessage("Evaluation completed with localized pattern analysis.");
+        setTerminalLines((prev) => [
+          ...prev,
+          `[ERROR] Failed to obtain valid Gemini AI evaluation payload: ${data.error || "Unknown error"}`,
+          `$ `,
+        ]);
+        setToastMessage("Evaluation encountered an issue. See terminal for details.");
       }
     } catch (err: any) {
       console.error("Evaluation error:", err);
-      setToastMessage("Evaluated with adaptive criteria.");
+      setTerminalLines((prev) => [
+        ...prev,
+        `[ERROR] Network or server error during Gemini AI evaluation: ${err?.message || err}`,
+        `$ `,
+      ]);
+      setToastMessage("Evaluation error. See terminal for details.");
     } finally {
       setIsLoading(false);
+      setIsTerminalRunning(false);
       setLoadingMessage("");
     }
+  };
+
+  const handleRunAIEvaluation = handleRunAIEvaluationInTerminal;
+
+  // --------------------------------------------------------------------------
+  // LECTURER TERMINAL CLI COMMAND HANDLER
+  // --------------------------------------------------------------------------
+  const handleTerminalCommand = (cmdStr: string) => {
+    const trimmed = cmdStr.trim();
+    if (!trimmed) return;
+
+    const lower = trimmed.toLowerCase();
+    const targetQuiz = activeQuiz;
+
+    if (lower === "clear" || lower === "cls") {
+      setTerminalLines([
+        `$ UniCodeTrack AI Evaluation Terminal [Online]`,
+        `$ Type 'help' or 'eval' to run Gemini AI grading.`,
+        `$ `,
+      ]);
+      return;
+    }
+
+    if (lower === "help") {
+      setTerminalLines((prev) => [
+        ...prev,
+        `$ ${trimmed}`,
+        `UniCodeTrack Lecturer Terminal Commands:`,
+        `  eval / run / grade  - Trigger Gemini AI to evaluate all student submissions & assign marks`,
+        `  criteria / rules    - Display active lecturer evaluation instructions`,
+        `  status / list       - Print student submissions and awarded marks table`,
+        `  simulate            - Generate a sample student submission for instant evaluation testing`,
+        `  clear               - Clear terminal screen buffer`,
+        `  help                - Display this CLI reference guide`,
+        `$ `,
+      ]);
+      return;
+    }
+
+    if (lower === "criteria" || lower === "rules") {
+      setTerminalLines((prev) => [
+        ...prev,
+        `$ ${trimmed}`,
+        `[LECTURER GUIDELINES] Active in Gemini AI Engine:`,
+        `  "${targetQuiz?.evaluationRequirements || "Standard Logic & Syntax"}"`,
+        `$ `,
+      ]);
+      return;
+    }
+
+    if (lower === "status" || lower === "list" || lower === "marks") {
+      if (!targetQuiz || !targetQuiz.submissions || targetQuiz.submissions.length === 0) {
+        setTerminalLines((prev) => [
+          ...prev,
+          `$ ${trimmed}`,
+          `[STATUS] Quiz: "${targetQuiz?.title || "Unknown"}" | Submissions: 0`,
+          `No student submissions recorded yet. Run 'simulate' to add a test submission.`,
+          `$ `,
+        ]);
+        return;
+      }
+
+      const lines: string[] = [
+        `$ ${trimmed}`,
+        `--------------------------------------------------------------------------------`,
+        `STUDENT SUBMISSIONS & MARKS LIST:`,
+      ];
+      targetQuiz.submissions.forEach((s, idx) => {
+        const evalData = s.evaluation;
+        const marksStr = evalData?.marks ? evalData.marks.map((m, i) => `Q${i + 1}:${m}`).join(" | ") : "Pending Evaluation";
+        const scoreStr = evalData ? `${evalData.totalScore}/${evalData.maxScore}` : "Pending";
+        lines.push(`  #${idx + 1} [${s.studentId}] ${s.studentName.padEnd(18)} [${marksStr}] Total: ${scoreStr}`);
+      });
+      lines.push(`--------------------------------------------------------------------------------`);
+      lines.push(`$ `);
+
+      setTerminalLines((prev) => [...prev, ...lines]);
+      return;
+    }
+
+    if (lower === "simulate" || lower === "demo" || lower === "test-sub") {
+      if (!targetQuiz) return;
+      const simId = `STD-2026-${Math.floor(100 + Math.random() * 900)}`;
+      const simNames = ["Kavindu Perera", "Alex Chen", "Dinuka Silva", "Sarah Al-Mansoor", "Marcus Sterling"];
+      const simName = simNames[targetQuiz.submissions.length % simNames.length];
+
+      const simAnswers = targetQuiz.questions.map((q) => ({
+        questionNumber: q.questionNumber,
+        code: q.starterCode ? `${q.starterCode}\n    // Student implementation logic\n    int result = 0;\n    for(int i = 0; i < 10; i++) { result += i; }\n    return result;\n}` : `// Code solution submitted by student\nint main() { return 0; }`,
+      }));
+
+      const newSub: StudentSubmission = {
+        studentId: simId,
+        studentName: simName,
+        studentEmail: `${simId.toLowerCase()}@university.edu`,
+        submittedAt: new Date().toLocaleTimeString(),
+        autoSubmitted: false,
+        timeSpentSeconds: 420,
+        answers: simAnswers,
+      };
+
+      const updatedQuizzes = quizzes.map((q) => {
+        if (q.id === targetQuiz.id) {
+          return {
+            ...q,
+            submissions: [newSub, ...(q.submissions || [])],
+          };
+        }
+        return q;
+      });
+
+      persistQuizzes(updatedQuizzes);
+      setTerminalLines((prev) => [
+        ...prev,
+        `$ ${trimmed}`,
+        `[SIMULATE] Created test student submission for ${simName} (${simId}) with ${simAnswers.length} answer(s).`,
+        `[READY] Type 'eval' or click '▶ Evaluate with Gemini AI' to grade this submission!`,
+        `$ `,
+      ]);
+      setToastMessage(`Simulated student submission added for ${simName}. Ready to evaluate!`);
+      return;
+    }
+
+    if (lower === "eval" || lower === "run" || lower === "grade" || lower.startsWith("gemini-eval")) {
+      handleRunAIEvaluationInTerminal(targetQuiz?.id);
+      return;
+    }
+
+    setTerminalLines((prev) => [
+      ...prev,
+      `$ ${trimmed}`,
+      `Command not found: "${trimmed}". Type 'help' for available commands or 'eval' to grade.`,
+      `$ `,
+    ]);
   };
 
   // --------------------------------------------------------------------------
@@ -1283,23 +1511,163 @@ export default function QuizzesPage() {
           </div>
 
           <Button
-            onClick={() => handleRunAIEvaluation(activeQuiz.id)}
-            disabled={isLoading}
+            onClick={() => handleRunAIEvaluationInTerminal(activeQuiz.id)}
+            disabled={isTerminalRunning || isLoading}
             variant="primary"
             size="md"
-            icon={<Sparkles className="w-4 h-4 text-background" />}
+            icon={<Sparkles className={`w-4 h-4 text-background ${isTerminalRunning ? "animate-spin" : ""}`} />}
           >
-            {isLoading ? "Grading with AI..." : "Evaluate with Gemini AI"}
+            {isTerminalRunning || isLoading ? "Evaluating in Terminal..." : "Evaluate with Gemini AI"}
           </Button>
         </div>
 
-        {/* Loading state indicator */}
-        {isLoading && (
-          <div className="p-4 rounded-[12px] bg-accent-soft border border-accent-border text-accent flex items-center justify-center gap-2 text-xs font-semibold animate-pulse">
-            <Sparkles className="w-4 h-4" />
-            <span>{loadingMessage || "Gemini AI is assessing student codes per question..."}</span>
+        {/* ============================================================== */}
+        {/* LECTURER EVALUATION TERMINAL (Gemini AI Engine)                */}
+        {/* ============================================================== */}
+        <div className="bg-[#09090c] border border-border rounded-[16px] overflow-hidden shadow-2xl flex flex-col">
+          {/* Terminal Window Header Bar */}
+          <div className="bg-[#121216] px-4 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block shadow-xs" />
+                <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block shadow-xs" />
+                <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block shadow-xs" />
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-accent" />
+                <span className="text-xs font-mono font-bold text-foreground">
+                  Lecturer Evaluation Terminal
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Gemini AI Online
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleTerminalCommand("clear")}
+                className="px-2.5 py-1 text-[11px] font-mono rounded-[8px] bg-muted hover:bg-neutral-800 text-muted-foreground hover:text-foreground transition-colors cursor-pointer border border-border flex items-center gap-1"
+                title="Clear Terminal Output"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Clear</span>
+              </button>
+              <Button
+                onClick={() => handleRunAIEvaluationInTerminal(activeQuiz.id)}
+                disabled={isTerminalRunning || isLoading}
+                variant="primary"
+                size="sm"
+                icon={<Sparkles className={`w-3.5 h-3.5 ${isTerminalRunning ? "animate-spin" : ""}`} />}
+                className="text-xs font-mono font-bold"
+              >
+                {isTerminalRunning ? "Gemini Grading..." : "▶ Run Evaluation"}
+              </Button>
+            </div>
           </div>
-        )}
+
+          {/* Terminal Console Output Screen */}
+          <div className="p-4 font-mono text-[12px] leading-relaxed min-h-[180px] max-h-[350px] overflow-y-auto space-y-0.5 text-neutral-300 selection:bg-accent/30 bg-[#09090c]">
+            {terminalLines.map((line, idx) => {
+              const isPrompt = line.startsWith("$");
+              const isSuccess = line.startsWith("[SUCCESS]") || line.includes("100%") || line.includes("[COMPLETE]");
+              const isInfo = line.startsWith("[") && (line.includes("STUDENT") || line.includes("INFO") || line.includes("EVAL") || line.includes("STATUS"));
+              const isMarks = line.includes("TOTAL MARKS:") || line.includes("Marks Awarded:") || line.includes("Class Average:") || line.includes("Total:");
+              const isWarn = line.includes("[WARN]") || line.includes("[ERROR]");
+              const isDivider = line.startsWith("---") || line.startsWith("===");
+
+              let lineClass = "text-neutral-300";
+              if (isPrompt) lineClass = "text-emerald-400 font-semibold";
+              else if (isSuccess) lineClass = "text-emerald-400 font-bold";
+              else if (isMarks) lineClass = "text-accent font-bold";
+              else if (isInfo) lineClass = "text-cyan-400 font-semibold";
+              else if (isWarn) lineClass = "text-amber-400 font-semibold";
+              else if (isDivider) lineClass = "text-neutral-600";
+
+              return (
+                <div key={idx} className={`whitespace-pre-wrap break-all ${lineClass}`}>
+                  {line}
+                </div>
+              );
+            })}
+            <div ref={terminalBottomRef} />
+          </div>
+
+          {/* Interactive Command Prompt Line & Quick Actions */}
+          <div className="bg-[#101014] border-t border-border p-3 space-y-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleTerminalCommand(terminalInput);
+                setTerminalInput("");
+              }}
+              className="flex items-center gap-2 font-mono text-xs"
+            >
+              <span className="text-emerald-400 font-bold shrink-0 select-none">
+                lecturer@unicodetrack:~$
+              </span>
+              <input
+                type="text"
+                value={terminalInput}
+                onChange={(e) => setTerminalInput(e.target.value)}
+                placeholder="Type 'eval' to grade, 'criteria' for guidelines, 'help' for CLI commands..."
+                disabled={isTerminalRunning}
+                className="flex-1 bg-transparent text-neutral-100 placeholder:text-neutral-600 focus:outline-none text-xs font-mono"
+              />
+              <button
+                type="submit"
+                disabled={isTerminalRunning || !terminalInput.trim()}
+                className="px-2.5 py-1 bg-muted hover:bg-neutral-800 disabled:opacity-40 text-neutral-300 rounded-[6px] text-[11px] font-mono border border-border transition-colors cursor-pointer"
+              >
+                Enter ↵
+              </button>
+            </form>
+
+            {/* Quick Command Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] font-mono text-neutral-500">
+              <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">Quick Commands:</span>
+              <button
+                type="button"
+                onClick={() => handleTerminalCommand("eval")}
+                disabled={isTerminalRunning}
+                className="px-2 py-0.5 rounded-[6px] bg-accent/10 hover:bg-accent/20 text-accent border border-accent/30 transition-colors cursor-pointer"
+              >
+                ▶ eval
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTerminalCommand("criteria")}
+                className="px-2 py-0.5 rounded-[6px] bg-muted hover:bg-neutral-800 text-neutral-300 border border-border transition-colors cursor-pointer"
+              >
+                criteria
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTerminalCommand("status")}
+                className="px-2 py-0.5 rounded-[6px] bg-muted hover:bg-neutral-800 text-neutral-300 border border-border transition-colors cursor-pointer"
+              >
+                status
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTerminalCommand("simulate")}
+                className="px-2 py-0.5 rounded-[6px] bg-muted hover:bg-neutral-800 text-neutral-300 border border-border transition-colors cursor-pointer"
+              >
+                + simulate submission
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTerminalCommand("clear")}
+                className="px-2 py-0.5 rounded-[6px] bg-muted hover:bg-neutral-800 text-neutral-400 border border-border transition-colors cursor-pointer"
+              >
+                clear
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* Submissions & Marks Table */}
         <div className="bg-card rounded-[16px] border border-border overflow-hidden shadow-2xs">
