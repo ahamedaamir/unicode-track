@@ -140,6 +140,25 @@ export default function DashboardOverviewPage() {
     }));
   }, [lecturerGroups]);
 
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="space-y-5 max-w-7xl mx-auto animate-pulse">
+        <div className="h-28 rounded-[16px] bg-card border border-border" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+          <div className="h-24 rounded-[16px] bg-card border border-border" />
+          <div className="h-24 rounded-[16px] bg-card border border-border" />
+          <div className="h-24 rounded-[16px] bg-card border border-border" />
+        </div>
+        <div className="h-64 rounded-[16px] bg-card border border-border" />
+      </div>
+    );
+  }
+
   if (isLecturer) {
     return (
       <div className="space-y-5 max-w-7xl mx-auto">
@@ -194,100 +213,55 @@ export default function DashboardOverviewPage() {
           </div>
         </div>
 
-        {/* Two-Column Section: Recent projects & Student groups */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Left: Recent projects */}
-          <div className="bg-card border border-border rounded-[16px] p-5 sm:p-6 flex flex-col min-h-[220px]">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-              <h3 className="text-base font-bold text-foreground">Recent projects</h3>
-              <Link
-                href="/dashboard/projects"
-                className="text-xs text-accent hover:underline font-medium transition-colors"
-              >
-                View all →
-              </Link>
-            </div>
-
-            {recentProjectsList.length === 0 ? (
-              <div className="py-10 text-center flex flex-col items-center justify-center flex-1">
-                <div className="w-10 h-10 rounded-[10px] bg-accent-soft border border-accent-border flex items-center justify-center text-accent mb-2.5">
-                  <FolderGit2 className="w-5 h-5" />
-                </div>
-                <p className="text-sm font-semibold text-foreground">No active projects yet</p>
-                <p className="text-xs text-muted-foreground max-w-xs mt-1">
-                  Create and publish coursework projects for your assigned batches.
-                </p>
-                <Link
-                  href="/dashboard/projects/create"
-                  className="mt-3.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-foreground hover:bg-neutral-200 text-background font-semibold text-xs rounded-[10px] transition-all cursor-pointer"
-                >
-                  + Create project
-                </Link>
-              </div>
-            ) : (
-              <div className="divide-y divide-border flex-1">
-                {recentProjectsList.map((p) => (
-                  <div key={p.id} className="py-3.5 flex items-center justify-between gap-3">
-                    <div>
-                      <h4 className="text-sm font-semibold text-foreground">{p.title}</h4>
-                      <span className="text-xs text-muted-foreground mt-0.5 block font-mono">{p.sub}</span>
-                    </div>
-                    <span
-                      className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
-                        p.status === "Published"
-                          ? "bg-success-soft text-success border border-accent-border"
-                          : "bg-muted text-muted-foreground border border-border"
-                      }`}
-                    >
-                      {p.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* Recent projects */}
+        <div className="bg-card border border-border rounded-[16px] p-5 sm:p-6 flex flex-col min-h-[220px]">
+          <div className="flex items-center justify-between pb-4 border-b border-border">
+            <h3 className="text-base font-bold text-foreground">Recent projects</h3>
+            <Link
+              href="/dashboard/projects"
+              className="text-xs text-accent hover:underline font-medium transition-colors"
+            >
+              View all →
+            </Link>
           </div>
 
-          {/* Right: Student groups */}
-          <div className="bg-card border border-border rounded-[16px] p-5 sm:p-6 flex flex-col min-h-[220px]">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-              <h3 className="text-base font-bold text-foreground">Student groups</h3>
+          {recentProjectsList.length === 0 ? (
+            <div className="py-10 text-center flex flex-col items-center justify-center flex-1">
+              <div className="w-10 h-10 rounded-[10px] bg-accent-soft border border-accent-border flex items-center justify-center text-accent mb-2.5">
+                <FolderGit2 className="w-5 h-5" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">No active projects yet</p>
+              <p className="text-xs text-muted-foreground max-w-xs mt-1">
+                Create and publish coursework projects for your assigned batches.
+              </p>
               <Link
-                href="/dashboard/teams"
-                className="text-xs text-accent hover:underline font-medium transition-colors"
+                href="/dashboard/projects/create"
+                className="mt-3.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-foreground hover:bg-neutral-200 text-background font-semibold text-xs rounded-[10px] transition-all cursor-pointer"
               >
-                View all →
+                + Create project
               </Link>
             </div>
-
-            {recentGroupsList.length === 0 ? (
-              <div className="py-10 text-center flex flex-col items-center justify-center flex-1">
-                <div className="w-10 h-10 rounded-[10px] bg-muted border border-border flex items-center justify-center text-muted-foreground mb-2.5">
-                  <Users className="w-5 h-5" />
-                </div>
-                <p className="text-sm font-semibold text-foreground">No student groups yet</p>
-                <p className="text-xs text-muted-foreground max-w-xs mt-1">
-                  Enrolled groups will be listed here once assigned to active projects.
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-border flex-1">
-                {recentGroupsList.map((g) => (
-                  <div key={g.id} className="py-3.5 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-sm font-semibold text-foreground">{g.name}</span>
-                      <span className="text-muted-foreground font-mono font-medium">{g.progress}%</span>
-                    </div>
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-linear-to-r from-accent-deep to-accent rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(45,212,191,0.2)]"
-                        style={{ width: `${g.progress}%` }}
-                      />
-                    </div>
+          ) : (
+            <div className="divide-y divide-border flex-1">
+              {recentProjectsList.map((p) => (
+                <div key={p.id} className="py-3.5 flex items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">{p.title}</h4>
+                    <span className="text-xs text-muted-foreground mt-0.5 block font-mono">{p.sub}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  <span
+                    className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
+                      p.status === "Published"
+                        ? "bg-success-soft text-success border border-accent-border"
+                        : "bg-muted text-muted-foreground border border-border"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -759,59 +733,7 @@ export default function DashboardOverviewPage() {
               </div>
             </div>
 
-            {/* Panel 2: Recently Assigned Groups */}
-            <div className="bg-card p-5 sm:p-6 rounded-[16px] border border-border space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent flex items-center justify-center border border-accent/20">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <h3 className="font-bold text-sm text-foreground">Recently Assigned Groups</h3>
-                </div>
-                <Link
-                  href="/dashboard/teams"
-                  className="text-xs font-semibold text-accent hover:text-accent-hover flex items-center gap-1"
-                >
-                  All Groups <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-
-              <div className="space-y-3">
-                {lecturerGroups.slice(0, 3).map((grp) => (
-                  <div
-                    key={grp.id}
-                    className="p-3.5 rounded-[10px] border border-border hover:border-accent/40 bg-muted/40 hover:bg-muted/70 transition-all flex items-center justify-between gap-3 text-xs"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-foreground">{grp.groupName}</span>
-                        {grp.repoStatus === "connected" ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
-                            GitHub Connected
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">
-                            Repo Pending
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground truncate">
-                        {grp.members.length} Students ({grp.members.map((m, idx) => m.studentId?.startsWith("std-") ? `CS202300${m.studentId.replace("std-", "")}` : (m.studentId || `CS202300${idx + 1}`)).join(", ")}) • Progress: {grp.progress}% • {grp.totalCommits} commits
-                      </p>
-                    </div>
-
-                    <Link
-                      href={`/dashboard/projects/${grp.projectId}/groups/${grp.id}`}
-                      className="px-2.5 py-1 bg-muted border border-border hover:bg-muted/80 text-foreground rounded-[10px] text-xs font-semibold transition-colors shrink-0"
-                    >
-                      Review
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Panel 3: Upcoming Deadlines */}
+            {/* Panel 2: Upcoming Deadlines */}
             <div className="bg-card p-5 sm:p-6 rounded-[16px] border border-border space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border">
                 <div className="flex items-center gap-2">
