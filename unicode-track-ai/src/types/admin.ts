@@ -61,6 +61,7 @@ export interface Project {
   deadline?: string;
   instructions?: string;
   requirements?: string;
+  proposalRequired?: boolean;
   erDiagramRequired?: boolean;
   erDiagramDeadline?: string;
   databaseRequired?: boolean;

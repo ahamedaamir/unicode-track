@@ -258,14 +258,15 @@ export function CreateProjectPrototypeForm({
         requirementsSource: "manual",
         lecturerId: currentLecturer?.id || "faculty",
         lecturerName: currentLecturer?.name || "Lecturer",
-        erDiagramRequired: d.er.on,
+        proposalRequired: Boolean(d.proposal.on),
+        erDiagramRequired: Boolean(d.er.on),
         erDiagramDeadline: d.er.t ? new Date(d.er.t).toISOString() : undefined,
-        databaseRequired: d.er.on,
+        databaseRequired: Boolean(d.er.on),
         databaseRequirements: d.er.on
           ? "Normalized relational database design (3NF), ER diagram, and DDL schema."
           : undefined,
-        githubRequired: d.repo.on,
-        finalReportRequired: d.report.on,
+        githubRequired: Boolean(d.repo.on),
+        finalReportRequired: Boolean(d.report.on),
         assignmentFileName: pdfName || undefined,
         assignmentSourceType: pdfName ? "pdf" : "text",
         databaseDesignConfig: d.er.on
