@@ -208,30 +208,6 @@ export function AdminSidebar({
       count: undefined,
     },
     {
-      name: "Projects",
-      href: "/dashboard/projects",
-      icon: FolderGit2,
-      count: undefined,
-    },
-    {
-      name: "Evaluations",
-      href: "/dashboard/evaluation",
-      icon: CheckSquare,
-      count: undefined,
-    },
-    {
-      name: "Run",
-      href: "/dashboard/test",
-      icon: Terminal,
-      count: undefined,
-    },
-    {
-      name: "Quizzes",
-      href: "/dashboard/quizzes",
-      icon: FileQuestion,
-      count: undefined,
-    },
-    {
       name: "Settings",
       href: "/dashboard/settings",
       icon: Settings,
@@ -239,8 +215,8 @@ export function AdminSidebar({
     },
   ];
 
-  const isStudent = activeRole === "student";
-  const isLecturer = activeRole === "lecturer";
+  const isStudent = mounted ? activeRole === "student" : false;
+  const isLecturer = mounted ? activeRole === "lecturer" : false;
   const navigation = isStudent ? studentNavigation : isLecturer ? lecturerNavigation : adminNavigation;
 
   const handleLogout = () => {
@@ -312,9 +288,9 @@ export function AdminSidebar({
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav suppressHydrationWarning className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {!isLecturer && (!collapsed || mobileOpen) && (
-          <div className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+          <div suppressHydrationWarning className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
             {isStudent ? "My Learning" : "Administration"}
           </div>
         )}
