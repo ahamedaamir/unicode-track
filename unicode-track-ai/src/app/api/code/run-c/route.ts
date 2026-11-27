@@ -55,35 +55,48 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { sourceCode, stdin = "", filename = "main.c" } = body;
+    const { sourceCode, stdin = "", filename = "main.c", files } = body;
 
-    if (!sourceCode || typeof sourceCode !== "string") {
+    // Support both single file and multi-file submissions
+    let fileList: Array<{ name: string; content: string }> = [];
+    if (files && Array.isArray(files) && files.length > 0) {
+      fileList = files.map((f: any) => ({
+        name: typeof f.name === "string" ? f.name : "main.c",
+        content: typeof f.content === "string" ? f.content : "",
+      }));
+    } else if (sourceCode && typeof sourceCode === "string") {
+      fileList = [{ name: filename || "main.c", content: sourceCode }];
+    } else {
       return NextResponse.json(
-        { error: "C source code is required for execution." },
+        { error: "C source code or files are required for execution." },
         { status: 400 }
       );
     }
 
-    if (sourceCode.length > 256 * 1024) {
+    // Calculate total size across all files
+    const totalSize = fileList.reduce((acc, f) => acc + (f.content?.length || 0), 0);
+    if (totalSize > 512 * 1024) {
       return NextResponse.json(
-        { error: "Source code size exceeds maximum evaluation sandbox limit (256 KB)." },
+        { error: "Total source files size exceeds maximum evaluation sandbox limit (512 KB)." },
         { status: 400 }
       );
     }
 
-    // 1. Static Security Inspection
-    const forbidden = inspectSecurityTokens(sourceCode);
-    if (forbidden) {
-      return NextResponse.json({
-        success: false,
-        status: "security_violation",
-        compilationStatus: "Security Policy Blocked",
-        error: `Security Sandbox Violation: Restricted system call or raw network header '${forbidden}' is disabled in this evaluation environment for academic integrity.`,
-        stdout: "",
-        stderr: `Forbidden token: ${forbidden}`,
-        executionTimeSeconds: "0.000",
-        exitCode: 1,
-      });
+    // 1. Static Security Inspection across all files
+    for (const file of fileList) {
+      const forbidden = inspectSecurityTokens(file.content);
+      if (forbidden) {
+        return NextResponse.json({
+          success: false,
+          status: "security_violation",
+          compilationStatus: "Security Policy Blocked",
+          error: `Security Sandbox Violation in '${file.name}': Restricted system call or raw network header '${forbidden}' is disabled in this evaluation environment.`,
+          stdout: "",
+          stderr: `Forbidden token: ${forbidden} in ${file.name}`,
+          executionTimeSeconds: "0.000",
+          exitCode: 1,
+        });
+      }
     }
 
     // 2. Check GCC Availability
@@ -102,15 +115,39 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Create isolated random sandbox directory in os.tmpdir()
-    sandboxDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "unicodetrack-c-sandbox-"));
+    const activeSandboxDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "unicodetrack-c-sandbox-"));
+    sandboxDir = activeSandboxDir;
 
-    const sourcePath = path.join(/* turbopackIgnore: true */ sandboxDir, filename.endsWith(".c") ? filename : "main.c");
     const binaryName = process.platform === "win32" ? "program.exe" : "program.out";
-    const binaryPath = path.join(/* turbopackIgnore: true */ sandboxDir, binaryName);
+    const binaryPath = path.join(/* turbopackIgnore: true */ activeSandboxDir, binaryName);
 
-    await fs.promises.writeFile(sourcePath, sourceCode, "utf8");
+    // Write all source and header files into sandbox directory
+    for (const file of fileList) {
+      const safeName = path.basename(file.name.trim()) || "main.c";
+      const filePath = path.join(/* turbopackIgnore: true */ activeSandboxDir, safeName);
+      await fs.promises.writeFile(filePath, file.content, "utf8");
+    }
 
-    // 4. Compilation with GCC under isolated timeout
+    // Collect all .c source files for compilation
+    const dirEntries = await fs.promises.readdir(activeSandboxDir);
+    const cSourceFiles = dirEntries
+      .filter((name) => name.toLowerCase().endsWith(".c"))
+      .map((name) => path.join(/* turbopackIgnore: true */ activeSandboxDir, name));
+
+    if (cSourceFiles.length === 0) {
+      return NextResponse.json({
+        success: false,
+        status: "compilation_error",
+        compilationStatus: "No C Source Files",
+        error: "No .c source files found in workspace to compile.",
+        stdout: "",
+        stderr: "Error: No .c files provided.",
+        executionTimeSeconds: "0.000",
+        exitCode: 1,
+      });
+    }
+
+    // 4. Compilation with GCC under isolated timeout (compiles all .c files together with -I.)
     let compilationError = "";
     try {
       await execFileAsync(
@@ -121,13 +158,14 @@ export async function POST(req: NextRequest) {
           "-Wall",
           "-Wextra",
           "-Wno-unused-parameter",
+          "-I.",
           "-o",
           binaryPath,
-          sourcePath,
+          ...cSourceFiles,
         ],
         {
           cwd: sandboxDir,
-          timeout: 5000, // 5s compile timeout
+          timeout: 6000, // 6s compile timeout
           maxBuffer: 1024 * 256,
         }
       );

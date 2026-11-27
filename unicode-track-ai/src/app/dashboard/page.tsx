@@ -147,7 +147,7 @@ export default function DashboardOverviewPage() {
 
   if (!mounted) {
     return (
-      <div className="space-y-5 max-w-7xl mx-auto animate-pulse">
+      <div suppressHydrationWarning className="space-y-5 max-w-7xl mx-auto animate-pulse">
         <div className="h-28 rounded-[16px] bg-card border border-border" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
           <div className="h-24 rounded-[16px] bg-card border border-border" />
@@ -161,9 +161,9 @@ export default function DashboardOverviewPage() {
 
   if (isLecturer) {
     return (
-      <div className="space-y-5 max-w-7xl mx-auto">
+      <div suppressHydrationWarning className="space-y-5 max-w-7xl mx-auto">
         {/* Academic year and Welcome banner */}
-        <div className="relative overflow-hidden bg-card border border-border rounded-[16px] p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div suppressHydrationWarning className="relative overflow-hidden bg-card border border-border rounded-[16px] p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
           <div className="relative z-10">
             <span className="text-xs text-muted-foreground font-medium block mb-1.5">
@@ -268,9 +268,9 @@ export default function DashboardOverviewPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div suppressHydrationWarning className="space-y-6">
       {/* View Switcher Pill & Welcome Banner */}
-      <div className="relative overflow-hidden bg-card p-6 sm:p-7 rounded-[16px] border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div suppressHydrationWarning className="relative overflow-hidden bg-card p-6 sm:p-7 rounded-[16px] border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
         <div className="relative z-10">
           <div className="flex flex-wrap items-center gap-2">

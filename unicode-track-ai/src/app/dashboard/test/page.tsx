@@ -12,6 +12,11 @@ import {
   ChevronRight,
   Code2,
   CheckCircle2,
+  Plus,
+  X,
+  FileCode,
+  Layers,
+  FilePlus2,
 } from "lucide-react";
 
 type LanguageKey = "c" | "python" | "java";
@@ -353,15 +358,194 @@ public class Main {
   },
 };
 
+export interface EditorFile {
+  id: string;
+  name: string;
+  content: string;
+  isEntry?: boolean;
+}
+
+const DEFAULT_MULTI_FILE_DEMOS: Record<LanguageKey, EditorFile[]> = {
+  c: [
+    {
+      id: "c-main",
+      name: "main.c",
+      isEntry: true,
+      content: `#include <stdio.h>
+#include "helper.h"
+
+int main() {
+    printf("==========================================\\n");
+    printf("   UniCodeTrack AI - Multi-File C Runner  \\n");
+    printf("==========================================\\n");
+
+    int a = 14, b = 7;
+    printf("Invoking helper.c functions from main.c:\\n");
+    printf("  - add(%d, %d)      = %d\\n", a, b, add(a, b));
+    printf("  - subtract(%d, %d) = %d\\n", a, b, subtract(a, b));
+    printf("  - multiply(%d, %d) = %d\\n", a, b, multiply(a, b));
+
+    print_status("Both main.c and helper.c compiled successfully with GCC!");
+    return 0;
+}
+`,
+    },
+    {
+      id: "c-helper-h",
+      name: "helper.h",
+      content: `#ifndef HELPER_H
+#define HELPER_H
+
+// Declarations implemented in helper.c
+int add(int a, int b);
+int subtract(int a, int b);
+int multiply(int a, int b);
+void print_status(const char *msg);
+
+#endif // HELPER_H
+`,
+    },
+    {
+      id: "c-helper-c",
+      name: "helper.c",
+      content: `#include <stdio.h>
+#include "helper.h"
+
+int add(int a, int b) {
+    return a + b;
+}
+
+int subtract(int a, int b) {
+    return a - b;
+}
+
+int multiply(int a, int b) {
+    return a * b;
+}
+
+void print_status(const char *msg) {
+    printf(">> [HELPER MODULE] %s\\n", msg);
+}
+`,
+    },
+  ],
+  python: [
+    {
+      id: "py-main",
+      name: "main.py",
+      isEntry: true,
+      content: `from helper import greet, compute_stats
+
+def main():
+    print("===========================================")
+    print(" UniCodeTrack AI - Multi-File Python Runner")
+    print("===========================================")
+    print(greet("Student Developer"))
+
+    data = [12, 45, 67, 89, 34, 99, 23]
+    stats = compute_stats(data)
+    print(f"Data points : {data}")
+    print(f"Count       : {stats['count']}")
+    print(f"Sum         : {stats['sum']}")
+    print(f"Average     : {stats['average']:.2f}")
+
+if __name__ == "__main__":
+    main()
+`,
+    },
+    {
+      id: "py-helper",
+      name: "helper.py",
+      content: `def greet(name: str) -> str:
+    return f"Hello, {name}! Multiple Python modules imported seamlessly."
+
+def compute_stats(numbers: list) -> dict:
+    if not numbers:
+        return {"count": 0, "sum": 0, "average": 0.0}
+    return {
+        "count": len(numbers),
+        "sum": sum(numbers),
+        "average": sum(numbers) / len(numbers)
+    }
+`,
+    },
+  ],
+  java: [
+    {
+      id: "java-main",
+      name: "Main.java",
+      isEntry: true,
+      content: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("==========================================");
+        System.out.println("   UniCodeTrack AI - Multi-File Java Runner");
+        System.out.println("==========================================");
+
+        Student s1 = new Student("Kasun Perera", "TG/2021/042", 87.5);
+        Student s2 = new Student("Nimali Fernando", "TG/2021/088", 92.0);
+
+        s1.display();
+        s2.display();
+    }
+}
+`,
+    },
+    {
+      id: "java-student",
+      name: "Student.java",
+      content: `public class Student {
+    private String name;
+    private String regNo;
+    private double mark;
+
+    public Student(String name, String regNo, double mark) {
+        this.name = name;
+        this.regNo = regNo;
+        this.mark = mark;
+    }
+
+    public void display() {
+        System.out.printf("[Student] %-18s | Reg: %-12s | Grade: %s (%.1f%%)%n",
+            name, regNo, getGrade(), mark);
+    }
+
+    public String getGrade() {
+        if (mark >= 75) return "A (Distinction)";
+        if (mark >= 65) return "B (Credit)";
+        if (mark >= 50) return "C (Pass)";
+        return "F";
+    }
+}
+`,
+    },
+  ],
+};
+
 export default function EnvironmentTestPage() {
   const [selectedLang, setSelectedLang] = useState<LanguageKey>("c");
 
-  // Keep separate code and stdin states per language
-  const [codeMap, setCodeMap] = useState<Record<LanguageKey, string>>({
-    c: LANGUAGES.c.presets.hello.code,
-    python: LANGUAGES.python.presets.hello.code,
-    java: LANGUAGES.java.presets.hello.code,
+  // Keep multi-file list and stdin states per language
+  const [filesMap, setFilesMap] = useState<Record<LanguageKey, EditorFile[]>>({
+    c: [
+      { id: "c-main", name: "main.c", isEntry: true, content: LANGUAGES.c.presets.hello.code },
+    ],
+    python: [
+      { id: "py-main", name: "main.py", isEntry: true, content: LANGUAGES.python.presets.hello.code },
+    ],
+    java: [
+      { id: "java-main", name: "Main.java", isEntry: true, content: LANGUAGES.java.presets.hello.code },
+    ],
   });
+
+  const [activeFileIdMap, setActiveFileIdMap] = useState<Record<LanguageKey, string>>({
+    c: "c-main",
+    python: "py-main",
+    java: "java-main",
+  });
+
+  const [isCreatingFile, setIsCreatingFile] = useState<boolean>(false);
+  const [newFileNameInput, setNewFileNameInput] = useState<string>("");
+  const newFileInputRef = useRef<HTMLInputElement>(null);
 
   const [stdinMap, setStdinMap] = useState<Record<LanguageKey, string>>({
     c: "",
@@ -377,14 +561,154 @@ export default function EnvironmentTestPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const currentLangConfig = LANGUAGES[selectedLang];
-  const currentCode = codeMap[selectedLang];
+  const currentFiles = filesMap[selectedLang] || [];
+  const activeFileId = activeFileIdMap[selectedLang] || currentFiles[0]?.id || "default";
+  const activeFile = currentFiles.find((f) => f.id === activeFileId) || currentFiles[0] || {
+    id: "default",
+    name: currentLangConfig.filename,
+    content: "",
+    isEntry: true,
+  };
+  const currentCode = activeFile.content;
   const currentStdin = stdinMap[selectedLang];
 
   // Language Change
   const handleSelectLanguage = (langKey: LanguageKey) => {
     setSelectedLang(langKey);
+    setIsCreatingFile(false);
+    setNewFileNameInput("");
     setExecutionResult(null);
     setTerminalHistory("");
+  };
+
+  // Update current active file content
+  const updateActiveCode = (newCode: string) => {
+    setFilesMap((prev) => {
+      const langFiles = (prev[selectedLang] || []).map((f) =>
+        f.id === activeFile.id ? { ...f, content: newCode } : f
+      );
+      return { ...prev, [selectedLang]: langFiles };
+    });
+  };
+
+  // Add a new file to the active language
+  const handleStartCreateFile = () => {
+    setIsCreatingFile(true);
+    const defaultName = selectedLang === "c" ? "helper.c" : selectedLang === "python" ? "helper.py" : "Student.java";
+    setNewFileNameInput(defaultName);
+    setTimeout(() => {
+      newFileInputRef.current?.focus();
+      newFileInputRef.current?.select();
+    }, 50);
+  };
+
+  const handleConfirmCreateFile = () => {
+    const raw = newFileNameInput.trim();
+    if (!raw) {
+      setIsCreatingFile(false);
+      return;
+    }
+
+    let sanitized = raw.replace(/[^a-zA-Z0-9_.-]/g, "");
+    if (selectedLang === "c") {
+      if (!sanitized.endsWith(".c") && !sanitized.endsWith(".h")) {
+        sanitized += ".c";
+      }
+    } else if (selectedLang === "python") {
+      if (!sanitized.endsWith(".py")) {
+        sanitized += ".py";
+      }
+    } else if (selectedLang === "java") {
+      if (!sanitized.endsWith(".java")) {
+        sanitized += ".java";
+      }
+    }
+
+    if (currentFiles.some((f) => f.name.toLowerCase() === sanitized.toLowerCase())) {
+      alert(`File "${sanitized}" already exists in the workspace.`);
+      return;
+    }
+
+    let initialContent = "";
+    if (sanitized.endsWith(".h")) {
+      const guard = sanitized.replace(/[^a-zA-Z0-9]/g, "_").toUpperCase();
+      initialContent = `#ifndef ${guard}\n#define ${guard}\n\n// Function declarations\nint helper_function(int x);\n\n#endif // ${guard}\n`;
+    } else if (sanitized.endsWith(".c")) {
+      initialContent = `#include <stdio.h>\n\nint helper_function(int x) {\n    return x * 2;\n}\n`;
+    } else if (sanitized.endsWith(".py")) {
+      initialContent = `# Helper module\ndef helper_function(x):\n    return x * 2\n`;
+    } else if (sanitized.endsWith(".java")) {
+      const className = sanitized.replace(/\.java$/, "");
+      initialContent = `public class ${className} {\n    private String name;\n\n    public ${className}(String name) {\n        this.name = name;\n    }\n\n    public void display() {\n        System.out.println("Hello from " + name);\n    }\n}\n`;
+    }
+
+    const newId = `${selectedLang}-${Date.now()}`;
+    const newFile: EditorFile = {
+      id: newId,
+      name: sanitized,
+      content: initialContent,
+      isEntry: false,
+    };
+
+    setFilesMap((prev) => ({
+      ...prev,
+      [selectedLang]: [...(prev[selectedLang] || []), newFile],
+    }));
+    setActiveFileIdMap((prev) => ({
+      ...prev,
+      [selectedLang]: newId,
+    }));
+    setIsCreatingFile(false);
+    setNewFileNameInput("");
+  };
+
+  const handleDeleteFile = (fileId: string, fileName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentFiles.length <= 1) {
+      alert("At least one source file must be retained in the workspace.");
+      return;
+    }
+
+    const file = currentFiles.find((f) => f.id === fileId);
+    if (file?.isEntry) {
+      alert("The entry file cannot be deleted.");
+      return;
+    }
+
+    if (!confirm(`Delete "${fileName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    const remaining = currentFiles.filter((f) => f.id !== fileId);
+    setFilesMap((prev) => ({
+      ...prev,
+      [selectedLang]: remaining,
+    }));
+
+    if (activeFileId === fileId) {
+      setActiveFileIdMap((prev) => ({
+        ...prev,
+        [selectedLang]: remaining[0].id,
+      }));
+    }
+  };
+
+  const handleLoadMultiFileDemo = () => {
+    const demoFiles = DEFAULT_MULTI_FILE_DEMOS[selectedLang];
+    if (!demoFiles || demoFiles.length === 0) return;
+
+    if (confirm(`Load multi-file demo for ${currentLangConfig.name}? This loads 2-3 separate files that compile and link together.`)) {
+      setFilesMap((prev) => ({
+        ...prev,
+        [selectedLang]: demoFiles,
+      }));
+      setActiveFileIdMap((prev) => ({
+        ...prev,
+        [selectedLang]: demoFiles[0].id,
+      }));
+      setExecutionResult(null);
+      setTerminalHistory("");
+    }
   };
 
   // Tab Key & Keyboard Shortcut Handling
@@ -396,7 +720,7 @@ export default function EnvironmentTestPage() {
       const end = target.selectionEnd;
       const indent = "    ";
       const newValue = currentCode.substring(0, start) + indent + currentCode.substring(end);
-      setCodeMap((prev) => ({ ...prev, [selectedLang]: newValue }));
+      updateActiveCode(newValue);
       setTimeout(() => {
         target.selectionStart = target.selectionEnd = start + 4;
       }, 0);
@@ -411,7 +735,7 @@ export default function EnvironmentTestPage() {
 
   // Execute Code for Active Language
   const handleRunCode = async () => {
-    if (!currentCode.trim()) {
+    if (!currentCode.trim() && currentFiles.length === 0) {
       alert(`Please provide ${currentLangConfig.name} source code before running.`);
       return;
     }
@@ -425,9 +749,10 @@ export default function EnvironmentTestPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sourceCode: currentCode,
+          sourceCode: activeFile.content,
+          files: currentFiles.map((f) => ({ name: f.name, content: f.content })),
           stdin: currentStdin,
-          filename: currentLangConfig.filename,
+          filename: activeFile.name,
         }),
       });
 
@@ -490,7 +815,7 @@ export default function EnvironmentTestPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = currentLangConfig.filename;
+    a.download = activeFile.name || currentLangConfig.filename;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -502,7 +827,7 @@ export default function EnvironmentTestPage() {
   };
 
   // Line count for the editor
-  const lineCount = currentCode.split("\n").length;
+  const lineCount = currentCode ? currentCode.split("\n").length : 1;
 
   return (
     <div className="w-full py-2 space-y-5">
@@ -587,43 +912,70 @@ export default function EnvironmentTestPage() {
 
       {/* 2. Code Workspace & Terminal Runner */}
       <div className="space-y-4 w-full">
-        {/* Action Toolbar (Templates removed) */}
-        <div className="flex items-center justify-end gap-2 w-full">
-          <button
-            onClick={() => setShowStdin(!showStdin)}
-            className={`px-3 py-1.5 rounded-[10px] text-xs font-medium border transition-colors ${showStdin
-              ? "bg-accent/20 text-accent border-accent/40"
-              : "bg-muted text-muted-foreground border-border hover:text-foreground"
-              }`}
-            title="Toggle standard input (stdin)"
-          >
-            {showStdin ? "✓ Stdin Input Active" : "+ Add Stdin Input"}
-          </button>
-          <button
-            onClick={handleDownloadCode}
-            className="px-3 py-1.5 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1.5"
-            title={`Download ${currentLangConfig.filename}`}
-          >
-            <Download className="w-3.5 h-3.5" />
-            Download
-          </button>
-          <button
-            onClick={() => {
-              if (confirm(`Reset editor to default ${currentLangConfig.name} code?`)) {
-                setCodeMap((prev) => ({
-                  ...prev,
-                  [selectedLang]: LANGUAGES[selectedLang].presets.hello.code,
-                }));
-                setTerminalHistory("");
-                setExecutionResult(null);
-              }
-            }}
-            className="px-3 py-1.5 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1.5"
-            title="Reset code"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset
-          </button>
+        {/* Action Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleLoadMultiFileDemo}
+              className="px-3 py-1.5 rounded-[10px] text-xs font-semibold bg-accent-soft hover:bg-accent/20 text-accent border border-accent-border transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title={`Load multi-file example for ${currentLangConfig.name} (e.g. 2 separate files)`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Multi-File Demo</span>
+            </button>
+            <span className="text-xs text-muted-foreground hidden sm:inline">
+              Supports multiple separate <code className="text-accent">{selectedLang === "c" ? ".c / .h" : selectedLang === "python" ? ".py" : ".java"}</code> files
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowStdin(!showStdin)}
+              className={`px-3 py-1.5 rounded-[10px] text-xs font-medium border transition-colors ${showStdin
+                ? "bg-accent/20 text-accent border-accent/40"
+                : "bg-muted text-muted-foreground border-border hover:text-foreground"
+                }`}
+              title="Toggle standard input (stdin)"
+            >
+              {showStdin ? "✓ Stdin Input Active" : "+ Add Stdin Input"}
+            </button>
+            <button
+              onClick={handleDownloadCode}
+              className="px-3 py-1.5 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1.5"
+              title={`Download ${activeFile?.name || currentLangConfig.filename}`}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Reset editor to default ${currentLangConfig.name} workspace?`)) {
+                  setFilesMap((prev) => ({
+                    ...prev,
+                    [selectedLang]: [
+                      {
+                        id: `${selectedLang}-default`,
+                        name: currentLangConfig.filename,
+                        isEntry: true,
+                        content: LANGUAGES[selectedLang].presets.hello.code,
+                      },
+                    ],
+                  }));
+                  setActiveFileIdMap((prev) => ({
+                    ...prev,
+                    [selectedLang]: `${selectedLang}-default`,
+                  }));
+                  setTerminalHistory("");
+                  setExecutionResult(null);
+                }
+              }}
+              className="px-3 py-1.5 rounded-[10px] text-xs font-medium bg-muted text-muted-foreground border border-border hover:text-foreground flex items-center gap-1.5"
+              title="Reset code"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
+            </button>
+          </div>
         </div>
 
         {/* Optional Stdin Field */}
@@ -646,13 +998,95 @@ export default function EnvironmentTestPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch w-full">
           {/* Left: Code Editor (Half) */}
           <div className="flex flex-col min-w-0 w-full bg-card border border-border rounded-[16px] overflow-hidden shadow-sm h-[640px] sm:h-[700px] lg:h-[760px] xl:h-[800px]">
-            {/* Editor Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-muted border-b border-border text-xs">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-accent"></span>
-                <span className="font-mono font-bold text-foreground">{currentLangConfig.filename}</span>
+            {/* Multi-File Tab Bar Header */}
+            <div className="flex items-center justify-between px-2 pt-2 pb-0 bg-muted border-b border-border text-xs overflow-x-auto gap-2">
+              <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto py-0.5 scrollbar-none">
+                {currentFiles.map((file) => {
+                  const isActive = file.id === activeFile.id;
+                  return (
+                    <button
+                      key={file.id}
+                      type="button"
+                      onClick={() =>
+                        setActiveFileIdMap((prev) => ({ ...prev, [selectedLang]: file.id }))
+                      }
+                      className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-t-[8px] text-xs font-mono transition-all border-t border-l border-r shrink-0 cursor-pointer ${
+                        isActive
+                          ? "bg-[#0d0d0f] text-foreground border-border font-semibold shadow-sm -mb-px pb-2"
+                          : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-transparent"
+                      }`}
+                      title={file.isEntry ? `${file.name} (Entry point)` : file.name}
+                    >
+                      <FileCode className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-muted-foreground"}`} />
+                      <span>{file.name}</span>
+                      {file.isEntry && (
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-accent/15 text-accent font-sans">main</span>
+                      )}
+                      {!file.isEntry && currentFiles.length > 1 && (
+                        <span
+                          onClick={(e) => handleDeleteFile(file.id, file.name, e)}
+                          className="opacity-60 hover:opacity-100 hover:text-danger p-0.5 rounded transition-all ml-0.5"
+                          title="Delete file"
+                        >
+                          <X className="w-3 h-3" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* Inline New File Button / Input */}
+                {isCreatingFile ? (
+                  <div className="flex items-center gap-1 bg-[#0d0d0f] px-2 py-1 rounded-[8px] border border-accent shadow-sm shrink-0">
+                    <FilePlus2 className="w-3.5 h-3.5 text-accent" />
+                    <input
+                      ref={newFileInputRef}
+                      type="text"
+                      value={newFileNameInput}
+                      onChange={(e) => setNewFileNameInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleConfirmCreateFile();
+                        } else if (e.key === "Escape") {
+                          setIsCreatingFile(false);
+                        }
+                      }}
+                      placeholder={selectedLang === "c" ? "helper.c" : selectedLang === "python" ? "helper.py" : "Student.java"}
+                      className="bg-transparent text-foreground text-xs font-mono w-28 sm:w-32 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleConfirmCreateFile}
+                      className="px-1.5 py-0.5 bg-accent text-background font-semibold text-[10px] rounded hover:opacity-90 cursor-pointer"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingFile(false)}
+                      className="p-0.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleStartCreateFile}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-muted-foreground hover:text-foreground hover:bg-card/70 rounded-[8px] text-xs transition-colors shrink-0 cursor-pointer border border-dashed border-border"
+                    title={`Add new ${selectedLang.toUpperCase()} file`}
+                  >
+                    <Plus className="w-3.5 h-3.5 text-accent" />
+                    <span className="font-mono text-[11px]">+ New File</span>
+                  </button>
+                )}
               </div>
-              <div className="flex items-center gap-3 text-muted-foreground text-[11px] font-mono">
+
+              {/* Header Right: Stats */}
+              <div className="hidden sm:flex items-center gap-2 text-muted-foreground text-[11px] font-mono shrink-0 pr-2 pb-1">
+                <span className="text-foreground font-semibold">{activeFile.name}</span>
+                <span>•</span>
                 <span>{lineCount} lines</span>
               </div>
             </div>
@@ -672,9 +1106,7 @@ export default function EnvironmentTestPage() {
               <textarea
                 ref={textareaRef}
                 value={currentCode}
-                onChange={(e) =>
-                  setCodeMap((prev) => ({ ...prev, [selectedLang]: e.target.value }))
-                }
+                onChange={(e) => updateActiveCode(e.target.value)}
                 onKeyDown={handleKeyDown}
                 spellCheck={false}
                 className="flex-1 p-4 bg-transparent text-foreground font-mono text-xs sm:text-[13.5px] md:text-[14px] resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-auto selection:bg-accent/30"
