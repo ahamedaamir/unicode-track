@@ -199,41 +199,50 @@ function ReportsAndEvaluationContent() {
   const isPast = project?.status === "Archived" || (project as any)?.isPast;
 
   // Handlers
-  const handleRunCProject = () => {
+  const handleRunCProject = async () => {
     setIsRunningCode(true);
     setTerminalExitCode(null);
     setTerminalOutput([
-      "$ gcc -Wall -Wextra -O2 -Iinclude src/main.c -o main",
-      "[GCC] Compiling source files with optimization level -O2...",
-      "[LINK] Linking object binaries into executable: ./main",
-      "[EXEC] Starting process ./main " + customArgs + " (PID: " + Math.floor(10000 + Math.random() * 90000) + ")",
-      "----------------------------------------------------------------",
+      "Compiling and executing C project source code in sandbox...",
     ]);
 
-    setTimeout(() => {
-      setTerminalOutput((prev) => [
-        ...prev,
-        "========================================",
-        " UniCodeTrack AI — Embedded C Processor ",
-        " Real-Time Telemetry Pipeline v2.4       ",
-        "========================================",
-        "",
-        "[INFO] Circular buffer initialized (Capacity: 8 packets, Head: 0, Tail: 0)",
-        "[INGEST] Packet #101: Type = Temperature  | Val = 38.60 C | Status = NORMAL",
-        "[INGEST] Packet #102: Type = HeartRate    | Val = 84.00 bpm| Status = NORMAL",
-        "[INGEST] Packet #103: Type = BloodOxygen  | Val = 98.20 % | Status = NORMAL",
-        "[INGEST] Packet #104: Type = Vibration    | Val = 4.80 g  | Status = ANOMALY ALERT!",
-        "",
-        "[TELEMETRY] Queue elements count: 4 / 8. Memory CRC16 Checksum: 0x8F3A (PASS)",
-        "[DISPATCH] Relational event logs emitted matching symposium_events schema.",
-        "[CLEANUP] Deallocated dynamic circular nodes. 0 memory leaks detected.",
-        "----------------------------------------------------------------",
-        "Process exited with status code 0 (Elapsed runtime: 38ms)",
-      ]);
-      setTerminalExitCode(0);
+    try {
+      const sourceSnippet = SAMPLE_C_PROJECT_FILES[0]?.children?.[0]?.content || `#include <stdio.h>\nint main() { printf("UniCodeTrack C Runtime Active\\n"); return 0; }`;
+      const res = await fetch("/api/code/run-c", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceCode: sourceSnippet,
+          filename: "main.c",
+        }),
+      });
+
+      const data = await res.json();
+      const lines: string[] = [];
+      if (data.stdout) {
+        lines.push(data.stdout);
+      }
+      if (data.stderr) {
+        lines.push(`[STDERR]\n${data.stderr}`);
+      }
+      if (lines.length === 0) {
+        lines.push(data.error || "(Program executed with no output)");
+      }
+
+      setTerminalOutput(lines);
+      setTerminalExitCode(data.exitCode ?? (data.success ? 0 : 1));
+      if (data.success) {
+        showToast("C project compiled and executed successfully!", "success");
+      } else {
+        showToast(data.error || "Compilation or runtime error in C project.", "error");
+      }
+    } catch (err: any) {
+      setTerminalOutput([err.message || "Failed to execute C program."]);
+      setTerminalExitCode(1);
+      showToast(err.message || "Failed to execute C program.", "error");
+    } finally {
       setIsRunningCode(false);
-      showToast("C project compiled and executed successfully!", "success");
-    }, 1100);
+    }
   };
 
   const handleRunAiEvaluation = async () => {
@@ -267,52 +276,11 @@ function ReportsAndEvaluationContent() {
         setIsSavedToDb(false);
         showToast("Gemini AI evaluated project proposal, C code, ER diagram & final report!", "success");
       } else {
-        throw new Error(data.error || "Evaluation failed");
+        throw new Error(data.error || "Evaluation failed with Gemini AI.");
       }
     } catch (err: any) {
-      console.warn("AI evaluation error, using resilient evaluation:", err);
-      const fallback = {
-        finalMarks: 92,
-        criteriaScores: [
-          {
-            criterion: "Proposal Alignment & Architecture",
-            maxMarks: 25,
-            awardedMarks: 23,
-            feedback: "C modules systematically address all milestones defined in the proposal.",
-          },
-          {
-            criterion: "C Code Implementation & Quality",
-            maxMarks: 30,
-            awardedMarks: 28,
-            feedback: "Circular queue buffer exhibits clean memory bounds checking and zero dynamic leaks.",
-          },
-          {
-            criterion: "ER Diagram & Database Correctness",
-            maxMarks: 25,
-            awardedMarks: 23,
-            feedback: "PostgreSQL DDL schema and foreign key constraints achieve 3NF normalization.",
-          },
-          {
-            criterion: "Final Report & System Documentation",
-            maxMarks: 20,
-            awardedMarks: 18,
-            feedback: "Final capstone report includes thorough benchmarks and architecture defense.",
-          },
-        ],
-        summary: `The project "${project?.title || "Academic Capstone"}" demonstrates rigorous engineering. The C source code successfully realizes the telemetry processing proposed, with matching relational database models and comprehensive documentation.`,
-        strengths: [
-          "Rigorous memory safety with fixed circular buffer ring wrapping",
-          "Direct correspondence between proposal requirements and C telemetry modules",
-          "3NF normalized database schema with referential integrity",
-        ],
-        discrepancies: [],
-        source: "fallback" as const,
-      };
-      setEvaluationData(fallback);
-      setEditableFinalMarks(fallback.finalMarks);
-      setEditableSummary(fallback.summary);
-      setIsSavedToDb(false);
-      showToast("Evaluation generated successfully!", "success");
+      console.error("AI evaluation error:", err);
+      showToast(err.message || "Gemini AI evaluation failed. Please check your API key.", "error");
     } finally {
       setIsEvaluating(false);
     }

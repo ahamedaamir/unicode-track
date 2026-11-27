@@ -148,10 +148,7 @@ export async function authenticateStudent(
 
   // Password verification
   const expectedPassword = matchedStudent.defaultPassword || "Student@2026";
-  const isMatch =
-    password === expectedPassword ||
-    password === "studentPassword123" ||
-    password === "adminPassword123";
+  const isMatch = password === expectedPassword;
 
   if (!isMatch) {
     return {

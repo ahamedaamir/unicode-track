@@ -15,22 +15,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Default system administrator credentials
-    if (trimmedEmail === "admin@university.edu" && (password === "adminPassword123" || password === "admin1234")) {
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: "admin-default-id",
-          email: "admin@university.edu",
-          role: "admin",
-          name: "University Administrator",
-          universityName: "University",
-          faculty: "Faculty of Computing",
-        },
-      });
-    }
-
-    // 2. Supabase Authentication
+    // 1. Supabase Authentication
     if (isSupabaseConfigured()) {
       try {
         const adminClient = createAdminClient();

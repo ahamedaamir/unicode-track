@@ -189,9 +189,11 @@ export async function extractGroupsWithGemini(
 ): Promise<GeminiGroupExtractionResponse> {
   const apiKey = getGeminiApiKey();
 
-  if (apiKey) {
-    try {
-      const prompt = `You are an academic project extraction AI for UniCodeTrack AI.
+  if (!apiKey) {
+    throw new Error("Gemini API key is not configured in environment variables.");
+  }
+
+  const prompt = `You are an academic project extraction AI for UniCodeTrack AI.
 Analyze the following student group allocation text or document and extract the student groups and their members into structured JSON.
 
 AI EXTRACTION REQUIREMENTS:
@@ -230,66 +232,61 @@ ${content}
 
 Return ONLY valid JSON.`;
 
-      const result = await callLiveGemini({
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-        },
-      });
+  const result = await callLiveGemini({
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+    },
+  });
 
-      if (result && result.text) {
-        let cleanJson = result.text.trim();
-        if (cleanJson.startsWith("```json")) {
-          cleanJson = cleanJson.replace(/^```json/, "").replace(/```$/, "").trim();
-        } else if (cleanJson.startsWith("```")) {
-          cleanJson = cleanJson.replace(/^```/, "").replace(/```$/, "").trim();
-        }
+  if (!result || !result.text) {
+    throw new Error("Gemini AI returned empty content during group extraction.");
+  }
 
-        let rawParsed: any;
-        try {
-          rawParsed = JSON.parse(cleanJson);
-        } catch {
-          // Robust JSON substring extraction in case of leading/trailing commentary
-          const startIdx = cleanJson.indexOf("{");
-          const endIdx = cleanJson.lastIndexOf("}");
-          if (startIdx !== -1 && endIdx > startIdx) {
-            rawParsed = JSON.parse(cleanJson.substring(startIdx, endIdx + 1));
-          } else {
-            throw new Error("Gemini returned invalid or unparseable JSON format.");
-          }
-        }
+  let cleanJson = result.text.trim();
+  if (cleanJson.startsWith("```json")) {
+    cleanJson = cleanJson.replace(/^```json/, "").replace(/```$/, "").trim();
+  } else if (cleanJson.startsWith("```")) {
+    cleanJson = cleanJson.replace(/^```/, "").replace(/```$/, "").trim();
+  }
 
-        // Map any camelCase keys to snake_case if Gemini varied casing
-        const normalizedData = {
-          groups: (rawParsed.groups || []).map((g: any, idx: number) => ({
-            group_number: g.group_number ?? g.groupNumber ?? idx + 1,
-            group_name: g.group_name ?? g.groupName ?? `Group ${g.group_number ?? g.groupNumber ?? idx + 1}`,
-            members: (g.members || []).map((m: any) => ({
-              student_id: m.student_id ?? m.studentId ?? null,
-              full_name: m.full_name ?? m.fullName ?? m.name ?? "",
-              email: m.email ?? null,
-            })),
-          })),
-          warnings: Array.isArray(rawParsed.warnings) ? rawParsed.warnings : [],
-        };
-
-        if (normalizedData.groups.length === 0) {
-          normalizedData.warnings.push(
-            "No student groups could be extracted from the document. Please verify the content format."
-          );
-        }
-
-        // Validate strictly through Zod
-        const validated = GeminiGroupExtractionResponseSchema.parse(normalizedData);
-        return validated;
-      }
-    } catch (err: unknown) {
-      console.warn("Gemini group extraction call failed, activating deterministic fallback parser:", err);
+  let rawParsed: any;
+  try {
+    rawParsed = JSON.parse(cleanJson);
+  } catch {
+    // Robust JSON substring extraction in case of leading/trailing commentary
+    const startIdx = cleanJson.indexOf("{");
+    const endIdx = cleanJson.lastIndexOf("}");
+    if (startIdx !== -1 && endIdx > startIdx) {
+      rawParsed = JSON.parse(cleanJson.substring(startIdx, endIdx + 1));
+    } else {
+      throw new Error("Gemini returned invalid or unparseable JSON format.");
     }
   }
 
-  // Fallback deterministic extractor for development / offline testing
-  return fallbackDeterministicGroupExtractor(content);
+  // Map any camelCase keys to snake_case if Gemini varied casing
+  const normalizedData = {
+    groups: (rawParsed.groups || []).map((g: any, idx: number) => ({
+      group_number: g.group_number ?? g.groupNumber ?? idx + 1,
+      group_name: g.group_name ?? g.groupName ?? `Group ${g.group_number ?? g.groupNumber ?? idx + 1}`,
+      members: (g.members || []).map((m: any) => ({
+        student_id: m.student_id ?? m.studentId ?? null,
+        full_name: m.full_name ?? m.fullName ?? m.name ?? "",
+        email: m.email ?? null,
+      })),
+    })),
+    warnings: Array.isArray(rawParsed.warnings) ? rawParsed.warnings : [],
+  };
+
+  if (normalizedData.groups.length === 0) {
+    normalizedData.warnings.push(
+      "No student groups could be extracted from the document. Please verify the content format."
+    );
+  }
+
+  // Validate strictly through Zod
+  const validated = GeminiGroupExtractionResponseSchema.parse(normalizedData);
+  return validated;
 }
 
 // =============================================================================

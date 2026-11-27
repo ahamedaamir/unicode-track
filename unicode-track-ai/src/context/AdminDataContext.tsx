@@ -230,7 +230,6 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         if (parsed.lecturers && Array.isArray(parsed.lecturers)) {
           setMasterLecturers(
             parsed.lecturers
-              .filter((l: Lecturer) => l.email.toLowerCase() !== "check@gmail.com")
               .map((l: Lecturer) => ({
                 ...l,
                 adminEmail: l.adminEmail || "admin@university.edu",
@@ -325,7 +324,6 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       supabase.from("lecturers").select("*").then(({ data, error }) => {
         if (!error && data && data.length > 0) {
           const dbLecturers: Lecturer[] = data
-            .filter((l: any) => l.email?.toLowerCase() !== "check@gmail.com")
             .map((l: any) => ({
               id: l.id,
               name: l.name,
