@@ -170,8 +170,8 @@ export default function DashboardOverviewPage() {
           </div>
         </div>
 
-        {/* 4 Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">
+        {/* 3 Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
           <div className="bg-card border border-border rounded-[16px] p-4 sm:p-5">
             <span className="text-xs text-muted-foreground font-medium block truncate">Courses</span>
             <span className="text-[36px] font-semibold font-mono tabular-nums text-foreground block mt-1.5 leading-none">
@@ -183,13 +183,6 @@ export default function DashboardOverviewPage() {
             <span className="text-xs text-muted-foreground font-medium block truncate">Active projects</span>
             <span className="text-[36px] font-semibold font-mono tabular-nums text-foreground block mt-1.5 leading-none">
               {activeProjectsCount}
-            </span>
-          </div>
-
-          <div className="bg-card border border-border rounded-[16px] p-4 sm:p-5">
-            <span className="text-xs text-muted-foreground font-medium block truncate">Student groups</span>
-            <span className="text-[36px] font-semibold font-mono tabular-nums text-foreground block mt-1.5 leading-none">
-              {lecturerGroups.length}
             </span>
           </div>
 
@@ -547,7 +540,7 @@ export default function DashboardOverviewPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
               {/* Stat 1: Assigned Courses */}
               <Link
                 href="/dashboard/courses"
@@ -588,27 +581,7 @@ export default function DashboardOverviewPage() {
                 <span className="block text-[10px] text-muted-foreground mt-1">Under supervision</span>
               </Link>
 
-              {/* Stat 3: Total Student Groups */}
-              <Link
-                href="/dashboard/teams"
-                className="bg-card p-4 rounded-[16px] border border-border hover:border-accent/40 transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Student Groups</span>
-                  <div className="w-7 h-7 rounded-lg bg-accent/10 text-accent flex items-center justify-center group-hover:scale-105 transition-transform border border-accent/20">
-                    <Users className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-2.5 flex items-baseline gap-1.5">
-                  <span className="text-2xl font-extrabold text-foreground font-mono tabular-nums tracking-tight">
-                    {lecturerGroups.length}
-                  </span>
-                  <span className="text-[10px] text-accent font-semibold">Teams</span>
-                </div>
-                <span className="block text-[10px] text-muted-foreground mt-1">Cohort teams</span>
-              </Link>
-
-              {/* Stat 4: Total Assigned Students */}
+              {/* Stat 3: Total Assigned Students */}
               <Link
                 href="/dashboard/teams"
                 className="bg-card p-4 rounded-[16px] border border-border hover:border-accent/40 transition-all group"
@@ -799,7 +772,7 @@ export default function DashboardOverviewPage() {
                   href="/dashboard/teams"
                   className="text-xs font-semibold text-accent hover:text-accent-hover flex items-center gap-1"
                 >
-                  All Groups ({lecturerGroups.length}) <ArrowRight className="w-3 h-3" />
+                  All Groups <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
 
