@@ -95,9 +95,9 @@ export interface QuizItem {
 const STORAGE_KEY = "unicodetrack_quizzes_store_v2";
 
 const DEFAULT_STARTER_CODES: Record<string, string> = {
-  c: `#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n// Write your solution below\n`,
-  python: `# Write your Python solution below\n\n`,
-  java: `public class Solution {\n    // Write your solution below\n}\n`,
+  c: `#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n// Write your C solution below\nint main() {\n    // Implementation logic here\n    return 0;\n}\n`,
+  java: `import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        // Write your Java solution below\n    }\n}\n`,
+  python: `# Write your Python solution below\ndef main():\n    pass\n\nif __name__ == "__main__":\n    main()\n`,
 };
 
 const SAMPLE_PRESETS: { title: string; prompt: string; language: "c" | "python" | "java"; starter: string }[] = [
@@ -153,20 +153,15 @@ export default function QuizzesPage() {
   const [formTopic, setFormTopic] = useState<string>("");
   const [formCourse, setFormCourse] = useState<string>("");
   const [formDuration, setFormDuration] = useState<number>(15);
+  const [formLanguage, setFormLanguage] = useState<"c" | "java" | "python">("c");
   const [formEvaluationReqs, setFormEvaluationReqs] = useState<string>(
     "Don't need to produce accurate output. If algorithmic patterns, loops, and logic are correct, put marks."
   );
-  const [formQuestions, setFormQuestions] = useState<QuizQuestion[]>([
-    {
-      id: "q-1",
-      questionNumber: 1,
-      prompt: "",
-      language: "c",
-      maxMarks: 10,
-      starterCode: DEFAULT_STARTER_CODES.c,
-    },
-  ]);
+  const [formQuestions, setFormQuestions] = useState<QuizQuestion[]>([]);
   const [formError, setFormError] = useState<string>("");
+  const [uploadedPdfFile, setUploadedPdfFile] = useState<File | null>(null);
+  const [uploadedPdfName, setUploadedPdfName] = useState<string>("");
+  const [isScanningPdf, setIsScanningPdf] = useState<boolean>(false);
 
   // Student Quiz Taking State
   const [activeQuestionIdx, setActiveQuestionIdx] = useState<number>(0);
@@ -658,15 +653,77 @@ export default function QuizzesPage() {
   };
 
   // --------------------------------------------------------------------------
+  // LANGUAGE SWITCHING & PDF SCANNING FOR QUIZ QUESTIONS
+  // --------------------------------------------------------------------------
+  const handleLanguageChange = (newLang: "c" | "java" | "python") => {
+    setFormLanguage(newLang);
+    if (formQuestions.length > 0) {
+      const updated = formQuestions.map((q) => ({
+        ...q,
+        language: newLang,
+        starterCode: DEFAULT_STARTER_CODES[newLang] || q.starterCode,
+      }));
+      setFormQuestions(updated);
+    }
+  };
+
+  const handleScanQuestionsPdf = async (file: File, lang: "c" | "java" | "python") => {
+    setIsScanningPdf(true);
+    setFormError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("language", lang);
+
+      const res = await fetch("/api/ai/scan-quiz-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.questions) && data.questions.length > 0) {
+        setFormQuestions(data.questions);
+        if (!formTopic.trim() && data.topic) {
+          setFormTopic(data.topic);
+        }
+        setToastMessage(`Gemini AI successfully scanned ${file.name} and aligned ${data.questions.length} questions in order!`);
+      } else {
+        setFormError(data.error || "Could not detect coding questions in the uploaded PDF.");
+      }
+    } catch (err: any) {
+      console.error("PDF Scan error:", err);
+      setFormError("Network or server error while scanning PDF with Gemini AI.");
+    } finally {
+      setIsScanningPdf(false);
+    }
+  };
+
+  const handlePdfFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
+      setFormError("Only PDF (.pdf) documents are accepted for question scanning.");
+      return;
+    }
+
+    setUploadedPdfFile(file);
+    setUploadedPdfName(file.name);
+    handleScanQuestionsPdf(file, formLanguage);
+  };
+
+  // --------------------------------------------------------------------------
   // CREATE QUIZ SUBMISSION HANDLER
   // --------------------------------------------------------------------------
   const handlePublishQuiz = () => {
     if (!formTopic.trim()) {
-      setFormError("Please enter a quiz topic / title.");
+      setFormError("Please enter a quiz topic / title, or upload a questions PDF to auto-detect.");
       return;
     }
     if (formQuestions.length === 0) {
-      setFormError("Please provide at least 1 coding question.");
+      setFormError("Please upload a questions PDF so Gemini AI can scan and align coding questions.");
       return;
     }
     if (!formDuration || formDuration < 1) {
@@ -683,7 +740,7 @@ export default function QuizzesPage() {
       evaluationRequirements:
         formEvaluationReqs.trim() ||
         "Don't need to produce accurate output. If algorithmic patterns, loops, and logic are correct, put marks.",
-      questions: formQuestions.map((q, idx) => ({ ...q, questionNumber: idx + 1 })),
+      questions: formQuestions.map((q, idx) => ({ ...q, questionNumber: idx + 1, language: formLanguage })),
       durationMinutes: Number(formDuration),
       mode: "total",
       startTime: new Date().toISOString(),
@@ -696,7 +753,7 @@ export default function QuizzesPage() {
     persistQuizzes(updated);
     setActiveQuizId(newQuiz.id);
     setView("detail");
-    setToastMessage(`Quiz "${newQuiz.title}" published! Ready for student submissions.`);
+    setToastMessage(`Quiz "${newQuiz.title}" published with ${newQuiz.questions.length} questions! Ready for student submissions.`);
   };
 
   // Add question to creation form
@@ -1019,6 +1076,41 @@ export default function QuizzesPage() {
                 Timer will automatically count down and submit student code upon completion.
               </span>
             </div>
+
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground flex items-center justify-between">
+                <span>Programming Language</span>
+                <span className="text-[10px] text-accent font-mono uppercase">Supported Languages</span>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["c", "java", "python"] as const).map((lang) => {
+                  const isSel = formLanguage === lang;
+                  const labels: Record<string, string> = {
+                    c: "C",
+                    java: "Java",
+                    python: "Python",
+                  };
+                  return (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => handleLanguageChange(lang)}
+                      className={`py-2 px-3 rounded-[10px] border text-xs font-semibold font-mono flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        isSel
+                          ? "bg-accent text-background border-accent shadow-xs"
+                          : "bg-muted text-muted-foreground border-border hover:bg-neutral-800 hover:text-foreground"
+                      }`}
+                    >
+                      <Code2 className="w-3.5 h-3.5" />
+                      <span>{labels[lang]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="text-[11px] text-muted-foreground">
+                Starter templates and compilation targets will be formatted for {formLanguage.toUpperCase()}.
+              </span>
+            </div>
           </div>
         </div>
 
@@ -1069,74 +1161,162 @@ export default function QuizzesPage() {
           </div>
         </div>
 
-        {/* Step 3: Coding Questions */}
-        <div className="bg-card p-6 rounded-[16px] border border-border space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-              <Code2 className="w-4 h-4 text-accent" />
-              3. Practical Questions ({formQuestions.length})
-            </h3>
-            <Button onClick={handleAddQuestion} variant="outline" size="sm" icon={<Plus className="w-3.5 h-3.5" />}>
-              Add Question
-            </Button>
+        {/* Step 3: Upload Questions PDF & AI Alignment */}
+        <div className="bg-card p-6 rounded-[16px] border border-border space-y-5">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <UploadCloud className="w-4 h-4 text-accent" />
+                3. Upload Questions PDF & AI Alignment
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Upload your exam paper or quiz PDF. Google Gemini AI scans the document and automatically aligns all coding questions in sequential order for students.
+              </p>
+            </div>
+            {formQuestions.length > 0 && (
+              <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-border flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {formQuestions.length} Questions Scanned & Ordered
+              </span>
+            )}
           </div>
 
-          <div className="space-y-4">
-            {formQuestions.map((q, idx) => (
-              <div key={q.id} className="p-4 bg-muted/60 border border-border rounded-[12px] space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-accent flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-accent-soft border border-accent-border flex items-center justify-center font-mono text-[11px]">
-                      {idx + 1}
-                    </span>
-                    Question {idx + 1}
-                  </span>
+          {/* PDF Upload Drop Zone */}
+          <div className="space-y-3">
+            <div className="relative border-2 border-dashed border-border hover:border-accent/50 rounded-[14px] p-6 text-center bg-muted/40 transition-all cursor-pointer group">
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={handlePdfFileSelect}
+                disabled={isScanningPdf}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+              />
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground font-mono">Max: {q.maxMarks} Marks</span>
-                    {formQuestions.length > 1 && (
-                      <button
-                        onClick={() => handleRemoveQuestion(idx)}
-                        className="text-danger hover:text-danger/80 p-1"
-                        title="Delete question"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+              <div className="flex flex-col items-center justify-center space-y-2 pointer-events-none">
+                <div className="w-12 h-12 rounded-full bg-accent-soft border border-accent-border text-accent flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <UploadCloud className={`w-6 h-6 ${isScanningPdf ? "animate-bounce" : ""}`} />
+                </div>
+
+                {isScanningPdf ? (
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-accent flex items-center justify-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                      Gemini AI is scanning PDF & aligning questions...
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Extracting problem statements, ordering Question 1, 2, 3... and formatting starter code in {formLanguage.toUpperCase()}
+                    </p>
                   </div>
-                </div>
-
-                <textarea
-                  rows={2}
-                  value={q.prompt}
-                  onChange={(e) => {
-                    const updated = [...formQuestions];
-                    updated[idx].prompt = e.target.value;
-                    setFormQuestions(updated);
-                  }}
-                  placeholder="Enter problem prompt for students..."
-                  className="w-full p-2.5 bg-[#0d0d0f] border border-border rounded-[8px] text-xs text-foreground focus:outline-none focus:border-accent"
-                />
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-mono text-muted-foreground block">
-                    Starter Code Template (Optional):
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={q.starterCode || ""}
-                    onChange={(e) => {
-                      const updated = [...formQuestions];
-                      updated[idx].starterCode = e.target.value;
-                      setFormQuestions(updated);
-                    }}
-                    placeholder="// Starter code provided in student editor..."
-                    className="w-full p-2.5 bg-[#0d0d0f] border border-border rounded-[8px] font-mono text-xs text-accent/90 focus:outline-none focus:border-accent"
-                  />
-                </div>
+                ) : uploadedPdfName ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-center gap-2">
+                      <FileText className="w-4 h-4 text-accent" />
+                      <span className="text-xs font-bold text-foreground font-mono">{uploadedPdfName}</span>
+                    </div>
+                    <p className="text-[11px] text-accent">
+                      Click or drop another PDF to replace and re-scan questions
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-foreground">
+                      Drop examination question sheet (PDF) here, or <span className="text-accent underline">browse files</span>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Gemini AI will read all questions, sort them in order, and generate {formLanguage.toUpperCase()} starter templates.
+                    </p>
+                  </div>
+                )}
               </div>
-            ))}
+            </div>
+
+            {uploadedPdfFile && !isScanningPdf && (
+              <div className="flex items-center justify-between text-xs p-3 bg-muted rounded-[10px] border border-border">
+                <div className="flex items-center gap-2 truncate">
+                  <FileText className="w-4 h-4 text-accent shrink-0" />
+                  <span className="font-mono truncate">{uploadedPdfName}</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    ({(uploadedPdfFile.size / 1024).toFixed(1)} KB)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleScanQuestionsPdf(uploadedPdfFile, formLanguage)}
+                  className="px-3 py-1 rounded-[8px] bg-accent-soft hover:bg-accent/20 text-accent border border-accent-border font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Re-scan with AI</span>
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Aligned Questions List */}
+          {formQuestions.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-foreground uppercase tracking-wider font-mono">
+                  Scanned Questions In Order ({formQuestions.length})
+                </span>
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  Language: <strong className="text-accent uppercase">{formLanguage}</strong>
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {formQuestions.map((q, idx) => (
+                  <div key={q.id || idx} className="p-4 bg-muted/60 border border-border rounded-[12px] space-y-3">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-accent text-background flex items-center justify-center font-mono font-bold text-[11px]">
+                          {idx + 1}
+                        </span>
+                        <span className="text-foreground font-bold">Question {idx + 1}</span>
+                        <span className="font-mono text-[10px] uppercase font-bold text-accent bg-accent-soft px-2 py-0.5 rounded border border-accent-border">
+                          {formLanguage}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground font-mono text-xs">
+                          {q.maxMarks} Marks
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveQuestion(idx)}
+                          className="text-danger hover:text-danger/80 p-1 rounded"
+                          title="Remove question"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <textarea
+                      rows={2}
+                      value={q.prompt}
+                      onChange={(e) => {
+                        const updated = [...formQuestions];
+                        updated[idx].prompt = e.target.value;
+                        setFormQuestions(updated);
+                      }}
+                      placeholder="Question prompt..."
+                      className="w-full p-2.5 bg-[#0d0d0f] border border-border rounded-[8px] text-xs text-foreground focus:outline-none focus:border-accent"
+                    />
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono uppercase font-semibold text-muted-foreground block">
+                        Starter Code ({formLanguage.toUpperCase()}):
+                      </label>
+                      <pre className="p-3 bg-[#0d0d0f] border border-border rounded-[8px] font-mono text-[11px] text-accent/90 overflow-auto max-h-32">
+                        {q.starterCode || DEFAULT_STARTER_CODES[formLanguage]}
+                      </pre>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Form Action */}
