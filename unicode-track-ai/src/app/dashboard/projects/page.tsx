@@ -3,6 +3,15 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Pencil,
+  Trash2,
+  X,
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  Clock,
+} from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Project } from "@/types/admin";
 import { SAMPLE_C_PROJECT_FILES } from "@/services/github/repositories";
@@ -23,6 +32,8 @@ function LecturerProjectsContent() {
     activeLecturerEmail,
     saveEvaluation,
     archiveProject,
+    editProject,
+    deleteProject,
     showToast,
   } = useAdminData();
 
@@ -34,6 +45,92 @@ function LecturerProjectsContent() {
   const [tgt, setTgt] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "workspace" | "reports" | "evaluate" | "create">("list");
   const [fileIndex, setFileIndex] = useState(0);
+
+  // Modals state for Editing & Deleting projects
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+  const [editFormData, setEditFormData] = useState<{
+    title: string;
+    description: string;
+    academicYear: 1 | 2 | 3 | 4;
+    semester: 1 | 2;
+    deadline: string;
+    status: "Draft" | "Published" | "Archived";
+    proposalRequired: boolean;
+    erDiagramRequired: boolean;
+    githubRequired: boolean;
+    finalReportRequired: boolean;
+  }>({
+    title: "",
+    description: "",
+    academicYear: 1,
+    semester: 1,
+    deadline: "",
+    status: "Draft",
+    proposalRequired: true,
+    erDiagramRequired: true,
+    githubRequired: true,
+    finalReportRequired: true,
+  });
+
+  useEffect(() => {
+    if (editingProject) {
+      setEditFormData({
+        title: editingProject.title || "",
+        description: editingProject.description || "",
+        academicYear: (editingProject.academicYear || 1) as 1 | 2 | 3 | 4,
+        semester: (editingProject.semester || 1) as 1 | 2,
+        deadline: editingProject.deadline ? editingProject.deadline.split("T")[0] : "",
+        status: (editingProject.status as any) || "Draft",
+        proposalRequired: editingProject.proposalRequired ?? true,
+        erDiagramRequired: editingProject.erDiagramRequired ?? true,
+        githubRequired: editingProject.githubRequired ?? true,
+        finalReportRequired: editingProject.finalReportRequired ?? true,
+      });
+    }
+  }, [editingProject]);
+
+  const handleSaveProjectEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject) return;
+    if (!editFormData.title.trim()) {
+      showToast("Project Title is required", "error");
+      return;
+    }
+
+    const updates: Partial<Project> = {
+      title: editFormData.title.trim(),
+      description: editFormData.description.trim(),
+      academicYear: editFormData.academicYear,
+      semester: editFormData.semester,
+      deadline: editFormData.deadline || undefined,
+      status: editFormData.status,
+      proposalRequired: editFormData.proposalRequired,
+      erDiagramRequired: editFormData.erDiagramRequired,
+      githubRequired: editFormData.githubRequired,
+      finalReportRequired: editFormData.finalReportRequired,
+    };
+
+    const res = editProject(editingProject.id, updates);
+    if (res.success) {
+      if (proj?.id === editingProject.id) {
+        setProj((prev) => (prev ? { ...prev, ...updates } : null));
+      }
+      setEditingProject(null);
+    }
+  };
+
+  const handleConfirmProjectDelete = () => {
+    if (!deletingProject) return;
+    const delId = deletingProject.id;
+    deleteProject(delId);
+    if (proj?.id === delId) {
+      setProj(null);
+      setTgt(null);
+      setView("list");
+    }
+    setDeletingProject(null);
+  };
 
   // Terminal Runner State
   const [termOutput, setTermOutput] = useState("$ gcc main.c -o shell\n$ ./shell\n");
@@ -438,15 +535,59 @@ function LecturerProjectsContent() {
             return (
               <div
                 key={p.id}
-                className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer"
+                className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer flex flex-col justify-between"
                 onClick={() => go({ proj: p })}
               >
-                <b className="text-foreground block text-base font-semibold">{p.title}</b>
-                <span className="text-muted-foreground text-xs block mt-0.5">{tab === "current" ? "Active" : "Archived"}</span>
-                <br />
-                <span className={`proj-tag ${isGroup ? "" : "no"}`}>
-                  {isGroup ? "Group project" : "Personal project"}
-                </span>
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <b className="text-foreground block text-base font-semibold">{p.title}</b>
+                  </div>
+                  <span className="text-muted-foreground text-xs block mt-0.5">
+                    {tab === "current" ? "Active" : "Archived"}
+                    {p.deadline ? ` · Due ${new Date(p.deadline).toLocaleDateString()}` : ""}
+                  </span>
+                  {p.description && (
+                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{p.description}</p>
+                  )}
+                  <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+                    <span className={`proj-tag ${isGroup ? "" : "no"}`}>
+                      {isGroup ? "Group project" : "Personal project"}
+                    </span>
+                    {p.status && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full border border-border bg-muted text-muted-foreground font-mono">
+                        {p.status}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Edit & Delete Action Buttons */}
+                <div className="flex items-center justify-end gap-1.5 mt-4 pt-3 border-t border-border/50">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingProject(p);
+                    }}
+                    className="px-2.5 py-1 text-xs rounded-lg border border-border bg-muted/60 hover:bg-muted text-foreground flex items-center gap-1.5 transition-colors"
+                    title="Edit project"
+                  >
+                    <Pencil className="w-3 h-3 text-muted-foreground" />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeletingProject(p);
+                    }}
+                    className="px-2.5 py-1 text-xs rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-1.5 transition-colors"
+                    title="Delete project"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -470,10 +611,34 @@ function LecturerProjectsContent() {
             </span>
           ))}
         </div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">{proj?.title}</h1>
-        <p className="sub text-sm text-muted-foreground mb-4">
-          {isGroup ? "Select a group." : "Select a student index."}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">{proj?.title}</h1>
+            <p className="sub text-sm text-muted-foreground mt-0.5">
+              {isGroup ? "Select a group." : "Select a student index."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => proj && setEditingProject(proj)}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground flex items-center gap-1.5 transition-colors"
+              title="Edit project details"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Edit Project
+            </button>
+            <button
+              type="button"
+              onClick={() => proj && setDeletingProject(proj)}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-1.5 transition-colors"
+              title="Delete this project"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Project
+            </button>
+          </div>
+        </div>
 
         {targetsList.length === 0 ? (
           <div className="proj-card text-center py-10 space-y-2 bg-card border border-border rounded-[16px]">
@@ -975,6 +1140,207 @@ function LecturerProjectsContent() {
         renderCourses()
       ) : (
         renderBatches()
+      )}
+
+      {/* EDIT PROJECT MODAL */}
+      {editingProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in-50">
+          <div className="bg-card border border-border rounded-[18px] max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-accent/10 border border-accent/20 text-accent">
+                  <Pencil className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground">Edit Project Details</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingProject(null)}
+                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProjectEdit} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-foreground font-medium mb-1">Project Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-foreground font-medium mb-1">Description / Scope</label>
+                <textarea
+                  rows={3}
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  placeholder="Overview of project objectives..."
+                  className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-foreground font-medium mb-1">Academic Year</label>
+                  <select
+                    value={editFormData.academicYear}
+                    onChange={(e) => setEditFormData({ ...editFormData, academicYear: Number(e.target.value) as 1 | 2 | 3 | 4 })}
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                  >
+                    {[1, 2, 3, 4].map((y) => (
+                      <option key={y} value={y}>Year {y}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-foreground font-medium mb-1">Semester</label>
+                  <select
+                    value={editFormData.semester}
+                    onChange={(e) => setEditFormData({ ...editFormData, semester: Number(e.target.value) as 1 | 2 })}
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                  >
+                    {[1, 2].map((s) => (
+                      <option key={s} value={s}>Semester {s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-foreground font-medium mb-1">Submission Deadline</label>
+                  <input
+                    type="date"
+                    value={editFormData.deadline}
+                    onChange={(e) => setEditFormData({ ...editFormData, deadline: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-foreground font-medium mb-1">Project Status</label>
+                  <select
+                    value={editFormData.status}
+                    onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as any })}
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                  >
+                    <option value="Draft">Draft</option>
+                    <option value="Published">Published (Active)</option>
+                    <option value="Archived">Archived (Past)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Deliverable Requirements Toggles */}
+              <div className="pt-2 border-t border-border/60">
+                <label className="block text-foreground font-medium mb-2">Required Deliverables</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background cursor-pointer hover:border-accent/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={editFormData.proposalRequired}
+                      onChange={(e) => setEditFormData({ ...editFormData, proposalRequired: e.target.checked })}
+                      className="rounded accent-accent"
+                    />
+                    <span className="text-foreground">Project Proposal</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background cursor-pointer hover:border-accent/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={editFormData.erDiagramRequired}
+                      onChange={(e) => setEditFormData({ ...editFormData, erDiagramRequired: e.target.checked })}
+                      className="rounded accent-accent"
+                    />
+                    <span className="text-foreground">ER Diagram</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background cursor-pointer hover:border-accent/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={editFormData.githubRequired}
+                      onChange={(e) => setEditFormData({ ...editFormData, githubRequired: e.target.checked })}
+                      className="rounded accent-accent"
+                    />
+                    <span className="text-foreground">GitHub Repository</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background cursor-pointer hover:border-accent/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={editFormData.finalReportRequired}
+                      onChange={(e) => setEditFormData({ ...editFormData, finalReportRequired: e.target.checked })}
+                      className="rounded accent-accent"
+                    />
+                    <span className="text-foreground">Final Report</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setEditingProject(null)}
+                  className="px-3 py-1.5 rounded-lg border border-border bg-muted text-foreground hover:bg-muted/80 text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="proj-btn p px-4 py-1.5 text-xs font-semibold"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE PROJECT CONFIRMATION MODAL */}
+      {deletingProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in-50">
+          <div className="bg-card border border-border rounded-[18px] max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Delete Project</h3>
+                <p className="text-xs text-muted-foreground">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Are you sure you want to permanently delete{" "}
+              <strong className="text-foreground font-semibold">"{deletingProject.title}"</strong>?
+              This will remove the project along with all associated AI-extracted groups, student assignments, and deliverables from both your dashboard and the database.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setDeletingProject(null)}
+                className="px-3 py-1.5 rounded-lg border border-border bg-muted text-foreground hover:bg-muted/80 text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmProjectDelete}
+                className="px-4 py-1.5 rounded-lg border border-red-500/30 bg-red-500 hover:bg-red-600 text-white font-medium text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Project
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

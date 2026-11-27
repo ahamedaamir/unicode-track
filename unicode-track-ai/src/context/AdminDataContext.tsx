@@ -1345,13 +1345,13 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedProjects = masterProjects.map((p) => (p.id === id ? { ...p, ...updates } : p));
     setMasterProjects(updatedProjects);
     const updatedActs = addActivity("updated academic project", updates.title || proj.title, "project");
-    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects);
+    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects, groups);
 
-    // Sync to Supabase
+    // Sync updates to Supabase via PUT /api/projects
     fetch("/api/projects", {
-      method: "POST",
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ project: { ...proj, ...updates } }),
+      body: JSON.stringify({ id, project: { ...proj, ...updates } }),
     }).catch(() => { });
 
     showToast("Project updated successfully", "success");
@@ -1439,10 +1439,31 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
   const deleteProject = (id: string) => {
     const proj = masterProjects.find((p) => p.id === id);
+    if (!proj) return;
     const updatedProjects = masterProjects.filter((p) => p.id !== id);
     setMasterProjects(updatedProjects);
+
+    // Cascade delete associated groups from state and local storage
+    const updatedGroups = groups.filter((g) => g.projectId !== id);
+    setGroups(updatedGroups);
+
     const updatedActs = addActivity("removed project", proj?.title || id, "project");
-    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, updatedActs, updatedProjects, groups, timelineActivities);
+    persist(
+      masterDepartments,
+      masterCourses,
+      masterLecturers,
+      masterStudents,
+      updatedActs,
+      updatedProjects,
+      updatedGroups,
+      timelineActivities
+    );
+
+    // Cascade delete from Supabase database
+    fetch(`/api/projects?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }).catch(() => { });
+
     showToast(`Project "${proj?.title || "record"}" removed`, "info");
   };
 
