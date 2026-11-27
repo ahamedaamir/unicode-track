@@ -55,6 +55,7 @@ export interface GitHubBranch {
   latestCommitHash: string;
   latestCommitMessage: string;
   updatedAt: string;
+  commitCount?: number;
 }
 
 export interface GitHubPullRequest {
