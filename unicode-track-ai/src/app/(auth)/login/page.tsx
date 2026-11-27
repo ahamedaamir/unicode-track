@@ -116,11 +116,7 @@ function LoginContent() {
         }
 
         const validPassword = lecturer.defaultPassword || "12345678";
-        const isPwMatch =
-          password === validPassword ||
-          password === "12345678" ||
-          password === "lecturerPassword123" ||
-          password === "adminPassword123";
+        const isPwMatch = password === validPassword || password === "12345678";
 
         if (!isPwMatch) {
           setErrorMessage("Invalid university email or password. Please verify your credentials.");
@@ -251,7 +247,7 @@ function LoginContent() {
         const matchingAdmin = savedAdmins.find(
           (a: any) =>
             a.email?.toLowerCase() === trimmedEmail &&
-            (a.password === password || password === "adminPassword123")
+            a.password === password
         );
         if (matchingAdmin) {
           sessionStorage.setItem(
@@ -276,30 +272,6 @@ function LoginContent() {
           return;
         }
       } catch {}
-
-      // 5d. Default Administrator Credentials fallback
-      if (trimmedEmail === "admin@university.edu" && (password === "adminPassword123" || password === "admin1234")) {
-        try {
-          sessionStorage.setItem(
-            "unicodetrack_authenticated_user",
-            JSON.stringify({
-              role: "admin",
-              email: "admin@university.edu",
-              name: "University Administrator",
-            })
-          );
-          sessionStorage.setItem("unicodetrack_pending_user_role", "admin");
-          sessionStorage.setItem("unicodetrack_active_admin_email", "admin@university.edu");
-          sessionStorage.removeItem("unicodetrack_pending_student_email");
-          sessionStorage.removeItem("unicodetrack_pending_lecturer_email");
-          setActiveRole("admin");
-          setActiveAdminEmail("admin@university.edu");
-        } catch {
-          // Ignore
-        }
-        router.push("/dashboard");
-        return;
-      }
 
       // 6. Generic failure
       setErrorMessage("Invalid university email or password. Please verify your credentials.");

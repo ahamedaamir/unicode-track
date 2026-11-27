@@ -185,152 +185,6 @@ Respond ONLY with a valid JSON object matching:
 }
 
 /**
- * Fallback Academic ER Diagram Evaluation Generator
- * Produces realistic, high-fidelity assessment data when offline or without GEMINI_API_KEY.
- */
-function generateFallbackERAnalysis(
-  input: AnalyzeERDiagramInput,
-  schemaFiles: { path: string; content: string }[]
-): ERDiagramAnalysisResponse {
-  const { rubricCriteria } = input;
-  const criteria = rubricCriteria && rubricCriteria.length > 0 ? rubricCriteria : DEFAULT_ER_DIAGRAM_RUBRIC;
-  const hasSql = schemaFiles.length > 0;
-
-  const issues: ERDiagramIssue[] = [
-    {
-      id: "iss-1",
-      title: "Missing Unique Constraint on Composite Bridge Entity",
-      severity: "Major",
-      category: "relationships",
-      explanation:
-        "The Many-to-Many association between Attendees and SymposiumEvents correctly specifies `event_registrations`. However, in the diagram, the composite candidate key `(event_id, attendee_id)` lacks an explicit unique alternate key constraint, allowing duplicate registration records for the same student in an event.",
-      expectedCorrection:
-        "Add an alternate candidate key or composite unique constraint: `CONSTRAINT unique_event_attendee UNIQUE (event_id, attendee_id)`.",
-      relatedElement: "event_registrations bridge entity",
-      relevantCodeFile: hasSql ? schemaFiles[0].path : undefined,
-      codeLineRange: hasSql ? "L35-L45" : undefined,
-      confidenceLevel: "High",
-      status: "Definitely incorrect",
-    },
-    {
-      id: "iss-2",
-      title: "Transitive Dependency in Sensor Telemetry Table (2NF / 3NF Concern)",
-      severity: "Minor",
-      category: "normalization",
-      explanation:
-        "The `sensor_telemetry` entity embeds `sensor_type` directly alongside `sensor_id`. If sensor types have metadata (e.g. calibration offsets, units of measure), storing them in the raw telemetry stream creates update anomalies and duplicate storage.",
-      expectedCorrection:
-        "Normalize into a dedicated `sensors` lookup entity with `(id, sensor_type, unit, v_ref)` and reference it via Foreign Key `sensor_id`.",
-      relatedElement: "sensor_telemetry.sensor_type",
-      relevantCodeFile: hasSql ? schemaFiles[0].path : undefined,
-      codeLineRange: hasSql ? "L47-L55" : undefined,
-      confidenceLevel: "Medium",
-      status: "Potentially incorrect",
-    },
-    {
-      id: "iss-3",
-      title: "Referential Integrity Cascade Action on Department Deletion",
-      severity: "Suggestion",
-      category: "keys",
-      explanation:
-        "Foreign key `department_id` in `attendees` utilizes `ON DELETE RESTRICT` in the SQL implementation, whereas the ER diagram does not explicitly document the deletion rule for orphan attendee records.",
-      expectedCorrection:
-        "Document deletion semantics on the ER diagram relationship line (e.g. 'Restrict' or 'Set Null').",
-      relatedElement: "departments -> attendees relationship",
-      relevantCodeFile: hasSql ? schemaFiles[0].path : undefined,
-      codeLineRange: hasSql ? "L17-L20" : undefined,
-      confidenceLevel: "High",
-      status: "Potentially incorrect",
-    },
-  ];
-
-  if (!hasSql) {
-    issues.push({
-      id: "iss-no-sql",
-      title: "Database Implementation Unverified",
-      severity: "Critical",
-      category: "sql_implementation",
-      explanation:
-        "Database implementation could not be verified because relevant schema files were not found in the repository.",
-      expectedCorrection:
-        "Commit DDL migration files (`database/schema.sql` or ORM models) to repository.",
-      confidenceLevel: "High",
-      status: "Missing or incomplete",
-    });
-  }
-
-  const criterionEvaluations: ERCriterionEvaluation[] = criteria.map((c) => {
-    let ratio = 0.85;
-    let explanation = `The submitted ER diagram demonstrates good academic proficiency in ${c.name.toLowerCase()}.`;
-    let supportingEvidence = "Verified against project requirements specification and entity roster.";
-    let identifiedProblems: string[] = [];
-
-    if (c.id === "er-crit-4" || c.name.toLowerCase().includes("relationship")) {
-      ratio = 0.80;
-      explanation =
-        "The Many-to-Many relationship between attendees and events correctly deploys an associative entity. However, composite uniqueness requires explicit notation.";
-      identifiedProblems = ["Missing composite alternate key indicator on associative table."];
-    } else if (c.id === "er-crit-5" || c.name.toLowerCase().includes("normalization")) {
-      ratio = 0.80;
-      explanation =
-        "Core entities are in 2NF. Telemetry reading stream has a minor transitive attribute dependency between sensor_type and sensor_id.";
-      identifiedProblems = ["Consider separating sensor metadata from continuous telemetry time-series records."];
-    } else if (c.id === "er-crit-6" || c.name.toLowerCase().includes("sql") || c.name.toLowerCase().includes("consistency")) {
-      if (hasSql) {
-        ratio = 0.90;
-        explanation =
-          "Excellent consistency: All 5 ER diagram entities (`departments`, `attendees`, `symposium_events`, `event_registrations`, `sensor_telemetry`) match table definitions in `database/schema.sql`.";
-        supportingEvidence = "Lines 1-55 in database/schema.sql match ER diagram entity definitions.";
-      } else {
-        ratio = 0.30;
-        explanation =
-          "Database implementation could not be verified because relevant schema files were not found in the connected repository.";
-        identifiedProblems = ["No DDL or ORM migration files detected in repository."];
-      }
-    }
-
-    const suggestedMarks = Math.min(c.maxMarks, Math.round(c.maxMarks * ratio * 10) / 10);
-
-    return {
-      criterionId: c.id,
-      criterionName: c.name,
-      maxMarks: c.maxMarks,
-      suggestedMarks,
-      finalMarks: suggestedMarks,
-      explanation,
-      supportingEvidence,
-      identifiedProblems,
-    };
-  });
-
-  return {
-    summary: hasSql
-      ? "The ER diagram is well-structured and aligns closely with the PostgreSQL DDL schema in the repository. Core entities, primary keys, and the associative registration bridge table satisfy all capstone requirements. Minor enhancements recommended for 3NF normalization of sensor metadata and composite uniqueness constraints."
-      : "The ER diagram is academically competent with clear entities and primary keys. However, database implementation could not be verified because relevant schema files were not found in the repository.",
-    overallCorrectnessScore: hasSql ? 86 : 72,
-    completenessScore: 88,
-    implementationConsistencyScore: hasSql ? 90 : 25,
-    missingEntities: [],
-    missingAttributes: ["v_ref reference voltage in sensor telemetry"],
-    incorrectKeys: [],
-    cardinalityProblems: ["event_registrations requires composite unique constraint (event_id, attendee_id)"],
-    normalizationConcerns: ["sensor_type attribute in telemetry_logs has minor transitive dependency"],
-    sqlImplementationDiscrepancies: hasSql ? [] : ["No SQL schema files located in repository"],
-    issues,
-    criterionEvaluations,
-    recommendations: [
-      "Add explicit composite unique constraint on `(event_id, attendee_id)` to prevent duplicate event passes.",
-      "Extract `sensors` metadata into an independent 3NF entity and link via foreign key to telemetry logs.",
-      "Document foreign key deletion rules (CASCADE vs RESTRICT) directly on ER diagram relationship connectors.",
-    ],
-    sqlSchemaVerified: hasSql,
-    sqlVerificationNote: hasSql
-      ? `Verified against ${schemaFiles.length} database schema file(s): ${schemaFiles.map((f) => f.path).join(", ")}.`
-      : "Database implementation could not be verified because relevant schema files were not found.",
-  };
-}
-
-/**
  * Main Service Method: Analyzes ER Diagram and Compares With GitHub SQL Implementation
  */
 export async function analyzeERDiagramWithGemini(
@@ -343,42 +197,35 @@ export async function analyzeERDiagramWithGemini(
   const repoFiles = input.repoFiles && input.repoFiles.length > 0 ? input.repoFiles : SAMPLE_C_PROJECT_FILES;
   const schemaFiles = extractDatabaseSchemaFiles(repoFiles);
 
-  let parsedResponse: ERDiagramAnalysisResponse;
-
   const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    throw new Error("Gemini API key is not configured in environment variables.");
+  }
 
+  let parsedResponse: ERDiagramAnalysisResponse;
   let activeModelUsed = "gemini-3.5-flash";
 
-  if (apiKey) {
-    try {
-      const prompt = buildERAnalysisPrompt(input, schemaFiles);
+  const prompt = buildERAnalysisPrompt(input, schemaFiles);
 
-      const result = await callLiveGemini({
-        contents: prompt,
-        config: {
-          temperature: 0.2, // Consistent academic analysis
-          responseMimeType: "application/json",
-        },
-      });
+  const result = await callLiveGemini({
+    contents: prompt,
+    config: {
+      temperature: 0.2, // Consistent academic analysis
+      responseMimeType: "application/json",
+    },
+  });
 
-      activeModelUsed = result.model || "gemini-3.5-flash";
-      const text = result.text?.trim() || "";
-      const jsonStart = text.indexOf("{");
-      const jsonEnd = text.lastIndexOf("}");
+  activeModelUsed = result.model || "gemini-3.5-flash";
+  const text = result.text?.trim() || "";
+  const jsonStart = text.indexOf("{");
+  const jsonEnd = text.lastIndexOf("}");
 
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        const rawJson = JSON.parse(text.substring(jsonStart, jsonEnd + 1));
-        // Strict Zod validation
-        parsedResponse = erDiagramAnalysisResponseSchema.parse(rawJson);
-      } else {
-        throw new Error("Invalid JSON structure in Gemini ER analysis response");
-      }
-    } catch (err) {
-      console.warn("Gemini ER Analysis call failed or failed Zod validation, activating academic fallback:", err);
-      parsedResponse = generateFallbackERAnalysis(input, schemaFiles);
-    }
+  if (jsonStart !== -1 && jsonEnd !== -1) {
+    const rawJson = JSON.parse(text.substring(jsonStart, jsonEnd + 1));
+    // Strict Zod validation
+    parsedResponse = erDiagramAnalysisResponseSchema.parse(rawJson);
   } else {
-    parsedResponse = generateFallbackERAnalysis(input, schemaFiles);
+    throw new Error("Invalid or unparseable JSON structure returned by Gemini AI during ER diagram analysis.");
   }
 
   // 2. Validate criterion evaluations and application-side marks calculation

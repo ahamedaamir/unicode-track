@@ -35,25 +35,14 @@ export async function POST(req: NextRequest) {
     } = body;
 
     const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: "Gemini API key is not configured in environment variables." },
+        { status: 500 }
+      );
+    }
 
-    let aiResult: {
-      finalMarks: number;
-      criteriaScores: {
-        criterion: string;
-        maxMarks: number;
-        awardedMarks: number;
-        feedback: string;
-      }[];
-      summary: string;
-      strengths: string[];
-      discrepancies: string[];
-      source: "gemini" | "fallback";
-    };
-
-    if (apiKey) {
-      try {
-
-        const prompt = `You are a university academic evaluator and senior computer science professor grading an undergraduate ${projectType} capstone project.
+    const prompt = `You are a university academic evaluator and senior computer science professor grading an undergraduate ${projectType} capstone project.
 Evaluate the student submission by cross-referencing and matching:
 1. PROJECT PROPOSAL:
 ${proposalText}
@@ -108,40 +97,36 @@ Return STRICTLY a JSON object matching this schema (no markdown formatting, no b
   "discrepancies": ["..."]
 }`;
 
-        const result = await callLiveGemini({
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          },
-        });
+    const result = await callLiveGemini({
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
 
-        if (result && result.text) {
-          const rawText = result.text.trim();
-          const cleanJson = rawText
-            .replace(/^```json\s*/i, "")
-            .replace(/^```\s*/i, "")
-            .replace(/```\s*$/i, "")
-            .trim();
-
-          const parsed = JSON.parse(cleanJson);
-          aiResult = {
-            finalMarks: Number(parsed.finalMarks) || 88,
-            criteriaScores: Array.isArray(parsed.criteriaScores) ? parsed.criteriaScores : [],
-            summary: parsed.summary || "Project satisfies capstone standards with verified C code implementation and aligned relational models.",
-            strengths: Array.isArray(parsed.strengths) ? parsed.strengths : ["Modular circular buffer implementation in C", "Consistent ER diagram foreign keys"],
-            discrepancies: Array.isArray(parsed.discrepancies) ? parsed.discrepancies : [],
-            source: "gemini",
-          };
-        } else {
-          throw new Error("Empty response from Gemini API");
-        }
-      } catch (geminiError) {
-        console.warn("Gemini evaluation error, using fallback evaluator:", geminiError);
-        aiResult = getFallbackEvaluation(projectTitle, rubricMaxScore);
-      }
-    } else {
-      aiResult = getFallbackEvaluation(projectTitle, rubricMaxScore);
+    if (!result?.text) {
+      return NextResponse.json(
+        { success: false, error: "Empty response from Gemini AI during evaluation." },
+        { status: 500 }
+      );
     }
+
+    const rawText = result.text.trim();
+    const cleanJson = rawText
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```\s*$/i, "")
+      .trim();
+
+    const parsed = JSON.parse(cleanJson);
+    const aiResult = {
+      finalMarks: Number(parsed.finalMarks) || 88,
+      criteriaScores: Array.isArray(parsed.criteriaScores) ? parsed.criteriaScores : [],
+      summary: parsed.summary || "Project satisfies capstone standards with verified C code implementation and aligned relational models.",
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : ["Modular circular buffer implementation in C", "Consistent ER diagram foreign keys"],
+      discrepancies: Array.isArray(parsed.discrepancies) ? parsed.discrepancies : [],
+      source: "gemini" as const,
+    };
 
     return NextResponse.json({
       success: true,
@@ -152,50 +137,8 @@ Return STRICTLY a JSON object matching this schema (no markdown formatting, no b
   } catch (error: any) {
     console.error("Evaluation API error:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to evaluate project" },
+      { success: false, error: error.message || "Failed to evaluate project with Gemini AI." },
       { status: 500 }
     );
   }
-}
-
-function getFallbackEvaluation(projectTitle: string, maxScore: number = 100) {
-  return {
-    finalMarks: 91,
-    criteriaScores: [
-      {
-        criterion: "Proposal Alignment & Architecture",
-        maxMarks: 25,
-        awardedMarks: 23,
-        feedback: `All core milestones defined in the proposal for "${projectTitle}" have been systematically addressed in the repository.`,
-      },
-      {
-        criterion: "C Code Implementation & Quality",
-        maxMarks: 30,
-        awardedMarks: 28,
-        feedback: "C source code demonstrates robust memory bounds checking, circular queue telemetry processing, and clean separation between header and source units.",
-      },
-      {
-        criterion: "ER Diagram & Database Correctness",
-        maxMarks: 25,
-        awardedMarks: 22,
-        feedback: "Relational ER diagram achieves 3NF compliance with well-defined foreign key relationships and cascade rules matching the domain schema.",
-      },
-      {
-        criterion: "Final Report & System Documentation",
-        maxMarks: 20,
-        awardedMarks: 18,
-        feedback: "Final capstone report includes comprehensive system defense, performance benchmarks, and thorough setup guidelines.",
-      },
-    ],
-    summary: `The project "${projectTitle}" demonstrates commendable technical execution. The C source code successfully realizes the real-time processing requirements proposed, with matching relational database models and comprehensive documentation.`,
-    strengths: [
-      "Rigorous C memory bounds checking and circular buffer overflow prevention",
-      "Direct correspondence between proposal functional requirements and C telemetry modules",
-      "Clean 3NF relational database schema with referential integrity",
-    ],
-    discrepancies: [
-      "Final report could benefit from more extensive edge-case sensor stress-testing documentation",
-    ],
-    source: "fallback" as const,
-  };
 }

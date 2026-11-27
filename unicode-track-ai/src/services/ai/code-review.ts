@@ -178,134 +178,6 @@ Respond ONLY with a valid JSON object matching this exact schema:
 }
 
 /**
- * Fallback Academic Evaluation Generator
- * Produces realistic, high-quality assessment data when offline or without GEMINI_API_KEY.
- */
-function generateFallbackEvaluation(
-  input: CodeReviewInput,
-  sourceFiles: { path: string; content: string }[]
-): {
-  summary: string;
-  gitTelemetryAnalysis: string;
-  criterionScores: CriterionEvaluationScore[];
-  requirementsCoverage: RequirementCoverageItem[];
-  generalSuggestions: string[];
-} {
-  const { rubric, commits = [] } = input;
-
-  const criterionScores: CriterionEvaluationScore[] = rubric.criteria.map((c) => {
-    // Generate realistic high-scoring academic marks (75% to 92% per criterion)
-    const ratio = c.id === "crit-1" ? 0.85 : c.id === "crit-2" ? 0.90 : c.id === "crit-5" ? 0.70 : 0.80;
-    const aiScore = Math.min(c.maxMarks, Math.round(c.maxMarks * ratio * 10) / 10);
-    const percentage = Math.round((aiScore / c.maxMarks) * 100);
-
-    let explanation = `The implementation demonstrates solid competency in ${c.name.toLowerCase()}. Core structures and functional components meet undergraduate capstone criteria.`;
-    const evidence = [
-      {
-        file: "src/main.c",
-        functionName: "main",
-        lineRange: "80-115",
-        commitRef: commits[0]?.shortHash || "HEAD",
-        snippet: "Queue initialization, telemetry packet dispatch, and buffer drainage pipeline.",
-      },
-      {
-        file: "src/telemetry.c",
-        functionName: "compute_crc16",
-        lineRange: "131-144",
-        commitRef: commits[0]?.shortHash || "HEAD",
-        snippet: "Polynomial bit-shift algorithm for hardware packet verification.",
-      },
-    ];
-    let suggestions = [
-      "Incorporate unit test assertions for edge case boundary validation.",
-      "Consider documenting time and space complexity in header files.",
-    ];
-
-    if (c.name.toLowerCase().includes("error handling") || c.name.toLowerCase().includes("boundary")) {
-      explanation =
-        "Buffer overflow prevention in the circular queue is well-handled (`enqueue` returns 0 on saturation). However, temperature and pressure calibration functions in `src/sensor.c` lack explicit input range clamping against division-by-zero or negative reference voltages.";
-      suggestions = [
-        "Add explicit `if (v_ref <= 0.0) return -1.0;` check in `calibrate_temperature`.",
-        "Log anomaly alerts to `stderr` or a diagnostic telemetry stream rather than plain `stdout`.",
-      ];
-    } else if (c.name.toLowerCase().includes("github") || c.name.toLowerCase().includes("activity")) {
-      explanation = `Repository contains ${commits.length || 6} commits with clear branch structuring. Commit authorship is distributed across team members with descriptive commit messages following conventional commits.`;
-      suggestions = [
-        "Utilize feature branches for individual subsystem components prior to merging into main.",
-        "Tag release versions corresponding to major project milestones.",
-      ];
-    } else if (c.name.toLowerCase().includes("requirements")) {
-      explanation =
-        "The core telemetry pipeline, queue-based packet ingestion, and CRC-16 integrity checking are fully operational. Automated alert dispatch and persistent data logging require further integration.";
-      suggestions = [
-        "Implement persistent file-based packet ledger to satisfy secondary milestone deliverables.",
-      ];
-    }
-
-    return {
-      id: `score-${c.id}`,
-      criterionId: c.id,
-      criterionName: c.name,
-      maxMarks: c.maxMarks,
-      aiScore,
-      lecturerScore: aiScore,
-      finalScore: aiScore,
-      percentage,
-      explanation,
-      evidence,
-      suggestions,
-    };
-  });
-
-  const requirementsCoverage: RequirementCoverageItem[] = [
-    {
-      requirement: "FR-1: Real-time Circular Telemetry Ingestion Buffer",
-      status: "Implemented",
-      explanation: "Implemented via `CircularQueue` in `src/main.c` with bounded capacity, enqueue/dequeue primitives, and overflow guards.",
-    },
-    {
-      requirement: "FR-2: CRC-16 Packet Integrity Verification",
-      status: "Implemented",
-      explanation: "Hardware polynomial CRC calculation fully implemented in `src/telemetry.c`.",
-    },
-    {
-      requirement: "FR-3: Multi-Channel Analog Sensor Calibration",
-      status: "Implemented",
-      explanation: "Temperature and pressure ADC conversion functions defined in `src/sensor.c`.",
-    },
-    {
-      requirement: "FR-4: Anomaly Detection and Notification Flagging",
-      status: "Partial",
-      explanation: "Anomaly flags are detected and printed to terminal; however, a dedicated alert callback or persistent error ledger is not yet implemented.",
-    },
-    {
-      requirement: "FR-5: Persistent File System Logging & Offline Storage",
-      status: "Missing",
-      explanation: "No persistent file I/O operations (`fopen`/`fwrite`) found in the retrieved source files.",
-    },
-    {
-      requirement: "NFR-1: Zero Memory Leaks & Fixed Stack Allocations",
-      status: "Implemented",
-      explanation: "Clean stack and static buffer allocations utilized throughout; no unmanaged `malloc` allocations observed.",
-    },
-  ];
-
-  return {
-    summary:
-      "The project exhibits clean academic software engineering, well-structured modular C code, and defensive programming in circular telemetry queue management. Minor gaps exist in persistent disk logging and defensive voltage input clamping.",
-    gitTelemetryAnalysis:
-      "Consistent commit cadence observed across the sprint. Commit messages follow standard engineering practices. Team collaboration is evident across both core algorithms and calibration modules.",
-    criterionScores,
-    requirementsCoverage,
-    generalSuggestions: [
-      "Add explicit input validation in calibration routines to prevent potential divide-by-zero conditions.",
-      "Expand unit testing suite in `Makefile` with a `test` target validating buffer boundary conditions.",
-      "Implement persistent telemetry logging to secondary storage to satisfy all capstone milestone specifications.",
-    ],
-  };
-}
-
-/**
  * Main AI Evaluation Executor
  */
 export async function evaluateProjectCodeWithGemini(
@@ -327,6 +199,11 @@ export async function evaluateProjectCodeWithGemini(
   const filesToAnalyze = input.files && input.files.length > 0 ? input.files : SAMPLE_C_PROJECT_FILES;
   const sourceFiles = extractRelevantSourceFiles(filesToAnalyze);
 
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    throw new Error("Gemini API key is not configured in environment variables.");
+  }
+
   let rawResult: {
     summary: string;
     gitTelemetryAnalysis: string;
@@ -335,39 +212,28 @@ export async function evaluateProjectCodeWithGemini(
     generalSuggestions: string[];
   };
 
-  const apiKey = getGeminiApiKey();
-
   let activeModelUsed = "gemini-3.5-flash";
 
-  if (apiKey) {
-    try {
-      const prompt = buildCodeReviewPrompt(input, sourceFiles);
+  const prompt = buildCodeReviewPrompt(input, sourceFiles);
 
-      const result = await callLiveGemini({
-        contents: prompt,
-        config: {
-          temperature: 0.2, // Low temperature for consistent academic grading
-          responseMimeType: "application/json",
-        },
-      });
+  const result = await callLiveGemini({
+    contents: prompt,
+    config: {
+      temperature: 0.2, // Low temperature for consistent academic grading
+      responseMimeType: "application/json",
+    },
+  });
 
-      activeModelUsed = result.model || "gemini-3.5-flash";
-      const text = result.text?.trim() || "";
-      const jsonStart = text.indexOf("{");
-      const jsonEnd = text.lastIndexOf("}");
+  activeModelUsed = result.model || "gemini-3.5-flash";
+  const text = result.text?.trim() || "";
+  const jsonStart = text.indexOf("{");
+  const jsonEnd = text.lastIndexOf("}");
 
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        const jsonText = text.substring(jsonStart, jsonEnd + 1);
-        rawResult = JSON.parse(jsonText);
-      } else {
-        throw new Error("Invalid JSON structure in Gemini response");
-      }
-    } catch (err) {
-      console.warn("Gemini Code Review call failed, activating academic fallback evaluator:", err);
-      rawResult = generateFallbackEvaluation(input, sourceFiles);
-    }
+  if (jsonStart !== -1 && jsonEnd !== -1) {
+    const jsonText = text.substring(jsonStart, jsonEnd + 1);
+    rawResult = JSON.parse(jsonText);
   } else {
-    rawResult = generateFallbackEvaluation(input, sourceFiles);
+    throw new Error("Invalid or unparseable JSON structure returned by Gemini AI during code review.");
   }
 
   // 2. Validate and enforce application-level scores calculation
