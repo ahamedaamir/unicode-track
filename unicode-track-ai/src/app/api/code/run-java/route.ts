@@ -62,35 +62,48 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { sourceCode, stdin = "" } = body;
+    const { sourceCode, stdin = "", files } = body;
 
-    if (!sourceCode || typeof sourceCode !== "string") {
+    // Support both single file and multi-file submissions
+    let fileList: Array<{ name: string; content: string }> = [];
+    if (files && Array.isArray(files) && files.length > 0) {
+      fileList = files.map((f: any) => ({
+        name: typeof f.name === "string" ? f.name : "Main.java",
+        content: typeof f.content === "string" ? f.content : "",
+      }));
+    } else if (sourceCode && typeof sourceCode === "string") {
+      const cls = extractClassName(sourceCode);
+      fileList = [{ name: `${cls}.java`, content: sourceCode }];
+    } else {
       return NextResponse.json(
-        { error: "Java source code is required for execution." },
+        { error: "Java source code or files are required for execution." },
         { status: 400 }
       );
     }
 
-    if (sourceCode.length > 256 * 1024) {
+    const totalSize = fileList.reduce((acc, f) => acc + (f.content?.length || 0), 0);
+    if (totalSize > 512 * 1024) {
       return NextResponse.json(
-        { error: "Source code size exceeds maximum evaluation sandbox limit (256 KB)." },
+        { error: "Total Java source files size exceeds maximum evaluation sandbox limit (512 KB)." },
         { status: 400 }
       );
     }
 
-    // 1. Static Security Inspection
-    const forbidden = inspectSecurityTokens(sourceCode);
-    if (forbidden) {
-      return NextResponse.json({
-        success: false,
-        status: "security_violation",
-        compilationStatus: "Security Policy Blocked",
-        error: `Security Sandbox Violation: Restricted call '${forbidden}' is disabled in this execution environment for platform integrity.`,
-        stdout: "",
-        stderr: `Forbidden token: ${forbidden}`,
-        executionTimeSeconds: "0.000",
-        exitCode: 1,
-      });
+    // 1. Static Security Inspection across all files
+    for (const file of fileList) {
+      const forbidden = inspectSecurityTokens(file.content);
+      if (forbidden) {
+        return NextResponse.json({
+          success: false,
+          status: "security_violation",
+          compilationStatus: "Security Policy Blocked",
+          error: `Security Sandbox Violation in '${file.name}': Restricted call '${forbidden}' is disabled in this execution environment.`,
+          stdout: "",
+          stderr: `Forbidden token: ${forbidden} in ${file.name}`,
+          executionTimeSeconds: "0.000",
+          exitCode: 1,
+        });
+      }
     }
 
     // 2. Check Java Availability
@@ -111,20 +124,48 @@ export async function POST(req: NextRequest) {
     // 3. Create isolated random sandbox directory in os.tmpdir()
     sandboxDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "unicodetrack-java-sandbox-"));
 
-    const className = extractClassName(sourceCode);
-    const sourcePath = path.join(/* turbopackIgnore: true */ sandboxDir, `${className}.java`);
+    // Find main class (file with 'public static void main' or 'Main')
+    let mainClassName = "Main";
+    for (const file of fileList) {
+      if (file.content.includes("static void main") || file.content.includes("public static void main")) {
+        mainClassName = extractClassName(file.content);
+        break;
+      }
+    }
 
-    await fs.promises.writeFile(sourcePath, sourceCode, "utf8");
+    // Write all .java files into sandbox directory
+    const javaSourceFiles: string[] = [];
+    for (const file of fileList) {
+      const safeName = path.basename(file.name.trim()) || "Main.java";
+      const filePath = path.join(/* turbopackIgnore: true */ sandboxDir, safeName);
+      await fs.promises.writeFile(filePath, file.content, "utf8");
+      if (safeName.toLowerCase().endsWith(".java")) {
+        javaSourceFiles.push(safeName);
+      }
+    }
 
-    // 4. Compilation with javac
+    if (javaSourceFiles.length === 0) {
+      return NextResponse.json({
+        success: false,
+        status: "compilation_error",
+        compilationStatus: "No Java Source Files",
+        error: "No .java source files found in workspace to compile.",
+        stdout: "",
+        stderr: "Error: No .java files provided.",
+        executionTimeSeconds: "0.000",
+        exitCode: 1,
+      });
+    }
+
+    // 4. Compilation with javac (compiles all .java files together)
     let compilationError = "";
     try {
       await execFileAsync(
         "javac",
-        ["-encoding", "UTF-8", `${className}.java`],
+        ["-encoding", "UTF-8", "-d", ".", ...javaSourceFiles],
         {
           cwd: sandboxDir,
-          timeout: 6000, // 6s compile timeout
+          timeout: 8000, // 8s compile timeout for multi-file Java
           maxBuffer: 1024 * 256,
         }
       );
@@ -152,7 +193,7 @@ export async function POST(req: NextRequest) {
       const child = execFile(
         /* turbopackIgnore: true */
         "java",
-        ["-Dfile.encoding=UTF-8", "-cp", ".", className],
+        ["-Dfile.encoding=UTF-8", "-cp", ".", mainClassName],
         {
           cwd: sandboxDir,
           timeout: 3000, // Strict 3 second execution timeout

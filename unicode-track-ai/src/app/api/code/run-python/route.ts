@@ -56,35 +56,47 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { sourceCode, stdin = "", filename = "main.py" } = body;
+    const { sourceCode, stdin = "", filename = "main.py", files } = body;
 
-    if (!sourceCode || typeof sourceCode !== "string") {
+    // Support both single file and multi-file submissions
+    let fileList: Array<{ name: string; content: string }> = [];
+    if (files && Array.isArray(files) && files.length > 0) {
+      fileList = files.map((f: any) => ({
+        name: typeof f.name === "string" ? f.name : "main.py",
+        content: typeof f.content === "string" ? f.content : "",
+      }));
+    } else if (sourceCode && typeof sourceCode === "string") {
+      fileList = [{ name: filename || "main.py", content: sourceCode }];
+    } else {
       return NextResponse.json(
-        { error: "Python source code is required for execution." },
+        { error: "Python source code or files are required for execution." },
         { status: 400 }
       );
     }
 
-    if (sourceCode.length > 256 * 1024) {
+    const totalSize = fileList.reduce((acc, f) => acc + (f.content?.length || 0), 0);
+    if (totalSize > 512 * 1024) {
       return NextResponse.json(
-        { error: "Source code size exceeds maximum evaluation sandbox limit (256 KB)." },
+        { error: "Total Python source files size exceeds maximum evaluation sandbox limit (512 KB)." },
         { status: 400 }
       );
     }
 
-    // 1. Static Security Inspection
-    const forbidden = inspectSecurityTokens(sourceCode);
-    if (forbidden) {
-      return NextResponse.json({
-        success: false,
-        status: "security_violation",
-        compilationStatus: "Security Policy Blocked",
-        error: `Security Sandbox Violation: Restricted call '${forbidden}' is disabled in this execution environment for platform integrity.`,
-        stdout: "",
-        stderr: `Forbidden token: ${forbidden}`,
-        executionTimeSeconds: "0.000",
-        exitCode: 1,
-      });
+    // 1. Static Security Inspection across all files
+    for (const file of fileList) {
+      const forbidden = inspectSecurityTokens(file.content);
+      if (forbidden) {
+        return NextResponse.json({
+          success: false,
+          status: "security_violation",
+          compilationStatus: "Security Policy Blocked",
+          error: `Security Sandbox Violation in '${file.name}': Restricted call '${forbidden}' is disabled in this execution environment.`,
+          stdout: "",
+          stderr: `Forbidden token: ${forbidden} in ${file.name}`,
+          executionTimeSeconds: "0.000",
+          exitCode: 1,
+        });
+      }
     }
 
     // 2. Discover Python Command
@@ -105,10 +117,41 @@ export async function POST(req: NextRequest) {
     // 3. Create isolated random sandbox directory in os.tmpdir()
     sandboxDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "unicodetrack-python-sandbox-"));
 
-    const safeFilename = filename.endsWith(".py") ? filename : "main.py";
-    const sourcePath = path.join(/* turbopackIgnore: true */ sandboxDir, safeFilename);
+    // Write all files into sandbox directory
+    let entryFilename = "main.py";
+    const pyFiles: string[] = [];
 
-    await fs.promises.writeFile(sourcePath, sourceCode, "utf8");
+    for (const file of fileList) {
+      const safeName = path.basename(file.name.trim()) || "main.py";
+      const filePath = path.join(/* turbopackIgnore: true */ sandboxDir, safeName);
+      await fs.promises.writeFile(filePath, file.content, "utf8");
+      if (safeName.toLowerCase().endsWith(".py")) {
+        pyFiles.push(safeName);
+      }
+    }
+
+    if (pyFiles.length === 0) {
+      return NextResponse.json({
+        success: false,
+        status: "compilation_error",
+        compilationStatus: "No Python Source Files",
+        error: "No .py source files found in workspace to execute.",
+        stdout: "",
+        stderr: "Error: No .py files provided.",
+        executionTimeSeconds: "0.000",
+        exitCode: 1,
+      });
+    }
+
+    // Determine entry file: prefer main.py, or file with __name__ == "__main__", or first .py
+    if (pyFiles.includes("main.py")) {
+      entryFilename = "main.py";
+    } else {
+      const mainCandidate = fileList.find((f) => f.content.includes("__main__") && f.name.endsWith(".py"));
+      entryFilename = mainCandidate ? path.basename(mainCandidate.name) : pyFiles[0];
+    }
+
+    const sourcePath = path.join(/* turbopackIgnore: true */ sandboxDir, entryFilename);
 
     // 4. Execution in Restricted Environment
     const startHr = process.hrtime.bigint();
