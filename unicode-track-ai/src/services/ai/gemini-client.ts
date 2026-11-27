@@ -26,11 +26,16 @@ export function createGeminiClient(): GoogleGenAI | null {
 
 /**
  * Supported production Gemini models in order of priority.
- * gemini-3.5-flash: high speed, advanced reasoning, verified active on current keys.
- * gemini-3.5-flash-lite: ultra-fast, zero-latency fallback during traffic spikes.
- * gemini-3.8-flash: next-gen model for extended context.
+ * gemini-2.5-flash: high speed, advanced reasoning, verified active on current keys.
+ * gemini-2.0-flash: general purpose high performance.
+ * gemini-1.5-flash: universal fallback across all Google AI Studio tiers.
+ * gemini-3.5-flash / gemini-3.5-flash-lite: latest generation preview models.
  */
 const ACTIVE_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-2.5-pro",
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
   "gemini-3.8-flash",
