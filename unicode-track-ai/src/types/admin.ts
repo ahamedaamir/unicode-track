@@ -11,6 +11,8 @@ export interface Course {
   id: string;
   code: string;
   name: string;
+  departmentId?: string;
+  departmentName?: string;
   createdAt: string;
   adminEmail?: string;
 }
@@ -20,6 +22,7 @@ export interface Lecturer {
   name: string;
   email: string;
   position: "Senior" | "Probationary";
+  departmentId?: string;
   assignedCourses: string[]; // Course codes, e.g. ["ICT2142", "CS492"]
   status: "Active" | "Pending First Login" | "Deactivated";
   hasChangedDefaultPassword: boolean;

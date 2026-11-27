@@ -9,18 +9,6 @@ import { DEFAULT_ER_DIAGRAM_RUBRIC } from "@/types/er-diagram";
 
 const BATCHES = ["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"] as const;
 
-const DEPTS = [
-  { name: "Computer Science", sub: "Algorithms, systems, AI" },
-  { name: "Information Systems", sub: "Business and data systems" },
-  { name: "Software Engineering", sub: "Design, build, test" },
-];
-
-const DEFAULT_COURSES = [
-  { c: "ICT2132", n: "Software Engineering" },
-  { c: "ICT2152", n: "Systems Analysis & Design" },
-  { c: "ICT2162", n: "Management Information Systems" },
-];
-
 const DELIVERABLES: [string, string][] = [
   ["proposal", "Project proposal"],
   ["repo", "GitHub repo link"],
@@ -50,17 +38,6 @@ export function CreateProjectPrototypeForm({
     showToast,
   } = useAdminData();
 
-  // Merge available courses
-  const courses = React.useMemo(() => {
-    if (contextCourses && contextCourses.length > 0) {
-      return contextCourses.map((c) => ({ c: c.code, n: c.name }));
-    }
-    return DEFAULT_COURSES;
-  }, [contextCourses]);
-
-  const currentLecturer =
-    lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
-
   // State matching prototype F
   const [step, setStep] = useState<number>(0);
   const [title, setTitle] = useState("");
@@ -72,6 +49,30 @@ export function CreateProjectPrototypeForm({
   const [type, setType] = useState<"group" | "individual">("group");
   const [pdfName, setPdfName] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+
+  // Dynamic courses linked to selected department
+  const courses = React.useMemo(() => {
+    if (!dept) {
+      return contextCourses.map((c) => ({ c: c.code, n: c.name, departmentId: c.departmentId }));
+    }
+    const matchingDept = contextDepartments.find(
+      (d) => d.name.toLowerCase() === dept.toLowerCase()
+    );
+    if (!matchingDept) {
+      return contextCourses.map((c) => ({ c: c.code, n: c.name, departmentId: c.departmentId }));
+    }
+    const deptCourses = contextCourses.filter(
+      (c) => c.departmentId === matchingDept.id
+    );
+    return (deptCourses.length > 0 ? deptCourses : contextCourses).map((c) => ({
+      c: c.code,
+      n: c.name,
+      departmentId: c.departmentId,
+    }));
+  }, [contextCourses, contextDepartments, dept]);
+
+  const currentLecturer =
+    lecturers.find((l) => l.email === activeLecturerEmail) || lecturers[0];
 
   const [reqs, setReqs] = useState<{ t: string; m: string }[]>([
     { t: "", m: "" },
@@ -243,93 +244,73 @@ export function CreateProjectPrototypeForm({
 
       const newProjectId = result.project.id;
 
-      // If group project: seed initial group workspaces
+      // If group project: seed initial group workspaces with real students from cohort
       if (type === "group" && setProjectGroups) {
-        const initialGroups: ProjectGroup[] = [1, 2, 3, 4].map((gNum) => ({
-          id: `grp-${newProjectId}-${gNum}`,
-          projectId: newProjectId,
-          groupNumber: gNum,
-          groupName: `Group ${gNum}`,
-          workspaceId: `ws-${newProjectId}-${gNum}`,
-          members: [
-            {
-              studentId: `TG/2004/${2000 + gNum * 10 + 1}`,
-              fullName: `Student Alpha ${gNum}`,
-              email: `student.${gNum}.1@university.edu`,
+        const matchingStudents = students.filter(
+          (s) =>
+            (!matchingDept || s.departmentId === matchingDept.id) &&
+            s.academicYear === academicYear &&
+            s.semester === semester
+        );
+
+        const groupCount = Math.max(1, Math.min(4, Math.ceil(matchingStudents.length / 4) || 2));
+        const initialGroups: ProjectGroup[] = Array.from({ length: groupCount }, (_, idx) => {
+          const gNum = idx + 1;
+          const assignedMembers = matchingStudents
+            .filter((_, sIdx) => sIdx % groupCount === idx)
+            .map((s, mIdx) => ({
+              studentId: s.studentId || s.id,
+              fullName: s.fullName,
+              email: s.email,
               department: dept,
               academicYear,
               semester,
-              role: "Team Lead",
-              commitsCount: 12,
-            },
-            {
-              studentId: `TG/2004/${2000 + gNum * 10 + 2}`,
-              fullName: `Student Beta ${gNum}`,
-              email: `student.${gNum}.2@university.edu`,
-              department: dept,
-              academicYear,
-              semester,
-              role: "Member",
-              commitsCount: 8,
-            },
-            {
-              studentId: `TG/2004/${2000 + gNum * 10 + 3}`,
-              fullName: `Student Gamma ${gNum}`,
-              email: `student.${gNum}.3@university.edu`,
-              department: dept,
-              academicYear,
-              semester,
-              role: "Member",
-              commitsCount: 6,
-            },
-            {
-              studentId: `TG/2004/${2000 + gNum * 10 + 4}`,
-              fullName: `Student Delta ${gNum}`,
-              email: `student.${gNum}.4@university.edu`,
-              department: dept,
-              academicYear,
-              semester,
-              role: "Member",
-              commitsCount: 4,
-            },
-          ],
-          repoStatus: "connected",
-          repoName: `uor-ict/${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-group-${gNum}`,
-          repoUrl: `https://github.com/uor-ict/${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-group-${gNum}`,
-          totalCommits: 30,
-          status: "active",
-          progress: 50,
-          proposalStatus: d.proposal.on ? "submitted" : "approved",
-          createdAt: new Date().toISOString().split("T")[0],
-        }));
+              role: mIdx === 0 ? ("Team Lead" as const) : ("Member" as const),
+              commitsCount: 0,
+            }));
+
+          return {
+            id: `grp-${newProjectId}-${gNum}`,
+            projectId: newProjectId,
+            groupNumber: gNum,
+            groupName: `Group ${gNum}`,
+            workspaceId: `ws-${newProjectId}-${gNum}`,
+            members: assignedMembers,
+            repoStatus: "disconnected",
+            totalCommits: 0,
+            status: "active",
+            progress: 0,
+            proposalStatus: d.proposal.on ? "submitted" : "approved",
+            createdAt: new Date().toISOString().split("T")[0],
+          };
+        });
 
         setProjectGroups(newProjectId, initialGroups);
       }
 
-      // If individual project: seed personal workspaces
+      // If individual project: seed personal workspaces with real students
       if (type === "individual" && setProjectStudentAssignments) {
         const eligibleStudents = students.filter(
-          (s) => s.academicYear === academicYear && s.semester === semester
+          (s) =>
+            (!matchingDept || s.departmentId === matchingDept.id) &&
+            s.academicYear === academicYear &&
+            s.semester === semester
         );
-        const targetStudents =
-          eligibleStudents.length > 0 ? eligibleStudents.slice(0, 5) : students.slice(0, 5);
 
-        const assignments: ProjectStudentAssignment[] = targetStudents.map((s) => ({
+        const assignments: ProjectStudentAssignment[] = eligibleStudents.map((s) => ({
           id: `asgn-${newProjectId}-${s.studentId || s.id}`,
           projectId: newProjectId,
           studentId: s.studentId || s.id,
           studentEmail: s.email,
           studentName: s.fullName,
-          departmentId: s.departmentId || matchingDept?.id || "dept-1",
+          departmentId: s.departmentId || matchingDept?.id || "",
           academicYear,
           semester,
           workspaceId: `ws-ind-${newProjectId}-${(s.studentId || s.id).replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}`,
-          repoStatus: d.repo.on ? "connected" : "disconnected",
-          repoName: `uor-ict/${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${s.studentId?.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "student"}`,
-          repoUrl: `https://github.com/uor-ict/${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${s.studentId?.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "student"}`,
-          totalCommits: 14,
+          repoStatus: "disconnected",
+          totalCommits: 0,
           status: "active",
-          progress: 40,
+          progress: 0,
           proposalStatus: d.proposal.on ? "submitted" : "approved",
           createdAt: new Date().toISOString().split("T")[0],
         }));
@@ -392,34 +373,54 @@ export function CreateProjectPrototypeForm({
 
       <div className="proj-sec">Department</div>
       <div className="proj-grid">
-        {DEPTS.map((dItem) => (
-          <div
-            key={dItem.name}
-            className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
-              dept === dItem.name ? "on border-accent bg-accent/10" : ""
-            }`}
-            onClick={() => setDept(dItem.name)}
-          >
-            <b className="text-foreground block text-base font-semibold">{dItem.name}</b>
-            <span className="text-muted-foreground text-xs block mt-0.5">{dItem.sub}</span>
+        {contextDepartments.length === 0 ? (
+          <div className="col-span-full p-4 rounded-xl border border-warning/40 bg-warning/10 text-warning text-xs space-y-1">
+            <p className="font-semibold">No academic departments created yet.</p>
+            <p className="text-[11px] text-muted-foreground">
+              An administrator must create an academic department in Department Management before creating projects.
+            </p>
           </div>
-        ))}
+        ) : (
+          contextDepartments.map((dItem) => (
+            <div
+              key={dItem.id}
+              className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
+                dept.toLowerCase() === dItem.name.toLowerCase() ? "on border-accent bg-accent/10" : ""
+              }`}
+              onClick={() => {
+                setDept(dItem.name);
+                setCourse("");
+              }}
+            >
+              <b className="text-foreground block text-base font-semibold">{dItem.name}</b>
+              <span className="text-muted-foreground text-xs block mt-0.5 font-mono">Academic Department</span>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="proj-sec">Course</div>
       <div className="proj-grid">
-        {courses.map((cItem) => (
-          <div
-            key={cItem.c}
-            className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
-              course === cItem.c ? "on border-accent bg-accent/10" : ""
-            }`}
-            onClick={() => setCourse(cItem.c)}
-          >
-            <b className="text-foreground block text-base font-semibold font-mono">{cItem.c}</b>
-            <span className="text-muted-foreground text-xs block mt-0.5">{cItem.n}</span>
+        {courses.length === 0 ? (
+          <div className="col-span-full p-4 rounded-xl border border-border bg-card text-muted-foreground text-xs">
+            {dept
+              ? `No courses assigned under "${dept}". Please create courses for this department in Course Catalog.`
+              : "Please select an academic department above to view curriculum courses."}
           </div>
-        ))}
+        ) : (
+          courses.map((cItem) => (
+            <div
+              key={cItem.c}
+              className={`proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer ${
+                course === cItem.c ? "on border-accent bg-accent/10" : ""
+              }`}
+              onClick={() => setCourse(cItem.c)}
+            >
+              <b className="text-foreground block text-base font-semibold font-mono">{cItem.c}</b>
+              <span className="text-muted-foreground text-xs block mt-0.5">{cItem.n}</span>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="proj-sec">Batch</div>
