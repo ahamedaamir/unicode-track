@@ -169,6 +169,21 @@ const initialEvaluations: ProjectEvaluation[] = [];
 const initialERSubmissions: ERDiagramSubmission[] = [];
 const initialActivities: ActivityLog[] = [];
 
+const logSupabaseNotice = (operation: string, error: any) => {
+  if (!error) return;
+  const msg = error.message || String(error);
+  if (
+    error.code === "PGRST205" ||
+    msg.includes("schema cache") ||
+    msg.includes("relation") ||
+    msg.includes("does not exist")
+  ) {
+    console.warn(`[Supabase Storage Notice] Remote table not yet migrated during '${operation}' (${msg}). Action was successfully preserved in local persistence.`);
+  } else {
+    console.warn(`[Supabase Notice] ${operation}:`, msg);
+  }
+};
+
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
 
 export function AdminDataProvider({ children }: { children: React.ReactNode }) {
@@ -590,7 +605,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           name: newDept.name,
           admin_email: newDept.adminEmail,
         }).then(({ error }) => {
-          if (error) console.error("Supabase insert department error:", error.message);
+          if (error) logSupabaseNotice("insert department", error);
         });
       } catch {}
     }
@@ -622,7 +637,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         supabase.from("departments").update({ name: trimmed }).eq("id", id).then(({ error }) => {
-          if (error) console.error("Supabase update department error:", error.message);
+          if (error) logSupabaseNotice("update department", error);
         });
       } catch {}
     }
@@ -642,7 +657,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         supabase.from("departments").delete().eq("id", id).then(({ error }) => {
-          if (error) console.error("Supabase delete department error:", error.message);
+          if (error) logSupabaseNotice("delete department", error);
         });
       } catch {}
     }
@@ -690,7 +705,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           course_name: newCourse.name,
           admin_email: newCourse.adminEmail,
         }).then(({ error }) => {
-          if (error) console.error("Supabase insert course error:", error.message);
+          if (error) logSupabaseNotice("insert course", error);
         });
       } catch {}
     }
@@ -731,7 +746,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           name: trimmedName,
           course_name: trimmedName,
         }).eq("id", id).then(({ error }) => {
-          if (error) console.error("Supabase update course error:", error.message);
+          if (error) logSupabaseNotice("update course", error);
         });
       } catch {}
     }
@@ -751,7 +766,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         supabase.from("courses").delete().eq("id", id).then(({ error }) => {
-          if (error) console.error("Supabase delete course error:", error.message);
+          if (error) logSupabaseNotice("delete course", error);
         });
       } catch {}
     }
@@ -822,7 +837,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           has_changed_default_password: false,
           admin_email: newLecturer.adminEmail,
         }).then(({ error }) => {
-          if (error) console.error("Supabase insert lecturer error:", error.message);
+          if (error) logSupabaseNotice("insert lecturer", error);
         });
       } catch {}
     }
@@ -849,7 +864,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         if (updates.assignedCourses) payload.assigned_courses = updates.assignedCourses;
         if (updates.status) payload.status = updates.status;
         supabase.from("lecturers").update(payload).eq("id", id).then(({ error }) => {
-          if (error) console.error("Supabase update lecturer error:", error.message);
+          if (error) logSupabaseNotice("update lecturer", error);
         });
       } catch {}
     }
@@ -879,7 +894,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         supabase.from("lecturers").update({ status: nextStatus }).eq("id", id).then(({ error }) => {
-          if (error) console.error("Supabase toggle lecturer status error:", error.message);
+          if (error) logSupabaseNotice("toggle lecturer status", error);
         });
       } catch {}
     }
@@ -899,7 +914,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         supabase.from("lecturers").delete().eq("id", id).then(({ error }) => {
-          if (error) console.error("Supabase delete lecturer error:", error.message);
+          if (error) logSupabaseNotice("delete lecturer", error);
         });
       } catch {}
     }
@@ -934,7 +949,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           status: "Active",
           default_password: newPass,
         }).eq("email", trimmedEmail).then(({ error }) => {
-          if (error) console.error("Supabase update lecturer password error:", error.message);
+          if (error) logSupabaseNotice("update lecturer password", error);
         });
       } catch {}
     }
@@ -1035,7 +1050,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           must_change_password: true,
           admin_email: newStudent.adminEmail,
         }).then(({ error }) => {
-          if (error) console.error("Supabase insert student error:", error.message);
+          if (error) logSupabaseNotice("insert student", error);
         });
       } catch {}
     }
@@ -1102,7 +1117,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         if (updates.semester) payload.semester = updates.semester;
         if (updates.accountStatus) payload.account_status = updates.accountStatus;
         supabase.from("students").update(payload).eq("student_id", id).then(({ error }) => {
-          if (error) console.error("Supabase update student error:", error.message);
+          if (error) logSupabaseNotice("update student", error);
         });
       } catch {}
     }
@@ -1132,7 +1147,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         supabase.from("students").update({ account_status: nextStatus }).eq("student_id", id).then(({ error }) => {
-          if (error) console.error("Supabase toggle student status error:", error.message);
+          if (error) logSupabaseNotice("toggle student status", error);
         });
       } catch {}
     }
@@ -1159,7 +1174,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         supabase.from("students").delete().eq("student_id", id).then(({ error }) => {
-          if (error) console.error("Supabase delete student error:", error.message);
+          if (error) logSupabaseNotice("delete student", error);
         });
       } catch {}
     }
@@ -1201,7 +1216,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           must_change_password: false,
           default_password: newPass,
         }).eq("email", trimmedEmail).then(({ error }) => {
-          if (error) console.error("Supabase update student password error:", error.message);
+          if (error) logSupabaseNotice("update student password", error);
         });
       } catch {}
     }

@@ -54,8 +54,10 @@ export function AdminSidebar({
   } = useAdminData();
 
   const [sessionAdmin, setSessionAdmin] = useState<{ name?: string; email?: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     try {
       const stored = sessionStorage.getItem("unicodetrack_authenticated_user");
       if (stored) {
@@ -279,8 +281,10 @@ export function AdminSidebar({
                   AI
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground tracking-wide font-medium">
-                {isStudent ? "Student Workspace" : isLecturer ? "Lecturer Dashboard" : "Admin Workspace"}
+              <span suppressHydrationWarning className="text-[10px] text-muted-foreground tracking-wide font-medium">
+                {mounted
+                  ? (isStudent ? "Student Workspace" : isLecturer ? "Lecturer Dashboard" : "Admin Workspace")
+                  : "Workspace"}
               </span>
             </div>
           )}
@@ -353,8 +357,10 @@ export function AdminSidebar({
       </nav>
 
       {/* Pinned Bottom User Card */}
-      <div className="p-3 border-t border-border space-y-2">
-        {isLecturer ? (
+      <div suppressHydrationWarning className="p-3 border-t border-border space-y-2">
+        {!mounted ? (
+          <div className="h-11" />
+        ) : isLecturer ? (
           <div
             className={`p-2.5 rounded-[12px] bg-card border border-border ${collapsed && !mobileOpen ? "text-center" : ""
               }`}

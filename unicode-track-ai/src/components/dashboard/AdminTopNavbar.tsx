@@ -28,8 +28,10 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sessionAdmin, setSessionAdmin] = useState<{ name?: string; email?: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     try {
       const stored = sessionStorage.getItem("unicodetrack_authenticated_user");
       if (stored) {
@@ -49,6 +51,7 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
     .toUpperCase() || "UA";
 
   if (
+    !mounted ||
     activeRole !== "admin" ||
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/projects") ||
