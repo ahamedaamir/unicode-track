@@ -274,21 +274,21 @@ export default function DashboardOverviewPage() {
         <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
         <div className="relative z-10">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-border">
+            <span suppressHydrationWarning className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-border">
               {isStudent ? "Student Workspace" : isLecturer ? "Lecturer Dashboard" : "Administrator Workspace"}
             </span>
             <span className="text-xs text-muted-foreground">•</span>
             <span className="text-xs text-muted-foreground font-medium">Academic Year 2026/2027</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight mt-2">
+          <h2 suppressHydrationWarning className="text-xl sm:text-2xl font-bold text-foreground tracking-tight mt-2">
             {isStudent
               ? `Welcome back, ${currentStudent?.fullName || "Alex Chen"}`
               : isLecturer
               ? `Welcome back, ${currentLecturer?.name || "Lecturer"}`
               : "University Administrator Overview"}
           </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+          <p suppressHydrationWarning className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
             {isStudent
               ? "Access your assigned project workspaces, collaborate on shared GitHub repositories, and track project evaluations."
               : isLecturer
