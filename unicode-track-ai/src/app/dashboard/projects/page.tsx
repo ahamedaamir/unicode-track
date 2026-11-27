@@ -540,11 +540,20 @@ function LecturerProjectsContent() {
     const maxBranchCommits = Math.max(1, ...branches.map((b) => b[1]));
     const maxMemberCommits = Math.max(1, ...members.map((m) => m[1]));
 
-    const docs = [
-      ["Proposal", "PDF", currentGroup?.proposalStatus === "approved" || currentGroup?.proposalStatus === "submitted"],
-      ["ER diagram", "PNG", false],
-      ["Final report", "PDF", isPast],
-    ] as const;
+    const docs: [string, string, boolean][] = [];
+
+    if (proj?.proposalRequired) {
+      const isSubmitted = Boolean(currentGroup?.proposalStatus === "approved" || currentGroup?.proposalStatus === "submitted");
+      docs.push(["Project proposal", "PDF", isSubmitted]);
+    }
+
+    if (proj?.erDiagramRequired) {
+      docs.push(["ER diagram", "PNG", false]);
+    }
+
+    if (proj?.finalReportRequired) {
+      docs.push(["Final report", "PDF", isPast]);
+    }
 
     return (
       <>
@@ -644,34 +653,40 @@ function LecturerProjectsContent() {
 
         {/* Deliverables Section */}
         <div className="proj-sec">Deliverables</div>
-        <div className="proj-row mb-6">
-          {docs.map((d) => (
-            <div key={d[0]} className="proj-card proj-doc" style={{ minWidth: 210 }}>
-              <div className="proj-ic">{d[1]}</div>
-              <div>
-                <b className="text-xs block text-foreground">{d[0]}</b>
-                <span className={`proj-tag ${d[2] ? "ok" : "no"}`}>
-                  {d[2] ? "Uploaded" : "Not yet"}
-                </span>
+        {docs.length === 0 ? (
+          <div className="proj-card p-4 text-xs text-muted-foreground mb-6">
+            No document deliverables were configured as required for this project.
+          </div>
+        ) : (
+          <div className="proj-row mb-6 flex-wrap gap-3">
+            {docs.map((d) => (
+              <div key={d[0]} className="proj-card proj-doc" style={{ minWidth: 210 }}>
+                <div className="proj-ic">{d[1]}</div>
+                <div>
+                  <b className="text-xs block text-foreground">{d[0]}</b>
+                  <span className={`proj-tag ${d[2] ? "ok" : "no"}`}>
+                    {d[2] ? "Uploaded" : "Not yet"}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          <span className="proj-sp"></span>
+            <span className="proj-sp"></span>
 
-          <button className="proj-btn" onClick={() => go({ view: "reports" })}>
-            Open reports
-          </button>
-
-          {isPast && (
-            <button
-              className="proj-btn p"
-              onClick={() => go({ view: "evaluate", marks: null })}
-            >
-              Evaluate project
+            <button className="proj-btn" onClick={() => go({ view: "reports" })}>
+              Open reports
             </button>
-          )}
-        </div>
+
+            {isPast && (
+              <button
+                className="proj-btn p"
+                onClick={() => go({ view: "evaluate", marks: null })}
+              >
+                Evaluate project
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Code · Read-Only Section */}
         <div className="proj-sec">Code · read-only</div>
@@ -706,11 +721,17 @@ function LecturerProjectsContent() {
   // SCREEN 6: REPORTS VIEW
   // --------------------------------------------------------------------------
   const renderReports = () => {
-    const reportsList = [
-      ["Project proposal", "PDF", "1.2 MB", "proposal.pdf"],
-      ["ER diagram", "PNG", "340 KB", "er-diagram.png"],
-      ["Final report", "PDF", "2.8 MB", "final-report.pdf"],
-    ] as const;
+    const reportsList: [string, string, string, string][] = [];
+
+    if (proj?.proposalRequired) {
+      reportsList.push(["Project proposal", "PDF", "1.2 MB", "proposal.pdf"]);
+    }
+    if (proj?.erDiagramRequired) {
+      reportsList.push(["ER diagram", "PNG", "340 KB", "er-diagram.png"]);
+    }
+    if (proj?.finalReportRequired) {
+      reportsList.push(["Final report", "PDF", "2.8 MB", "final-report.pdf"]);
+    }
 
     return (
       <>
@@ -727,48 +748,54 @@ function LecturerProjectsContent() {
           {tgt} · {proj?.title}
         </p>
 
-        <div className="proj-card">
-          {reportsList.map((x, idx) => (
-            <div
-              key={x[0]}
-              className={`proj-row py-3.5 ${
-                idx < reportsList.length - 1 ? "border-b border-border" : ""
-              }`}
-            >
-              <div className="proj-ic">{x[1]}</div>
-              <div>
-                <b className="text-sm text-foreground block">{x[0]}</b>
-                <span className="text-xs text-muted-foreground font-mono">
-                  {x[3]} · {x[2]}
-                </span>
+        {reportsList.length === 0 ? (
+          <div className="proj-card text-center py-10 text-muted-foreground text-sm">
+            No document deliverables were configured as required for this project.
+          </div>
+        ) : (
+          <div className="proj-card">
+            {reportsList.map((x, idx) => (
+              <div
+                key={x[0]}
+                className={`proj-row py-3.5 ${
+                  idx < reportsList.length - 1 ? "border-b border-border" : ""
+                }`}
+              >
+                <div className="proj-ic">{x[1]}</div>
+                <div>
+                  <b className="text-sm text-foreground block">{x[0]}</b>
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {x[3]} · {x[2]}
+                  </span>
+                </div>
+                <span className="proj-sp"></span>
+                <button
+                  className="proj-btn"
+                  onClick={() => {
+                    const blob = new Blob([`# ${x[0]}\nProject: ${proj?.title}\nAuthor: ${tgt}`], {
+                      type: "text/plain",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = x[3];
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast(`Downloaded ${x[3]}`, "info");
+                  }}
+                >
+                  Download
+                </button>
+                <button
+                  className="proj-btn p"
+                  onClick={() => go({ view: "evaluate", marks: null })}
+                >
+                  Evaluate
+                </button>
               </div>
-              <span className="proj-sp"></span>
-              <button
-                className="proj-btn"
-                onClick={() => {
-                  const blob = new Blob([`# ${x[0]}\nProject: ${proj?.title}\nAuthor: ${tgt}`], {
-                    type: "text/plain",
-                  });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = x[3];
-                  a.click();
-                  URL.revokeObjectURL(url);
-                  showToast(`Downloaded ${x[3]}`, "info");
-                }}
-              >
-                Download
-              </button>
-              <button
-                className="proj-btn p"
-                onClick={() => go({ view: "evaluate", marks: null })}
-              >
-                Evaluate
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </>
     );
   };
