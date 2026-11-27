@@ -48,7 +48,8 @@ export default function CoursesPage() {
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
-  const [formErrors, setFormErrors] = useState<{ code?: string; name?: string }>({});
+  const [departmentId, setDepartmentId] = useState("");
+  const [formErrors, setFormErrors] = useState<{ code?: string; name?: string; department?: string }>({});
 
   // Detail Modal State
   const [selectedCourseDetail, setSelectedCourseDetail] = useState<Course | null>(null);
@@ -68,6 +69,7 @@ export default function CoursesPage() {
     setEditingCourseId(null);
     setCourseCode("");
     setCourseName("");
+    setDepartmentId(departments.length > 0 ? departments[0].id : "");
     setFormErrors({});
     setModalOpen(true);
   };
@@ -76,6 +78,7 @@ export default function CoursesPage() {
     setEditingCourseId(crs.id);
     setCourseCode(crs.code);
     setCourseName(crs.name);
+    setDepartmentId(crs.departmentId || (departments.length > 0 ? departments[0].id : ""));
     setFormErrors({});
     setModalOpen(true);
   };
@@ -85,6 +88,7 @@ export default function CoursesPage() {
     const errors: typeof formErrors = {};
     if (!courseCode.trim()) errors.code = "Course Code is required";
     if (!courseName.trim()) errors.name = "Course Name is required";
+    if (departments.length > 0 && !departmentId) errors.department = "Academic Department is required";
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -92,13 +96,13 @@ export default function CoursesPage() {
     }
 
     if (editingCourseId) {
-      const res = editCourse(editingCourseId, courseCode, courseName);
+      const res = editCourse(editingCourseId, courseCode, courseName, departmentId);
       if (!res.success) {
         setFormErrors({ code: res.error });
         return;
       }
     } else {
-      const res = addCourse(courseCode, courseName);
+      const res = addCourse(courseCode, courseName, departmentId);
       if (!res.success) {
         setFormErrors({ code: res.error });
         return;
@@ -108,6 +112,7 @@ export default function CoursesPage() {
     setModalOpen(false);
     setCourseCode("");
     setCourseName("");
+    setDepartmentId("");
     setEditingCourseId(null);
   };
 
@@ -424,25 +429,29 @@ export default function CoursesPage() {
               </div>
             </div>
 
-            {/* Enrolled Students Roster Sample */}
+            {/* Enrolled Students Roster */}
             <div className="space-y-3">
               <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-                Enrolled Student Cohort (Sample Roster)
+                Enrolled Student Cohort ({students.length})
               </h4>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {students.slice(0, 6).map((std, idx) => (
-                  <div key={std.id} className="p-2.5 rounded-xl border border-border bg-card flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 font-bold flex items-center justify-center text-[10px] shrink-0">
-                      {std.fullName.split(" ").map((n) => n[0]).join("")}
+              {students.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No students enrolled yet.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {students.slice(0, 6).map((std) => (
+                    <div key={std.id} className="p-2.5 rounded-xl border border-border bg-card flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-accent/20 text-accent font-bold flex items-center justify-center text-[10px] shrink-0">
+                        {std.fullName.split(" ").map((n) => n[0]).join("")}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground truncate text-[11px]">{std.fullName}</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">{std.studentId || std.email}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-foreground truncate text-[11px]">{std.fullName}</p>
-                      <p className="text-[10px] text-muted-foreground font-mono">CS202300{idx + 1}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end pt-3 border-t border-border">
@@ -475,6 +484,34 @@ export default function CoursesPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="block font-semibold text-foreground">
+                  Department <span className="text-rose-500">*</span>
+                </label>
+                {departments.length === 0 ? (
+                  <div className="p-2.5 rounded-xl border border-warning/40 bg-warning/10 text-warning text-xs space-y-1">
+                    <p className="font-semibold">No departments found.</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Please create an academic department first in Department Management.
+                    </p>
+                  </div>
+                ) : (
+                  <select
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent bg-card text-foreground"
+                  >
+                    <option value="">Select Department...</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {formErrors.department && <p className="text-[11px] text-rose-500">{formErrors.department}</p>}
+              </div>
+
               <div className="space-y-1">
                 <label className="block font-semibold text-foreground">
                   Course Code <span className="text-rose-500">*</span>

@@ -88,7 +88,7 @@ export default function StudentsPage() {
   // Helper to get Department Name
   const getDeptName = (deptId: string): string => {
     const dept = departments.find((d) => d.id === deptId);
-    return dept ? dept.name : "Department of Computer Science & Engineering";
+    return dept ? dept.name : "Unassigned Department";
   };
 
   // Filtered Students
@@ -118,7 +118,7 @@ export default function StudentsPage() {
       departmentId: departments.length > 0 ? departments[0].id : "",
       academicYear: 1,
       semester: 1,
-      defaultPassword: "",
+      defaultPassword: "password123",
     });
     setAddErrors({});
     setShowAddPassword(false);

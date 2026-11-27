@@ -23,13 +23,14 @@ interface AdminDataContextType {
   addDepartment: (name: string) => { success: boolean; error?: string };
   editDepartment: (id: string, name: string) => { success: boolean; error?: string };
   deleteDepartment: (id: string) => void;
-  addCourse: (code: string, name: string) => { success: boolean; error?: string };
-  editCourse: (id: string, code: string, name: string) => { success: boolean; error?: string };
+  addCourse: (code: string, name: string, departmentId?: string) => { success: boolean; error?: string };
+  editCourse: (id: string, code: string, name: string, departmentId?: string) => { success: boolean; error?: string };
   deleteCourse: (id: string) => void;
   addLecturer: (data: {
     name: string;
     email: string;
     position: "Senior" | "Probationary";
+    departmentId?: string;
     assignedCourses: string[];
   }) => { success: boolean; lecturer?: Lecturer; error?: string };
   editLecturer: (id: string, updates: Partial<Lecturer>) => { success: boolean; error?: string };
@@ -325,6 +326,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               id: c.id,
               code: c.course_code || c.code,
               name: c.course_name || c.name,
+              departmentId: c.department_id,
+              departmentName: c.department_name,
               createdAt: c.created_at ? c.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
               adminEmail: c.admin_email || "admin@university.edu",
             }));
@@ -344,6 +347,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               name: l.name,
               email: l.email,
               position: l.position || "Senior",
+              departmentId: l.department_id,
               assignedCourses: l.assigned_courses || [],
               status: l.status || "Active",
               hasChangedDefaultPassword: Boolean(l.has_changed_default_password),
@@ -478,69 +482,104 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return (activeAdminEmail || "admin@university.edu").trim().toLowerCase();
   }, [activeRole, activeAdminEmail, activeLecturerEmail, activeStudentEmail, masterLecturers, masterStudents]);
 
+  const currentLecturer = useMemo(() => {
+    return masterLecturers.find((l) => l.email.toLowerCase() === activeLecturerEmail.toLowerCase());
+  }, [masterLecturers, activeLecturerEmail]);
+
   // Scoped views for the current active admin/faculty
   // Multi-tenancy: One admin cannot see or access another admin's lecturers, students, courses, or departments
   const departments = useMemo(() => {
-    return masterDepartments.filter(
-      (d) => (d.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
-    );
+    return masterDepartments.filter((d) => {
+      const email = (d.adminEmail || "admin@university.edu").toLowerCase();
+      return email === effectiveAdminEmail || (effectiveAdminEmail === "admin@university.edu" && !d.adminEmail);
+    });
   }, [masterDepartments, effectiveAdminEmail]);
 
   const courses = useMemo(() => {
-    return masterCourses.filter(
-      (c) => (c.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
-    );
-  }, [masterCourses, effectiveAdminEmail]);
+    return masterCourses.filter((c) => {
+      const crsAdmin = (c.adminEmail || "admin@university.edu").toLowerCase();
+      if (crsAdmin === effectiveAdminEmail || (effectiveAdminEmail === "admin@university.edu" && !c.adminEmail)) {
+        return true;
+      }
+      if (activeRole === "lecturer" && currentLecturer) {
+        if (currentLecturer.assignedCourses?.includes(c.code)) return true;
+      }
+      return false;
+    });
+  }, [masterCourses, effectiveAdminEmail, activeRole, currentLecturer]);
 
   const lecturers = useMemo(() => {
-    return masterLecturers.filter(
-      (l) => (l.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
-    );
+    return masterLecturers.filter((l) => {
+      const email = (l.adminEmail || "admin@university.edu").toLowerCase();
+      return email === effectiveAdminEmail || (effectiveAdminEmail === "admin@university.edu" && !l.adminEmail);
+    });
   }, [masterLecturers, effectiveAdminEmail]);
 
   const students = useMemo(() => {
-    return masterStudents.filter(
-      (s) => (s.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
-    );
+    return masterStudents.filter((s) => {
+      const email = (s.adminEmail || "admin@university.edu").toLowerCase();
+      return email === effectiveAdminEmail || (effectiveAdminEmail === "admin@university.edu" && !s.adminEmail);
+    });
   }, [masterStudents, effectiveAdminEmail]);
 
   const projects = useMemo(() => {
-    return masterProjects.filter(
-      (p) => (p.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
-    );
-  }, [masterProjects, effectiveAdminEmail]);
+    return masterProjects.filter((p) => {
+      const projAdmin = (p.adminEmail || "admin@university.edu").toLowerCase();
+      if (projAdmin === effectiveAdminEmail || (effectiveAdminEmail === "admin@university.edu" && !p.adminEmail)) {
+        return true;
+      }
+      if (activeRole === "lecturer" && currentLecturer) {
+        if (currentLecturer.assignedCourses?.includes(p.courseCode)) return true;
+      }
+      return false;
+    });
+  }, [masterProjects, effectiveAdminEmail, activeRole, currentLecturer]);
 
   const activities = useMemo(() => {
-    return masterActivities.filter(
-      (a) => (a.adminEmail || "admin@university.edu").toLowerCase() === effectiveAdminEmail
-    );
+    return masterActivities.filter((a) => {
+      const email = (a.adminEmail || "admin@university.edu").toLowerCase();
+      return email === effectiveAdminEmail || (effectiveAdminEmail === "admin@university.edu" && !a.adminEmail);
+    });
   }, [masterActivities, effectiveAdminEmail]);
 
-  const currentLecturer = masterLecturers.find((l) => l.email.toLowerCase() === activeLecturerEmail.toLowerCase());
-
-  // Sync to localStorage
+  // Sync to localStorage with persistent non-destructive merging
   const persist = (
-    deptList = masterDepartments,
-    crsList = masterCourses,
-    lecList = masterLecturers,
-    stdList = masterStudents,
-    actList = masterActivities,
-    projList = masterProjects,
-    grpList = groups,
-    timelineList = timelineActivities
+    deptList?: Department[],
+    crsList?: Course[],
+    lecList?: Lecturer[],
+    stdList?: Student[],
+    actList?: ActivityLog[],
+    projList?: Project[],
+    grpList?: ProjectGroup[],
+    timelineList?: ProjectTimelineActivity[]
   ) => {
     try {
+      let existing: any = {};
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) existing = JSON.parse(raw);
+      } catch {}
+
+      const departmentsToSave = deptList !== undefined ? deptList : (masterDepartments.length > 0 ? masterDepartments : (existing.departments || []));
+      const coursesToSave = crsList !== undefined ? crsList : (masterCourses.length > 0 ? masterCourses : (existing.courses || []));
+      const lecturersToSave = lecList !== undefined ? lecList : (masterLecturers.length > 0 ? masterLecturers : (existing.lecturers || []));
+      const studentsToSave = stdList !== undefined ? stdList : (masterStudents.length > 0 ? masterStudents : (existing.students || []));
+      const activitiesToSave = actList !== undefined ? actList : (masterActivities.length > 0 ? masterActivities : (existing.activities || []));
+      const projectsToSave = projList !== undefined ? projList : (masterProjects.length > 0 ? masterProjects : (existing.projects || []));
+      const groupsToSave = grpList !== undefined ? grpList : (groups.length > 0 ? groups : (existing.groups || []));
+      const timelineToSave = timelineList !== undefined ? timelineList : (timelineActivities.length > 0 ? timelineActivities : (existing.timelineActivities || []));
+
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
-          departments: deptList,
-          courses: crsList,
-          lecturers: lecList,
-          students: stdList,
-          activities: actList,
-          projects: projList,
-          groups: grpList,
-          timelineActivities: timelineList,
+          departments: departmentsToSave,
+          courses: coursesToSave,
+          lecturers: lecturersToSave,
+          students: studentsToSave,
+          activities: activitiesToSave,
+          projects: projectsToSave,
+          groups: groupsToSave,
+          timelineActivities: timelineToSave,
         })
       );
     } catch {}
@@ -667,7 +706,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   // ==========================================
   // Course Actions (Admin Only)
   // ==========================================
-  const addCourse = (code: string, name: string) => {
+  const addCourse = (code: string, name: string, departmentId?: string) => {
     if (activeRole !== "admin") {
       return { success: false, error: "Access denied. Only university administrators can create courses." };
     }
@@ -682,10 +721,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: `Course Code "${trimmedCode}" already exists in your faculty` };
     }
 
+    const deptObj = departmentId ? masterDepartments.find((d) => d.id === departmentId) : undefined;
+
     const newCourse: Course = {
       id: `crs-${Date.now()}`,
       code: trimmedCode,
       name: trimmedName,
+      departmentId: departmentId || (masterDepartments.length > 0 ? masterDepartments[0].id : undefined),
+      departmentName: deptObj?.name || (masterDepartments.length > 0 ? masterDepartments[0].name : undefined),
       createdAt: new Date().toISOString().split("T")[0],
       adminEmail: effectiveAdminEmail,
     };
@@ -703,6 +746,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           course_code: newCourse.code,
           name: newCourse.name,
           course_name: newCourse.name,
+          department_id: newCourse.departmentId,
           admin_email: newCourse.adminEmail,
         }).then(({ error }) => {
           if (error) logSupabaseNotice("insert course", error);
@@ -713,7 +757,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     return { success: true };
   };
 
-  const editCourse = (id: string, code: string, name: string) => {
+  const editCourse = (id: string, code: string, name: string, departmentId?: string) => {
     if (activeRole !== "admin") {
       return { success: false, error: "Access denied. Only university administrators can edit courses." };
     }
@@ -730,8 +774,16 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: `Course Code "${trimmedCode}" is already in use in your faculty` };
     }
 
+    const deptObj = departmentId ? masterDepartments.find((d) => d.id === departmentId) : undefined;
+
     const updatedCourses = masterCourses.map((c) =>
-      c.id === id ? { ...c, code: trimmedCode, name: trimmedName } : c
+      c.id === id ? {
+        ...c,
+        code: trimmedCode,
+        name: trimmedName,
+        departmentId: departmentId ?? c.departmentId,
+        departmentName: deptObj?.name ?? c.departmentName,
+      } : c
     );
     setMasterCourses(updatedCourses);
     const updatedActs = addActivity("updated course details for", trimmedCode, "course");
@@ -745,6 +797,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           course_code: trimmedCode,
           name: trimmedName,
           course_name: trimmedName,
+          department_id: departmentId,
         }).eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("update course", error);
         });
@@ -780,6 +833,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     name: string;
     email: string;
     position: "Senior" | "Probationary";
+    departmentId?: string;
     assignedCourses: string[];
   }) => {
     if (activeRole !== "admin") {
@@ -806,6 +860,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       name: trimmedName,
       email: trimmedEmail,
       position: data.position,
+      departmentId: data.departmentId,
       assignedCourses: data.assignedCourses || [],
       status: "Pending First Login",
       hasChangedDefaultPassword: false,
@@ -1042,7 +1097,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           full_name: newStudent.fullName,
           email: newStudent.email,
           department_id: newStudent.departmentId,
-          department: deptObj?.name || "Computer Science",
+          department: deptObj?.name || "General",
           academic_year: newStudent.academicYear,
           semester: newStudent.semester,
           default_password: newStudent.defaultPassword,
@@ -1419,7 +1474,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedTimeline = [newTl, ...timelineActivities];
     setTimelineActivities(updatedTimeline);
 
-    persist(departments, courses, lecturers, students, activities, projects, updatedGroups, updatedTimeline);
+    persist(undefined, undefined, undefined, undefined, undefined, undefined, updatedGroups, updatedTimeline);
     showToast(`Group "${data.groupName}" formed successfully!`, "success");
     return { success: true, group: newGroup };
   };
@@ -1444,7 +1499,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedTimeline = [newTl, ...timelineActivities];
     setTimelineActivities(updatedTimeline);
 
-    persist(departments, courses, lecturers, students, activities, projects, updatedGroups, updatedTimeline);
+    persist(undefined, undefined, undefined, undefined, undefined, undefined, updatedGroups, updatedTimeline);
     showToast(`${newGroups.length} group workspaces confirmed and initialized!`, "success");
   };
 
@@ -1516,7 +1571,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     };
     const updated = [newAct, ...timelineActivities.slice(0, 49)];
     setTimelineActivities(updated);
-    persist(departments, courses, lecturers, students, activities, projects, groups, updated);
+    persist(undefined, undefined, undefined, undefined, undefined, undefined, groups, updated);
   };
 
   const connectRepoToGroup = async (groupId: string, repoUrl: string) => {

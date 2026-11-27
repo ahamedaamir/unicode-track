@@ -26,6 +26,7 @@ export default function LecturersPage() {
   const { 
     lecturers, 
     courses, 
+    departments,
     addLecturer, 
     editLecturer, 
     toggleLecturerStatus, 
@@ -49,6 +50,7 @@ export default function LecturersPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [position, setPosition] = useState<"Senior" | "Probationary">("Senior");
+  const [departmentId, setDepartmentId] = useState("");
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [formErrors, setFormErrors] = useState<{ name?: string; email?: string }>({});
   const [copied, setCopied] = useState(false);
@@ -64,6 +66,7 @@ export default function LecturersPage() {
     setName("");
     setEmail("");
     setPosition("Senior");
+    setDepartmentId(departments.length > 0 ? departments[0].id : "");
     setSelectedCourses([]);
     setFormErrors({});
     setModalOpen(true);
@@ -74,6 +77,7 @@ export default function LecturersPage() {
     setName(lec.name);
     setEmail(lec.email);
     setPosition(lec.position);
+    setDepartmentId(lec.departmentId || (departments.length > 0 ? departments[0].id : ""));
     setSelectedCourses([...lec.assignedCourses]);
     setFormErrors({});
     setModalOpen(true);
@@ -103,6 +107,7 @@ export default function LecturersPage() {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         position,
+        departmentId: departmentId || undefined,
         assignedCourses: selectedCourses,
       });
       if (res.success) {
@@ -113,6 +118,7 @@ export default function LecturersPage() {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         position,
+        departmentId: departmentId || undefined,
         assignedCourses: selectedCourses,
       });
 
@@ -445,6 +451,25 @@ export default function LecturersPage() {
                 >
                   <option value="Senior">Senior</option>
                   <option value="Probationary">Probationary</option>
+                </select>
+              </div>
+
+              {/* Department Dropdown */}
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  Academic Department
+                </label>
+                <select
+                  value={departmentId}
+                  onChange={(e) => setDepartmentId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border text-sm text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-[#14B8A6]"
+                >
+                  <option value="">Select Faculty Department (Optional)...</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
