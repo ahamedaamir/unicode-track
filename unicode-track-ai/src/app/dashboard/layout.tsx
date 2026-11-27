@@ -58,6 +58,10 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const isLecturer = activeRole === "lecturer";
   const isWidePage = pathname?.includes("/dashboard/test") || pathname?.includes("/workspace");
 
+  if (pathname?.startsWith("/dashboard/student")) {
+    return <>{children}</>;
+  }
+
   useEffect(() => {
     try {
       const pendingStudent = sessionStorage.getItem("unicodetrack_pending_student_email");
