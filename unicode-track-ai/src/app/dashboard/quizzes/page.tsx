@@ -160,18 +160,10 @@ export default function QuizzesPage() {
     {
       id: "q-1",
       questionNumber: 1,
-      prompt: SAMPLE_PRESETS[0].prompt,
-      language: SAMPLE_PRESETS[0].language,
-      maxMarks: 5,
-      starterCode: SAMPLE_PRESETS[0].starter,
-    },
-    {
-      id: "q-2",
-      questionNumber: 2,
-      prompt: SAMPLE_PRESETS[1].prompt,
-      language: SAMPLE_PRESETS[1].language,
-      maxMarks: 5,
-      starterCode: SAMPLE_PRESETS[1].starter,
+      prompt: "",
+      language: "c",
+      maxMarks: 10,
+      starterCode: DEFAULT_STARTER_CODES.c,
     },
   ]);
   const [formError, setFormError] = useState<string>("");
@@ -196,51 +188,17 @@ export default function QuizzesPage() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setQuizzes(parsed);
+        if (Array.isArray(parsed)) {
+          // Remove any legacy hardcoded demo quiz
+          const realQuizzes = parsed.filter((q: QuizItem) => q.id !== "quiz-demo-1");
+          setQuizzes(realQuizzes);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(realQuizzes));
           return;
         }
       }
     } catch {}
 
-    // Initial default quiz
-    const initialQuiz: QuizItem = {
-      id: "quiz-demo-1",
-      title: "C Systems Programming & Memory Practical",
-      topic: "Pointers & Dynamic Memory Management in C",
-      courseCode: courses.length > 0 ? courses[0].code : "ICT2142",
-      evaluationRequirements:
-        "Don't need to produce accurate output. If algorithmic patterns, loops, and logic are correct, put marks.",
-      questions: [
-        {
-          id: "q-1",
-          questionNumber: 1,
-          prompt: SAMPLE_PRESETS[0].prompt,
-          language: "c",
-          maxMarks: 5,
-          starterCode: SAMPLE_PRESETS[0].starter,
-        },
-        {
-          id: "q-2",
-          questionNumber: 2,
-          prompt: SAMPLE_PRESETS[1].prompt,
-          language: "c",
-          maxMarks: 5,
-          starterCode: SAMPLE_PRESETS[1].starter,
-        },
-      ],
-      durationMinutes: 15,
-      mode: "total",
-      startTime: new Date().toISOString(),
-      status: "live",
-      submissions: [],
-      createdAt: new Date().toISOString(),
-    };
-
-    setQuizzes([initialQuiz]);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([initialQuiz]));
-    } catch {}
+    setQuizzes([]);
   }, [courses]);
 
   // Save quizzes whenever updated
@@ -249,6 +207,19 @@ export default function QuizzesPage() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch {}
+  };
+
+  const handleDeleteQuiz = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (confirm("Are you sure you want to delete this quiz? This action cannot be undone.")) {
+      const updated = quizzes.filter((q) => q.id !== id);
+      persistQuizzes(updated);
+      if (activeQuizId === id) {
+        setActiveQuizId(null);
+        setView("list");
+      }
+      setToastMessage("Quiz deleted successfully.");
+    }
   };
 
   const activeQuiz = useMemo(() => {
@@ -376,30 +347,12 @@ export default function QuizzesPage() {
     const targetQuiz = quizzes.find((q) => q.id === quizId);
     if (!targetQuiz) return;
 
-    // Ensure we have submissions to grade. If none exist yet, provision realistic student submissions
-    let submissionsToGrade = targetQuiz.submissions;
-    if (submissionsToGrade.length === 0) {
-      const demoStudents = students.length > 0 ? students.slice(0, 4) : [
-        { id: "TG/2004/2004", fullName: "Kavindu Perera", email: "kavindu@university.edu" },
-        { id: "TG/2004/2011", fullName: "Amina Farooq", email: "amina@university.edu" },
-        { id: "TG/2004/2037", fullName: "Sahan Wickrama", email: "sahan@university.edu" },
-        { id: "TG/2004/2058", fullName: "Dinusha Silva", email: "dinusha@university.edu" },
-      ];
-
-      submissionsToGrade = demoStudents.map((s, idx) => ({
-        studentId: (s as any).studentId || s.id || `TG/2004/${2000 + idx}`,
-        studentName: (s as any).fullName || (s as any).name || "Student Examinee",
-        studentEmail: s.email,
-        submittedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        answers: targetQuiz.questions.map((q, qIdx) => ({
-          questionNumber: q.questionNumber,
-          code:
-            qIdx === 0
-              ? `void reverseString(char* str) {\n    int len = strlen(str);\n    for(int i = 0; i < len/2; i++) {\n        char t = str[i];\n        str[i] = str[len - 1 - i];\n        str[len - 1 - i] = t;\n    }\n}`
-              : `int findLargest(int arr[], int size) {\n    int max = arr[0];\n    for(int i = 1; i < size; i++) {\n        if(arr[i] > max) max = arr[i];\n    }\n    return max;\n}`,
-        })),
-      }));
+    if (!targetQuiz.submissions || targetQuiz.submissions.length === 0) {
+      setToastMessage("No student submissions to evaluate yet. Students must take the quiz first.");
+      return;
     }
+
+    const submissionsToGrade = targetQuiz.submissions;
 
     setIsLoading(true);
     setLoadingMessage("Gemini AI is analyzing each student's code according to lecturer requirements...");
@@ -521,16 +474,15 @@ export default function QuizzesPage() {
   // Add question to creation form
   const handleAddQuestion = () => {
     const nextNum = formQuestions.length + 1;
-    const preset = SAMPLE_PRESETS[(nextNum - 1) % SAMPLE_PRESETS.length];
     setFormQuestions([
       ...formQuestions,
       {
-        id: `q-${Date.now()}`,
+        id: `q-${Date.now()}-${nextNum}`,
         questionNumber: nextNum,
-        prompt: preset.prompt,
-        language: preset.language,
-        maxMarks: 5,
-        starterCode: preset.starter,
+        prompt: "",
+        language: "c",
+        maxMarks: 10,
+        starterCode: DEFAULT_STARTER_CODES.c,
       },
     ]);
   };
@@ -629,10 +581,10 @@ export default function QuizzesPage() {
                   {
                     id: "q-1",
                     questionNumber: 1,
-                    prompt: SAMPLE_PRESETS[0].prompt,
-                    language: SAMPLE_PRESETS[0].language,
-                    maxMarks: 5,
-                    starterCode: SAMPLE_PRESETS[0].starter,
+                    prompt: "",
+                    language: "c",
+                    maxMarks: 10,
+                    starterCode: DEFAULT_STARTER_CODES.c,
                   },
                 ]);
                 setView("create");
@@ -710,7 +662,7 @@ export default function QuizzesPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="flex items-center gap-2 pt-1">
                     <Button
                       onClick={() => {
                         setActiveQuizId(quiz.id);
@@ -718,20 +670,29 @@ export default function QuizzesPage() {
                       }}
                       variant="outline"
                       size="sm"
-                      className="w-full justify-center text-xs"
+                      className="flex-1 justify-center text-xs"
                     >
-                      Lecturer Review
+                      Review
                     </Button>
 
                     <Button
                       onClick={() => handleStartTakingQuiz(quiz)}
                       variant="primary"
                       size="sm"
-                      className="w-full justify-center text-xs"
+                      className="flex-1 justify-center text-xs"
                       iconRight={<Play className="w-3 h-3 fill-current" />}
                     >
                       Take Quiz
                     </Button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteQuiz(quiz.id, e)}
+                      className="p-2 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors shrink-0"
+                      title="Delete quiz"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               );
@@ -1295,6 +1256,15 @@ export default function QuizzesPage() {
             >
               Export PDF
             </Button>
+            <Button
+              onClick={() => handleDeleteQuiz(activeQuiz.id)}
+              variant="outline"
+              size="sm"
+              className="text-red-400 border-red-500/30 hover:bg-red-500/10 hover:text-red-300 text-xs"
+              icon={<Trash2 className="w-3.5 h-3.5" />}
+            >
+              Delete Quiz
+            </Button>
           </div>
         </div>
 
@@ -1349,11 +1319,12 @@ export default function QuizzesPage() {
           </div>
 
           {activeQuiz.submissions.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground space-y-3">
-              <p className="text-xs">No student submissions recorded yet.</p>
-              <Button onClick={() => handleRunAIEvaluation(activeQuiz.id)} variant="outline" size="sm">
-                Generate & Grade Demo Submissions
-              </Button>
+            <div className="p-8 text-center text-muted-foreground space-y-2">
+              <FileQuestion className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+              <p className="text-xs font-medium text-foreground">No student submissions recorded yet.</p>
+              <p className="text-[11px] text-muted-foreground">
+                Students can take this quiz from their examination workspace, or you can preview it using &ldquo;Test as Student&rdquo; above.
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
