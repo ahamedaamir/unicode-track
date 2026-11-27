@@ -49,6 +49,46 @@ export function CreateProjectPrototypeForm({
   const [type, setType] = useState<"group" | "individual">("group");
   const [pdfName, setPdfName] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [isExtractingPdf, setIsExtractingPdf] = useState(false);
+  const [extractedGroups, setExtractedGroups] = useState<any[] | null>(null);
+  const [extractionWarnings, setExtractionWarnings] = useState<string[]>([]);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
+
+  const handlePdfUpload = async (file: File) => {
+    setPdfName(file.name);
+    setPdfFile(file);
+    setIsExtractingPdf(true);
+    setExtractionError(null);
+    setExtractionWarnings([]);
+    setExtractedGroups(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("registeredStudents", JSON.stringify(students));
+
+      const res = await fetch("/api/ai/extract-groups", {
+        method: "POST",
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.success && json.data && json.data.groups && json.data.groups.length > 0) {
+        setExtractedGroups(json.data.groups);
+        if (json.data.warnings && json.data.warnings.length > 0) {
+          setExtractionWarnings(json.data.warnings);
+        }
+      } else {
+        setExtractionError(
+          json.error || "No groups could be identified in this PDF. Please ensure the PDF has a selectable table of group allocations."
+        );
+      }
+    } catch (err: any) {
+      setExtractionError(err?.message || "Failed to extract student groups with Gemini AI.");
+    } finally {
+      setIsExtractingPdf(false);
+    }
+  };
 
   // Dynamic courses linked to selected department
   const courses = React.useMemo(() => {
@@ -107,6 +147,10 @@ export function CreateProjectPrototypeForm({
     setType("group");
     setPdfName("");
     setPdfFile(null);
+    setExtractedGroups(null);
+    setExtractionWarnings([]);
+    setExtractionError(null);
+    setIsExtractingPdf(false);
     setReqs([{ t: "", m: "" }]);
     setD({
       proposal: { on: false, f: "", t: "" },
@@ -244,24 +288,36 @@ export function CreateProjectPrototypeForm({
 
       const newProjectId = result.project.id;
 
-      // If group project: seed initial group workspaces with real students from cohort
+      // If group project: seed initial group workspaces using real groups extracted from PDF by Gemini AI
       if (type === "group" && setProjectGroups) {
-        const matchingStudents = students.filter(
-          (s) =>
-            (!matchingDept || s.departmentId === matchingDept.id) &&
-            s.academicYear === academicYear &&
-            s.semester === semester
-        );
+        let groupsToUse = extractedGroups;
 
-        const groupCount = Math.max(1, Math.min(4, Math.ceil(matchingStudents.length / 4) || 2));
-        const initialGroups: ProjectGroup[] = Array.from({ length: groupCount }, (_, idx) => {
-          const gNum = idx + 1;
-          const assignedMembers = matchingStudents
-            .filter((_, sIdx) => sIdx % groupCount === idx)
-            .map((s, mIdx) => ({
-              studentId: s.studentId || s.id,
-              fullName: s.fullName,
-              email: s.email,
+        // If extraction is still pending or wasn't triggered
+        if ((!groupsToUse || groupsToUse.length === 0) && pdfFile) {
+          try {
+            const formData = new FormData();
+            formData.append("file", pdfFile);
+            formData.append("registeredStudents", JSON.stringify(students));
+            const res = await fetch("/api/ai/extract-groups", {
+              method: "POST",
+              body: formData,
+            });
+            const json = await res.json();
+            if (json.success && json.data && json.data.groups && json.data.groups.length > 0) {
+              groupsToUse = json.data.groups;
+            }
+          } catch (e) {
+            console.warn("PDF extraction fallback error:", e);
+          }
+        }
+
+        if (groupsToUse && groupsToUse.length > 0) {
+          const initialGroups: ProjectGroup[] = groupsToUse.map((eg, idx) => {
+            const gNum = eg.group_number || idx + 1;
+            const assignedMembers = (eg.members || []).map((m: any, mIdx: number) => ({
+              studentId: m.student_id || m.matchedStudent?.studentId || m.matchedStudent?.id || `ST-${gNum}-${mIdx + 1}`,
+              fullName: m.full_name || m.matchedStudent?.fullName || "Student",
+              email: m.email || m.matchedStudent?.email || "",
               department: dept,
               academicYear,
               semester,
@@ -269,23 +325,66 @@ export function CreateProjectPrototypeForm({
               commitsCount: 0,
             }));
 
-          return {
-            id: `grp-${newProjectId}-${gNum}`,
-            projectId: newProjectId,
-            groupNumber: gNum,
-            groupName: `Group ${gNum}`,
-            workspaceId: `ws-${newProjectId}-${gNum}`,
-            members: assignedMembers,
-            repoStatus: "disconnected",
-            totalCommits: 0,
-            status: "active",
-            progress: 0,
-            proposalStatus: d.proposal.on ? "submitted" : "approved",
-            createdAt: new Date().toISOString().split("T")[0],
-          };
-        });
+            return {
+              id: `grp-${newProjectId}-${gNum}`,
+              projectId: newProjectId,
+              groupNumber: gNum,
+              groupName: eg.group_name || `Group ${gNum}`,
+              workspaceId: `ws-${newProjectId}-${gNum}`,
+              members: assignedMembers,
+              repoStatus: "disconnected",
+              totalCommits: 0,
+              status: "active",
+              progress: 0,
+              proposalStatus: d.proposal.on ? "submitted" : "approved",
+              createdAt: new Date().toISOString().split("T")[0],
+            };
+          });
 
-        setProjectGroups(newProjectId, initialGroups);
+          setProjectGroups(newProjectId, initialGroups);
+        } else {
+          // Fallback only if no PDF uploaded or extraction yielded no groups
+          const matchingStudents = students.filter(
+            (s) =>
+              (!matchingDept || s.departmentId === matchingDept.id) &&
+              s.academicYear === academicYear &&
+              s.semester === semester
+          );
+          if (matchingStudents.length > 0) {
+            const groupCount = Math.max(1, Math.min(6, Math.ceil(matchingStudents.length / 4)));
+            const initialGroups: ProjectGroup[] = Array.from({ length: groupCount }, (_, idx) => {
+              const gNum = idx + 1;
+              const assignedMembers = matchingStudents
+                .filter((_, sIdx) => sIdx % groupCount === idx)
+                .map((s, mIdx) => ({
+                  studentId: s.studentId || s.id,
+                  fullName: s.fullName,
+                  email: s.email,
+                  department: dept,
+                  academicYear,
+                  semester,
+                  role: mIdx === 0 ? ("Team Lead" as const) : ("Member" as const),
+                  commitsCount: 0,
+                }));
+
+              return {
+                id: `grp-${newProjectId}-${gNum}`,
+                projectId: newProjectId,
+                groupNumber: gNum,
+                groupName: `Group ${gNum}`,
+                workspaceId: `ws-${newProjectId}-${gNum}`,
+                members: assignedMembers,
+                repoStatus: "disconnected",
+                totalCommits: 0,
+                status: "active",
+                progress: 0,
+                proposalStatus: d.proposal.on ? "submitted" : "approved",
+                createdAt: new Date().toISOString().split("T")[0],
+              };
+            });
+            setProjectGroups(newProjectId, initialGroups);
+          }
+        }
       }
 
       // If individual project: seed personal workspaces with real students
@@ -473,19 +572,70 @@ export function CreateProjectPrototypeForm({
               type="file"
               accept=".pdf"
               hidden
+              disabled={isExtractingPdf}
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
-                  setPdfName(e.target.files[0].name);
-                  setPdfFile(e.target.files[0]);
+                  handlePdfUpload(e.target.files[0]);
                 }
               }}
             />
             <b className="text-foreground">{pdfName || "Upload group list (PDF)"}</b>
             <br />
             <span className="text-muted-foreground text-xs">
-              {pdfName ? "Click to replace" : "Click to choose a file"}
+              {isExtractingPdf
+                ? "Extracting groups with Gemini AI..."
+                : pdfName
+                ? "Click to replace PDF"
+                : "Click to choose a file"}
             </span>
           </label>
+
+          {isExtractingPdf && (
+            <div className="p-4 rounded-[12px] bg-accent/10 border border-accent/30 text-accent flex items-center gap-3 animate-pulse">
+              <span className="w-2.5 h-2.5 rounded-full bg-accent animate-ping" />
+              <div className="text-xs">
+                <p className="font-semibold">Gemini AI is reading and parsing the PDF table...</p>
+                <p className="text-muted-foreground text-[11px]">Extracting student groups, IDs, and members.</p>
+              </div>
+            </div>
+          )}
+
+          {extractionError && (
+            <div className="p-3.5 rounded-[12px] bg-red-950/40 border border-red-500/30 text-red-300 text-xs">
+              <b>Extraction Notice:</b> {extractionError}
+            </div>
+          )}
+
+          {extractedGroups && extractedGroups.length > 0 && (
+            <div className="p-4 rounded-[14px] bg-card border border-emerald-500/30 text-foreground space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-emerald-400 font-bold text-sm">✓ Gemini AI Extracted</span>
+                  <span className="text-xs text-muted-foreground">
+                    ({extractedGroups.length} groups, {extractedGroups.reduce((acc, g) => acc + (g.members?.length || 0), 0)} students)
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                  {pdfName}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+                {extractedGroups.map((g, gIdx) => (
+                  <div key={gIdx} className="p-2.5 rounded-[8px] bg-muted/40 border border-border text-xs">
+                    <p className="font-semibold text-accent">{g.group_name || `Group ${g.group_number || gIdx + 1}`}</p>
+                    <p className="text-[11px] text-muted-foreground">{g.members?.length || 0} members</p>
+                    <div className="mt-1 space-y-0.5 max-h-16 overflow-y-auto text-[10.5px]">
+                      {(g.members || []).map((m: any, mIdx: number) => (
+                        <div key={mIdx} className="truncate text-foreground/80">
+                          {m.student_id ? `${m.student_id} - ` : ""}{m.full_name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 

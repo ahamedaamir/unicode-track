@@ -292,7 +292,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       if (savedER) {
         setERSubmissions(JSON.parse(savedER));
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // Sync real database tables from Supabase on mount
@@ -326,8 +326,6 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               id: c.id,
               code: c.course_code || c.code,
               name: c.course_name || c.name,
-              departmentId: c.department_id,
-              departmentName: c.department_name,
               createdAt: c.created_at ? c.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
               adminEmail: c.admin_email || "admin@university.edu",
             }));
@@ -347,7 +345,6 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               name: l.name,
               email: l.email,
               position: l.position || "Senior",
-              departmentId: l.department_id,
               assignedCourses: l.assigned_courses || [],
               status: l.status || "Active",
               hasChangedDefaultPassword: Boolean(l.has_changed_default_password),
@@ -439,7 +436,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           } as any)));
         }
       });
-    } catch {}
+    } catch { }
   }, []);
 
   // Sync projects from Supabase API on mount
@@ -459,7 +456,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Resolve which Admin faculty this session belongs to
@@ -558,7 +555,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) existing = JSON.parse(raw);
-      } catch {}
+      } catch { }
 
       const departmentsToSave = deptList !== undefined ? deptList : (masterDepartments.length > 0 ? masterDepartments : (existing.departments || []));
       const coursesToSave = crsList !== undefined ? crsList : (masterCourses.length > 0 ? masterCourses : (existing.courses || []));
@@ -582,7 +579,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           timelineActivities: timelineToSave,
         })
       );
-    } catch {}
+    } catch { }
   };
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
@@ -646,7 +643,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }).then(({ error }) => {
           if (error) logSupabaseNotice("insert department", error);
         });
-      } catch {}
+      } catch { }
     }
     showToast(`Department "${trimmed}" created successfully!`, "success");
     return { success: true };
@@ -678,7 +675,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("departments").update({ name: trimmed }).eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("update department", error);
         });
-      } catch {}
+      } catch { }
     }
     showToast(`Department updated to "${trimmed}"`, "success");
     return { success: true };
@@ -698,7 +695,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("departments").delete().eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("delete department", error);
         });
-      } catch {}
+      } catch { }
     }
     showToast(`Department "${dept?.name}" removed`, "info");
   };
@@ -751,7 +748,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }).then(({ error }) => {
           if (error) logSupabaseNotice("insert course", error);
         });
-      } catch {}
+      } catch { }
     }
     showToast(`Course "${trimmedCode} - ${trimmedName}" added successfully!`, "success");
     return { success: true };
@@ -801,7 +798,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }).eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("update course", error);
         });
-      } catch {}
+      } catch { }
     }
     showToast(`Course ${trimmedCode} updated`, "success");
     return { success: true };
@@ -821,7 +818,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("courses").delete().eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("delete course", error);
         });
-      } catch {}
+      } catch { }
     }
     showToast(`Course "${crs?.code}" removed`, "info");
   };
@@ -894,7 +891,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }).then(({ error }) => {
           if (error) logSupabaseNotice("insert lecturer", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast(`Lecturer account created for ${trimmedName}!`, "success");
@@ -921,7 +918,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("lecturers").update(payload).eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("update lecturer", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast("Lecturer details updated successfully", "success");
@@ -951,7 +948,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("lecturers").update({ status: nextStatus }).eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("toggle lecturer status", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast(`Lecturer ${lec.name} is now ${nextStatus}`, nextStatus === "Active" ? "success" : "info");
@@ -971,7 +968,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("lecturers").delete().eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("delete lecturer", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast(`Lecturer ${lec?.name} removed`, "info");
@@ -985,11 +982,11 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedLecturers: Lecturer[] = masterLecturers.map((l) =>
       l.email.toLowerCase() === trimmedEmail
         ? {
-            ...l,
-            hasChangedDefaultPassword: true,
-            status: "Active" as const,
-            defaultPassword: newPass,
-          }
+          ...l,
+          hasChangedDefaultPassword: true,
+          status: "Active" as const,
+          defaultPassword: newPass,
+        }
         : l
     );
     setMasterLecturers(updatedLecturers);
@@ -1006,7 +1003,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }).eq("email", trimmedEmail).then(({ error }) => {
           if (error) logSupabaseNotice("update lecturer password", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast("Password updated successfully! Welcome to your dashboard.", "success");
@@ -1097,7 +1094,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           full_name: newStudent.fullName,
           email: newStudent.email,
           department_id: newStudent.departmentId,
-          department: deptObj?.name || "General",
+          department: deptObj?.name || "Computer Science",
           academic_year: newStudent.academicYear,
           semester: newStudent.semester,
           default_password: newStudent.defaultPassword,
@@ -1107,7 +1104,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }).then(({ error }) => {
           if (error) logSupabaseNotice("insert student", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast(`Student ${trimmedName} created successfully!`, "success");
@@ -1174,7 +1171,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("students").update(payload).eq("student_id", id).then(({ error }) => {
           if (error) logSupabaseNotice("update student", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast("Student details updated successfully", "success");
@@ -1204,7 +1201,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("students").update({ account_status: nextStatus }).eq("student_id", id).then(({ error }) => {
           if (error) logSupabaseNotice("toggle student status", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast(
@@ -1231,7 +1228,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         supabase.from("students").delete().eq("student_id", id).then(({ error }) => {
           if (error) logSupabaseNotice("delete student", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast(`Student ${std?.fullName || "record"} deleted`, "info");
@@ -1250,10 +1247,10 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedStudents = masterStudents.map((s) =>
       s.email.toLowerCase() === trimmedEmail
         ? {
-            ...s,
-            mustChangePassword: false,
-            defaultPassword: newPass,
-          }
+          ...s,
+          mustChangePassword: false,
+          defaultPassword: newPass,
+        }
         : s
     );
     setMasterStudents(updatedStudents);
@@ -1273,7 +1270,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }).eq("email", trimmedEmail).then(({ error }) => {
           if (error) logSupabaseNotice("update student password", error);
         });
-      } catch {}
+      } catch { }
     }
 
     showToast("Password updated successfully!", "success");
@@ -1354,7 +1351,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ project: { ...proj, ...updates } }),
-    }).catch(() => {});
+    }).catch(() => { });
 
     showToast("Project updated successfully", "success");
     return { success: true };
@@ -1375,7 +1372,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ project: { ...proj, status: "Published" } }),
-    }).catch(() => {});
+    }).catch(() => { });
 
     showToast(`Project "${proj.title}" is now published and visible to students!`, "success");
   };
@@ -1509,7 +1506,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     setStudentAssignments(updated);
     try {
       localStorage.setItem("unicodetrack_student_assignments_v1", JSON.stringify(updated));
-    } catch {}
+    } catch { }
 
     // Mirror to personal ProjectGroup workspaces (1 student per group)
     const personalGroups: ProjectGroup[] = newAssignments.map((a, idx) => ({
@@ -1593,17 +1590,17 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       const updatedGroups = groups.map((g) =>
         g.id === groupId
           ? {
-              ...g,
-              repoUrl: data.repository.repoUrl,
-              repoName: data.repository.repoName,
-              repoOwner: data.repository.repoOwner,
-              defaultBranch: data.repository.defaultBranch,
-              repoStatus: "connected" as const,
-              lastSyncAt: data.repository.lastSyncAt,
-              totalCommits: data.totalCommits || 24,
-              branches: data.branches,
-              commits: data.commits,
-            }
+            ...g,
+            repoUrl: data.repository.repoUrl,
+            repoName: data.repository.repoName,
+            repoOwner: data.repository.repoOwner,
+            defaultBranch: data.repository.defaultBranch,
+            repoStatus: "connected" as const,
+            lastSyncAt: data.repository.lastSyncAt,
+            totalCommits: data.totalCommits || 24,
+            branches: data.branches,
+            commits: data.commits,
+          }
           : g
       );
       setGroups(updatedGroups);
@@ -1645,12 +1642,12 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       const updatedGroups = groups.map((g) =>
         g.id === groupId
           ? {
-              ...g,
-              lastSyncAt: data.syncedAt,
-              totalCommits: data.totalCommits || g.totalCommits,
-              branches: data.branches || g.branches,
-              commits: data.commits || g.commits,
-            }
+            ...g,
+            lastSyncAt: data.syncedAt,
+            totalCommits: data.totalCommits || g.totalCommits,
+            branches: data.branches || g.branches,
+            commits: data.commits || g.commits,
+          }
           : g
       );
       setGroups(updatedGroups);
@@ -1694,11 +1691,11 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedGroups = groups.map((g) =>
       g.id === groupId
         ? {
-            ...g,
-            proposalStatus: "submitted" as const,
-            proposal: newProposal,
-            progress: Math.max(g.progress, 25),
-          }
+          ...g,
+          proposalStatus: "submitted" as const,
+          proposal: newProposal,
+          progress: Math.max(g.progress, 25),
+        }
         : g
     );
     setGroups(updatedGroups);
@@ -1741,15 +1738,15 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const updatedGroups = groups.map((g) =>
       g.id === groupId
         ? {
-            ...g,
-            proposalStatus: nextStatus as any,
-            proposal: {
-              ...g.proposal!,
-              status: nextStatus as any,
-              feedback,
-            },
-            progress: decision === "approved" ? Math.max(g.progress, 60) : g.progress,
-          }
+          ...g,
+          proposalStatus: nextStatus as any,
+          proposal: {
+            ...g.proposal!,
+            status: nextStatus as any,
+            feedback,
+          },
+          progress: decision === "approved" ? Math.max(g.progress, 60) : g.progress,
+        }
         : g
     );
     setGroups(updatedGroups);
@@ -1796,7 +1793,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     setRubrics(nextRubrics);
     try {
       localStorage.setItem("unicodetrack_rubrics_store", JSON.stringify(nextRubrics));
-    } catch {}
+    } catch { }
     showToast("Evaluation rubric saved successfully", "success");
     return { success: true };
   };
@@ -1830,8 +1827,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
             evaluation.status === "published"
               ? 100
               : evaluation.status === "approved"
-              ? 90
-              : g.progress,
+                ? 90
+                : g.progress,
         };
       }
       return g;
@@ -1840,7 +1837,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
     try {
       localStorage.setItem("unicodetrack_evaluations_store", JSON.stringify(nextEvaluations));
-    } catch {}
+    } catch { }
     return { success: true };
   };
 
@@ -1983,7 +1980,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
     try {
       localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
-    } catch {}
+    } catch { }
 
     addTimelineActivity({
       projectId: submission.projectId,
@@ -2004,16 +2001,16 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const nextSubmissions = erSubmissions.map((s) =>
       s.id === submissionId
         ? {
-            ...s,
-            status: "reviewed" as const,
-            aiAnalysis: analysis,
-          }
+          ...s,
+          status: "reviewed" as const,
+          aiAnalysis: analysis,
+        }
         : s
     );
     setERSubmissions(nextSubmissions);
     try {
       localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
-    } catch {}
+    } catch { }
     return { success: true };
   };
 
@@ -2021,19 +2018,19 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const nextSubmissions = erSubmissions.map((s) =>
       s.id === submissionId
         ? {
-            ...s,
-            status:
-              feedback.status === "resubmission_requested"
-                ? ("resubmission_requested" as const)
-                : ("approved" as const),
-            lecturerFeedback: feedback,
-          }
+          ...s,
+          status:
+            feedback.status === "resubmission_requested"
+              ? ("resubmission_requested" as const)
+              : ("approved" as const),
+          lecturerFeedback: feedback,
+        }
         : s
     );
     setERSubmissions(nextSubmissions);
     try {
       localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
-    } catch {}
+    } catch { }
     showToast("ER diagram evaluation saved successfully", "success");
     return { success: true };
   };
@@ -2057,7 +2054,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     setERSubmissions(nextSubmissions);
     try {
       localStorage.setItem("unicodetrack_er_submissions_store", JSON.stringify(nextSubmissions));
-    } catch {}
+    } catch { }
 
     const targetSub = erSubmissions.find((s) => s.id === submissionId);
     if (targetSub) {
