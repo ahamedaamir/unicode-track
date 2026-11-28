@@ -53,7 +53,9 @@ export function Badge({
           )}
         />
       )}
-      {children}
+      <span suppressHydrationWarning className="inline-flex items-center gap-1">
+        {children}
+      </span>
     </span>
   );
 }
