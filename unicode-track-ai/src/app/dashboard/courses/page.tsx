@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   BookOpen, 
@@ -45,6 +45,11 @@ export default function CoursesPage() {
   const isStudent = activeRole === "student";
   const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || null;
   const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || students[0];
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -178,8 +183,8 @@ export default function CoursesPage() {
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               {isStudent ? "My Courses" : isLecturer ? "My Assigned Courses" : "Curriculum Course Catalog"}
             </h2>
-            <Badge variant={isStudent ? "teal" : isLecturer ? "teal" : "default"} size="sm">
-              {filteredCourses.length} {isStudent ? "Enrolled" : isLecturer ? "Assigned" : "Total"}
+            <Badge variant={isStudent ? "teal" : isLecturer ? "teal" : "default"} size="sm" suppressHydrationWarning>
+              <span suppressHydrationWarning>{mounted ? filteredCourses.length : 0} {isStudent ? "Enrolled" : isLecturer ? "Assigned" : "Total"}</span>
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">

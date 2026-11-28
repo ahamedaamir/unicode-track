@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Users, 
   Plus, 
@@ -35,6 +35,11 @@ export default function LecturersPage() {
   } = useAdminData();
 
   const isAdmin = activeRole === "admin";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -161,8 +166,8 @@ export default function LecturersPage() {
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Lecturer Management
             </h2>
-            <Badge variant="teal" size="sm">
-              {lecturers.length} Total Staff
+            <Badge variant="teal" size="sm" suppressHydrationWarning>
+              <span suppressHydrationWarning>{mounted ? lecturers.length : 0} Total Staff</span>
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
