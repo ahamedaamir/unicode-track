@@ -24,6 +24,7 @@ import {
   Cpu,
   User,
   Users,
+  ShieldAlert,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 
@@ -98,7 +99,27 @@ function generateMarks(seed: number, reqs: RequirementItem[]): number[] {
 const INITIAL_PROJECTS: EvaluationProject[] = [];
 
 export default function EvaluationsAndMarksPage() {
-  const { courses: adminCourses, projects: adminProjects, groups: adminGroups, showToast } = useAdminData();
+  const { courses: adminCourses, projects: adminProjects, groups: adminGroups, activeRole, showToast } = useAdminData();
+
+  if (activeRole === "student") {
+    return (
+      <div className="max-w-md mx-auto my-16 p-8 bg-card border border-border rounded-[16px] text-center space-y-4 shadow-sm">
+        <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto">
+          <ShieldAlert className="w-6 h-6" />
+        </div>
+        <h2 className="text-lg font-bold text-foreground">Access Restricted</h2>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Faculty assessment criteria, rubric scoring, and evaluation consoles are reserved for course lecturers.
+        </p>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   // Navigation and Filter State
   const [tab, setTab] = useState<"new" | "fin">("new");
