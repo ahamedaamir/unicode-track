@@ -250,6 +250,19 @@ function LoginContent() {
             a.password === password
         );
         if (matchingAdmin) {
+          // If Supabase password was previously corrupted by the login overwrite bug,
+          // resynchronize using the verified valid password
+          fetch("/api/auth/register-admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: matchingAdmin.email,
+              password: matchingAdmin.password,
+              universityName: matchingAdmin.universityName,
+              faculty: matchingAdmin.faculty,
+            }),
+          }).catch(() => {});
+
           sessionStorage.setItem(
             "unicodetrack_authenticated_user",
             JSON.stringify({
