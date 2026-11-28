@@ -42,6 +42,7 @@ interface AdminDataContextType {
 
   // Student Management
   addStudent: (data: {
+    studentId?: string;
     fullName: string;
     email: string;
     departmentId: string;
@@ -256,7 +257,11 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }
         if (parsed.students && Array.isArray(parsed.students)) {
           setMasterStudents(
-            parsed.students.map((s: Student) => ({ ...s, adminEmail: s.adminEmail || "admin@university.edu" }))
+            parsed.students.map((s: Student) => ({
+              ...s,
+              studentId: s.studentId || (s as any).student_id || "",
+              adminEmail: s.adminEmail || "admin@university.edu",
+            }))
           );
         }
         if (parsed.activities && Array.isArray(parsed.activities)) {
@@ -1046,6 +1051,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   // Student Actions (Admin Only)
   // ==========================================
   const addStudent = (data: {
+    studentId?: string;
     fullName: string;
     email: string;
     departmentId: string;
@@ -1056,8 +1062,20 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     if (activeRole !== "admin") {
       return { success: false, error: "Access denied. Only university administrators can create student accounts." };
     }
+    const trimmedId = (data.studentId || "").trim();
     const trimmedName = data.fullName.trim();
     const trimmedEmail = data.email.trim().toLowerCase();
+
+    if (!trimmedId) {
+      return { success: false, error: "Student ID / Reg No is required" };
+    }
+
+    if (masterStudents.some((s) => s.studentId && s.studentId.toLowerCase() === trimmedId.toLowerCase())) {
+      return {
+        success: false,
+        error: `A student with Student ID "${trimmedId}" is already registered.`,
+      };
+    }
 
     if (!trimmedName) {
       return { success: false, error: "Full Name is required" };
@@ -1093,6 +1111,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
     const newStudent: Student = {
       id: `std-${Date.now().toString(36)}`,
+      studentId: trimmedId,
       fullName: trimmedName,
       email: trimmedEmail,
       departmentId: data.departmentId,
@@ -1108,7 +1127,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
     const updatedStudents = [newStudent, ...masterStudents];
     setMasterStudents(updatedStudents);
-    const updatedActs = addActivity("registered new student account", trimmedName, "student");
+    const updatedActs = addActivity("registered new student account", `${trimmedName} (${trimmedId})`, "student");
     persist(masterDepartments, masterCourses, masterLecturers, updatedStudents, updatedActs);
 
     if (isSupabaseConfigured()) {
@@ -1116,7 +1135,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         const supabase = createClient();
         const deptObj = masterDepartments.find((d) => d.id === newStudent.departmentId);
         supabase.from("students").insert({
-          student_id: newStudent.id,
+          student_id: newStudent.studentId,
           full_name: newStudent.fullName,
           email: newStudent.email,
           department_id: newStudent.departmentId,
@@ -1133,7 +1152,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       } catch { }
     }
 
-    showToast(`Student ${trimmedName} created successfully!`, "success");
+    showToast(`Student ${trimmedName} (${trimmedId}) created successfully!`, "success");
 
     return {
       success: true,
@@ -1153,6 +1172,17 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     }
     const std = masterStudents.find((s) => s.id === id);
     if (!std) return { success: false, error: "Student not found" };
+
+    if (updates.studentId) {
+      const trimmedId = updates.studentId.trim();
+      if (masterStudents.some((s) => s.id !== id && s.studentId && s.studentId.toLowerCase() === trimmedId.toLowerCase())) {
+        return {
+          success: false,
+          error: `Student ID "${trimmedId}" is already used by another student.`,
+        };
+      }
+      updates.studentId = trimmedId;
+    }
 
     if (updates.email) {
       const trimmedEmail = updates.email.trim().toLowerCase();
@@ -1188,13 +1218,15 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       try {
         const supabase = createClient();
         const payload: any = {};
+        if (updates.studentId) payload.student_id = updates.studentId;
         if (updates.fullName) payload.full_name = updates.fullName;
         if (updates.email) payload.email = updates.email;
         if (updates.departmentId) payload.department_id = updates.departmentId;
         if (updates.academicYear) payload.academic_year = updates.academicYear;
         if (updates.semester) payload.semester = updates.semester;
         if (updates.accountStatus) payload.account_status = updates.accountStatus;
-        supabase.from("students").update(payload).eq("student_id", id).then(({ error }) => {
+        const targetId = std.studentId || id;
+        supabase.from("students").update(payload).or(`student_id.eq.${targetId},id.eq.${targetId}`).then(({ error }) => {
           if (error) logSupabaseNotice("update student", error);
         });
       } catch { }
