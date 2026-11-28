@@ -78,6 +78,18 @@ export interface GitHubPullRequest {
   reviewComments?: string;
 }
 
+export interface GroupDeliverable {
+  id: string;
+  type: "repo" | "proposal" | "er_diagram" | "final_report" | "other";
+  title: string;
+  fileUrl?: string;
+  fileName?: string;
+  repoUrl?: string;
+  uploadedBy: string; // Member name, e.g. "Kasun Perera"
+  uploadedByStudentId?: string; // Student ID/Identity Number, e.g. "IT21045230"
+  uploadedAt: string; // ISO string
+}
+
 export interface ProjectGroup {
   id: string;
   projectId: string;
@@ -90,6 +102,10 @@ export interface ProjectGroup {
   repoOwner?: string;
   defaultBranch?: string;
   repoStatus: "disconnected" | "connected" | "syncing" | "error";
+  repoUploadedBy?: string;
+  repoUploadedByStudentId?: string;
+  repoUploadedAt?: string;
+  deliverables?: GroupDeliverable[];
   lastSyncAt?: string;
   totalCommits: number;
   status: "active" | "archived" | "completed";
@@ -164,6 +180,10 @@ export interface ProjectStudentAssignment {
   repoOwner?: string;
   defaultBranch?: string;
   repoStatus: "disconnected" | "connected" | "syncing" | "error";
+  repoUploadedBy?: string;
+  repoUploadedByStudentId?: string;
+  repoUploadedAt?: string;
+  deliverables?: GroupDeliverable[];
   lastSyncAt?: string;
   totalCommits: number;
   status: "active" | "archived" | "completed";

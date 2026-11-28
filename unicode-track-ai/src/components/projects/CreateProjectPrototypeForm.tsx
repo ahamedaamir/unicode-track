@@ -315,16 +315,23 @@ export function CreateProjectPrototypeForm({
         if (groupsToUse && groupsToUse.length > 0) {
           const initialGroups: ProjectGroup[] = groupsToUse.map((eg, idx) => {
             const gNum = eg.group_number || idx + 1;
-            const assignedMembers = (eg.members || []).map((m: any, mIdx: number) => ({
-              studentId: m.student_id || m.matchedStudent?.studentId || m.matchedStudent?.id || `ST-${gNum}-${mIdx + 1}`,
-              fullName: m.full_name || m.matchedStudent?.fullName || "Student",
-              email: m.email || m.matchedStudent?.email || "",
-              department: dept,
-              academicYear,
-              semester,
-              role: mIdx === 0 ? ("Team Lead" as const) : ("Member" as const),
-              commitsCount: 0,
-            }));
+            const assignedMembers = (eg.members || []).map((m: any, mIdx: number) => {
+              const matched = m.matchedStudent;
+              const studentIdentity = matched?.studentId || m.student_id || matched?.id || `ST-${gNum}-${mIdx + 1}`;
+              const studentName = matched?.fullName || m.full_name || "Student";
+              const studentEmail = matched?.email || m.email || "";
+
+              return {
+                studentId: studentIdentity,
+                fullName: studentName,
+                email: studentEmail,
+                department: dept,
+                academicYear,
+                semester,
+                role: mIdx === 0 ? ("Team Lead" as const) : ("Member" as const),
+                commitsCount: 0,
+              };
+            });
 
             return {
               id: `grp-${newProjectId}-${gNum}`,
