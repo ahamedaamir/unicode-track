@@ -12,6 +12,12 @@ import {
   CheckCircle2,
   Clock,
   ShieldAlert,
+  FolderGit2,
+  Users,
+  FileText,
+  ExternalLink,
+  Database,
+  UserCheck,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Project } from "@/types/admin";
@@ -37,6 +43,8 @@ function LecturerProjectsContent() {
     archiveProject,
     editProject,
     deleteProject,
+    connectRepoToGroup,
+    submitGroupDeliverable,
     showToast,
   } = useAdminData();
 
@@ -135,6 +143,14 @@ function LecturerProjectsContent() {
     setDeletingProject(null);
   };
 
+  // Student Upload & Submission States
+  const [repoInputUrl, setRepoInputUrl] = useState("");
+  const [isEditingRepo, setIsEditingRepo] = useState(false);
+  const [isConnectingRepo, setIsConnectingRepo] = useState(false);
+  const [uploadField, setUploadField] = useState<string | null>(null);
+  const [uploadFileName, setUploadFileName] = useState("");
+  const [isSubmittingFile, setIsSubmittingFile] = useState(false);
+
   // Terminal Runner State
   const [termOutput, setTermOutput] = useState("$ gcc main.c -o shell\n$ ./shell\n");
   const [isTermRunning, setIsTermRunning] = useState(false);
@@ -179,6 +195,78 @@ function LecturerProjectsContent() {
   const normCurrentStudentSysId = useMemo(() => {
     return (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   }, [currentStudent]);
+
+  const normCurrentStudentName = useMemo(() => {
+    return (currentStudent?.fullName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }, [currentStudent]);
+
+  // Helper to resolve student's assigned group for a project
+  const getStudentGroupForProj = (project: Project) => {
+    return groups.find((g) =>
+      g.projectId === project.id &&
+      g.members.some((m) => {
+        const mEmail = (m.email || "").toLowerCase().trim();
+        const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const mName = (m.fullName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const matchesEmail = activeStudentEmail && mEmail === activeStudentEmail.toLowerCase().trim();
+        const matchesId =
+          (normCurrentStudentId && mId && (mId === normCurrentStudentId || mId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(mId))) ||
+          (normCurrentStudentSysId && mId && mId === normCurrentStudentSysId);
+        const matchesName = Boolean(normCurrentStudentName && mName && normCurrentStudentName === mName);
+        return matchesEmail || matchesId || matchesName;
+      })
+    );
+  };
+
+  const handleLinkRepo = async (groupId: string) => {
+    if (!repoInputUrl.trim()) {
+      showToast("Please enter a valid GitHub repository URL", "error");
+      return;
+    }
+    setIsConnectingRepo(true);
+    try {
+      const res = await connectRepoToGroup(groupId, repoInputUrl.trim(), {
+        name: currentStudent?.fullName || "Student",
+        studentId: currentStudent?.studentId || "",
+      });
+      if (res.success) {
+        setIsEditingRepo(false);
+        setRepoInputUrl("");
+      } else {
+        showToast(res.error || "Failed to link repository", "error");
+      }
+    } finally {
+      setIsConnectingRepo(false);
+    }
+  };
+
+  const handleSubmitDeliverable = async (
+    groupId: string,
+    type: "proposal" | "er_diagram" | "final_report",
+    title: string,
+    fileName: string
+  ) => {
+    if (!fileName.trim()) {
+      showToast("Please specify or upload a document file", "error");
+      return;
+    }
+    setIsSubmittingFile(true);
+    try {
+      const res = submitGroupDeliverable(groupId, {
+        type,
+        title,
+        fileName: fileName.trim(),
+        uploadedBy: currentStudent?.fullName || "Student",
+        uploadedByStudentId: currentStudent?.studentId || "",
+      });
+      if (res.success) {
+        setUploadField(null);
+        setUploadFileName("");
+      }
+    } finally {
+      setIsSubmittingFile(false);
+    }
+  };
 
   // Filter projects by current vs past
   const baseProjects = useMemo(() => {
@@ -693,33 +781,35 @@ function LecturerProjectsContent() {
                   </div>
                 </div>
 
-                {/* Edit & Delete Action Buttons */}
-                <div className="flex items-center justify-end gap-1.5 mt-4 pt-3 border-t border-border/50">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingProject(p);
-                    }}
-                    className="px-2.5 py-1 text-xs rounded-lg border border-border bg-muted/60 hover:bg-muted text-foreground flex items-center gap-1.5 transition-colors"
-                    title="Edit project"
-                  >
-                    <Pencil className="w-3 h-3 text-muted-foreground" />
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeletingProject(p);
-                    }}
-                    className="px-2.5 py-1 text-xs rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-1.5 transition-colors"
-                    title="Delete project"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Delete
-                  </button>
-                </div>
+                {/* Edit & Delete Action Buttons (Lecturers/Admins only) */}
+                {activeRole !== "student" && (
+                  <div className="flex items-center justify-end gap-1.5 mt-4 pt-3 border-t border-border/50">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingProject(p);
+                      }}
+                      className="px-2.5 py-1 text-xs rounded-lg border border-border bg-muted/60 hover:bg-muted text-foreground flex items-center gap-1.5 transition-colors"
+                      title="Edit project"
+                    >
+                      <Pencil className="w-3 h-3 text-muted-foreground" />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingProject(p);
+                      }}
+                      className="px-2.5 py-1 text-xs rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-1.5 transition-colors"
+                      title="Delete project"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -870,14 +960,21 @@ function LecturerProjectsContent() {
         <p className="sub text-sm text-muted-foreground mb-4">
           Linked repository:{" "}
           {isRepoConnected ? (
-            <a
-              href={linkedRepoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-accent hover:underline"
-            >
-              {linkedRepoUrl}
-            </a>
+            <span>
+              <a
+                href={linkedRepoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-accent hover:underline mr-2"
+              >
+                {linkedRepoUrl}
+              </a>
+              {currentGroup?.repoUploadedBy && (
+                <span className="text-xs text-emerald-400 font-sans">
+                  (Uploaded by {currentGroup.repoUploadedBy} {currentGroup.repoUploadedByStudentId ? `[${currentGroup.repoUploadedByStudentId}]` : ""})
+                </span>
+              )}
+            </span>
           ) : (
             <span className="text-muted-foreground italic">No GitHub repository linked yet</span>
           )}
@@ -1256,10 +1353,819 @@ function LecturerProjectsContent() {
     );
   };
 
+  // --------------------------------------------------------------------------
+  // SCREEN 6: STUDENT ROOT PROJECTS VIEW (CURRENT ONGOING & PAST PROJECTS)
+  // --------------------------------------------------------------------------
+  const renderStudentProjectsRoot = () => {
+    const studentOngoingProjects = temporalProjects.filter((p) => !isPastProject(p));
+    const studentPastProjects = temporalProjects.filter((p) => isPastProject(p));
+    const currentList = tab === "current" ? studentOngoingProjects : studentPastProjects;
+
+    return (
+      <>
+        <div className="crumb">
+          <span>Projects</span>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Academic Projects</h1>
+            <p className="sub text-sm text-muted-foreground mt-0.5">
+              {tab === "current"
+                ? `Enrolled ongoing projects for Year ${studentYear}, Semester ${studentSem}.`
+                : `Past completed projects and archived coursework.`}
+            </p>
+          </div>
+        </div>
+
+        {/* Segmented Switch: Current projects vs Past projects */}
+        <div className="seg mb-5">
+          <button
+            className={tab === "current" ? "on" : ""}
+            onClick={() => go({ tab: "current", batch: null, course: null, proj: null, tgt: null })}
+          >
+            Current ongoing projects ({studentOngoingProjects.length})
+          </button>
+          <button
+            className={tab === "past" ? "on" : ""}
+            onClick={() => go({ tab: "past", batch: null, course: null, proj: null, tgt: null })}
+          >
+            Past projects ({studentPastProjects.length})
+          </button>
+        </div>
+
+        {/* Ongoing Projects Section */}
+        {currentList.length === 0 ? (
+          <div className="proj-card text-center py-12 space-y-3 bg-card border border-border rounded-[16px]">
+            <FolderGit2 className="w-10 h-10 text-muted-foreground/60 mx-auto" />
+            <h3 className="text-base font-semibold text-foreground">
+              {tab === "current"
+                ? "No Current Ongoing Projects Assigned"
+                : "No Past Projects Recorded"}
+            </h3>
+            <p className="text-muted-foreground text-xs max-w-md mx-auto leading-relaxed">
+              {tab === "current"
+                ? `You do not have active ongoing projects for Year ${studentYear}, Semester ${studentSem} yet. Newly assigned group and individual projects will appear here.`
+                : "You have not completed projects in previous terms yet."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {currentList.map((p) => {
+              const isGroup = p.type === "Group Project" || p.projectType === "group";
+              const myGrp = isGroup ? getStudentGroupForProj(p) : null;
+              const courseObj = contextCourses.find((c) => c.code === p.courseCode);
+              const isRepoLinked = Boolean(myGrp?.repoUrl);
+
+              return (
+                <div
+                  key={p.id}
+                  className="proj-card bg-card border border-border hover:border-accent rounded-[16px] p-5 transition-all cursor-pointer flex flex-col justify-between group shadow-xs"
+                  onClick={() => go({ proj: p, view: "workspace" })}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20 font-semibold">
+                        {p.courseCode} · {courseObj?.name || "Curriculum Course"}
+                      </span>
+                      <span
+                        className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${
+                          isGroup
+                            ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                            : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                        }`}
+                      >
+                        {isGroup ? "Group Project" : "Individual Project"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-base font-bold text-foreground group-hover:text-accent transition-colors leading-snug">
+                        {p.title}
+                      </h3>
+                      {p.description && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                          {p.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Group info if applicable */}
+                    {isGroup && (
+                      <div className="p-2.5 rounded-xl bg-muted/50 border border-border/70 text-xs flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3.5 h-3.5 text-accent" />
+                          <span className="font-semibold text-foreground">
+                            {myGrp ? myGrp.groupName : "Group Allocation in Progress"}
+                          </span>
+                        </div>
+                        {myGrp && (
+                          <span className="text-[11px] text-muted-foreground">
+                            {myGrp.members.length} members
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-3.5 mt-3.5 border-t border-border flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {p.deadline ? `Due ${new Date(p.deadline).toLocaleDateString()}` : "Ongoing"}
+                      </span>
+                      {isGroup && (
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                            isRepoLinked
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                          }`}
+                        >
+                          {isRepoLinked ? "Repo Linked" : "Pending Repo"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-accent font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                      View Requirements & Workspace →
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Batch Navigation Tile */}
+        {tab === "current" && displayBatches.length > 0 && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <h4 className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-3">
+              Enrolled Term Batch
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {displayBatches.map((b) => (
+                <div
+                  key={b}
+                  className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[14px] p-3 transition-all cursor-pointer"
+                  onClick={() => go({ batch: b })}
+                >
+                  <b className="text-foreground block text-sm font-semibold">Batch {b}</b>
+                  <span className="text-muted-foreground text-[11px] block mt-0.5">
+                    Year {studentYear} · Semester {studentSem}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // --------------------------------------------------------------------------
+  // SCREEN 7: STUDENT PROJECT DETAIL (REQUIREMENTS FIRST, TEAM & DELIVERABLES)
+  // --------------------------------------------------------------------------
+  const renderStudentProjectDetail = (project: Project) => {
+    const isGroup = project.type === "Group Project" || project.projectType === "group";
+    const myGroup = isGroup ? getStudentGroupForProj(project) : null;
+    const courseObj = contextCourses.find((c) => c.code === project.courseCode);
+
+    // Connected repository details
+    const repoUrl = myGroup?.repoUrl;
+    const repoUploaderName = myGroup?.repoUploadedBy;
+    const repoUploaderStudentId = myGroup?.repoUploadedByStudentId;
+    const repoUploadedAt = myGroup?.repoUploadedAt;
+
+    // Proposals & other deliverables
+    const groupDeliverables = myGroup?.deliverables || [];
+    const proposalDeliv =
+      groupDeliverables.find((d) => d.type === "proposal") ||
+      (myGroup?.proposal
+        ? {
+            id: myGroup.proposal.id,
+            type: "proposal" as const,
+            title: "Project Proposal",
+            fileName: myGroup.proposal.fileName,
+            uploadedBy: myGroup.proposal.submittedBy,
+            uploadedByStudentId: "",
+            uploadedAt: myGroup.proposal.submittedAt,
+          }
+        : null);
+
+    const erDeliv = groupDeliverables.find((d) => d.type === "er_diagram");
+    const reportDeliv = groupDeliverables.find((d) => d.type === "final_report");
+
+    const reqText =
+      project.requirementsContent ||
+      project.requirements ||
+      project.description ||
+      "Satisfy all course project milestones, architecture criteria, and final deliverable guidelines.";
+
+    return (
+      <div className="space-y-6 animate-in fade-in-50 duration-200">
+        {/* Breadcrumb Navigation */}
+        <div className="crumb">
+          <a onClick={() => go({ proj: null, tgt: null, view: "list" })}>Projects</a>
+          {" / "}
+          <span>{project.title}</span>
+        </div>
+
+        {/* Project Header Banner */}
+        <div className="bg-card border border-border rounded-[18px] p-5 sm:p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20 font-semibold">
+                  {project.courseCode} · {courseObj?.name || "Curriculum Course"}
+                </span>
+                <span
+                  className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${
+                    isGroup
+                      ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                      : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                  }`}
+                >
+                  {isGroup ? "Group Project" : "Individual Project"}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border font-medium">
+                  Batch {project.academicYear}.{project.semester}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight mt-1">
+                {project.title}
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              <span className="text-xs px-3 py-1.5 rounded-xl bg-muted/60 border border-border text-foreground flex items-center gap-1.5 font-medium">
+                <Clock className="w-3.5 h-3.5 text-accent" />
+                {project.deadline ? `Due ${new Date(project.deadline).toLocaleDateString()}` : "Ongoing"}
+              </span>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground flex items-center gap-4 border-t border-border/70 pt-3 flex-wrap">
+            <span>
+              Supervised by: <strong className="text-foreground">{project.lecturerName || "Course Lecturer"}</strong>
+            </span>
+            {project.assignmentFileName && (
+              <span className="flex items-center gap-1.5 text-accent">
+                <FileText className="w-3.5 h-3.5" />
+                Specification Document: <strong>{project.assignmentFileName}</strong>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 1. PROJECT REQUIREMENTS (FIRST) */}
+        <div className="bg-card border border-border rounded-[18px] p-5 sm:p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-accent/10 border border-accent/20 text-accent">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-foreground">Project Requirements & Specifications</h3>
+                <p className="text-xs text-muted-foreground">Mandatory project milestones, guidelines, and deliverables established by lecturer.</p>
+              </div>
+            </div>
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+              Required by Lecturer
+            </span>
+          </div>
+
+          {/* Requirements text content */}
+          <div className="p-4 rounded-xl bg-muted/40 border border-border/80 text-xs text-foreground whitespace-pre-line leading-relaxed font-sans">
+            {reqText}
+          </div>
+
+          {/* Required Deliverables Checklist */}
+          <div className="pt-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">
+              Required Deliverables Checklist
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div className="p-3 rounded-xl bg-background border border-border flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-semibold text-foreground">GitHub Repository</p>
+                  <p className="text-[11px] text-muted-foreground">Source code & commit history</p>
+                </div>
+              </div>
+
+              <div className={`p-3 rounded-xl bg-background border flex items-start gap-2.5 ${project.proposalRequired ? "border-accent/40" : "border-border opacity-60"}`}>
+                <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${project.proposalRequired ? "text-accent" : "text-muted-foreground"}`} />
+                <div className="text-xs">
+                  <p className="font-semibold text-foreground">Project Proposal</p>
+                  <p className="text-[11px] text-muted-foreground">{project.proposalRequired ? "Required by lecturer" : "Optional / Not requested"}</p>
+                </div>
+              </div>
+
+              <div className={`p-3 rounded-xl bg-background border flex items-start gap-2.5 ${project.erDiagramRequired || project.databaseRequired ? "border-accent/40" : "border-border opacity-60"}`}>
+                <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${project.erDiagramRequired || project.databaseRequired ? "text-accent" : "text-muted-foreground"}`} />
+                <div className="text-xs">
+                  <p className="font-semibold text-foreground">Database / ER Diagram</p>
+                  <p className="text-[11px] text-muted-foreground">{project.erDiagramRequired || project.databaseRequired ? "Required by lecturer" : "Optional / Not requested"}</p>
+                </div>
+              </div>
+
+              <div className={`p-3 rounded-xl bg-background border flex items-start gap-2.5 ${project.finalReportRequired ? "border-accent/40" : "border-border opacity-60"}`}>
+                <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${project.finalReportRequired ? "text-accent" : "text-muted-foreground"}`} />
+                <div className="text-xs">
+                  <p className="font-semibold text-foreground">Final Report</p>
+                  <p className="text-[11px] text-muted-foreground">{project.finalReportRequired ? "Required by lecturer" : "Optional / Not requested"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. TEAM DETAILS (FOR GROUP PROJECTS) */}
+        {isGroup && (
+          <div className="bg-card border border-border rounded-[18px] p-5 sm:p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    {myGroup ? myGroup.groupName : "Project Team Allocation"}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {myGroup
+                      ? `${myGroup.members.length} team members allocated from the course roster.`
+                      : "The course lecturer will upload the class roster to allocate groups."}
+                  </p>
+                </div>
+              </div>
+              {myGroup && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent border border-accent/20">
+                  Team {myGroup.groupNumber}
+                </span>
+              )}
+            </div>
+
+            {myGroup ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {myGroup.members.map((m, mIdx) => {
+                  const mEmail = (m.email || "").toLowerCase().trim();
+                  const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const mName = (m.fullName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                  const isMe =
+                    (activeStudentEmail && mEmail === activeStudentEmail.toLowerCase().trim()) ||
+                    (normCurrentStudentId && mId && (mId === normCurrentStudentId || mId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(mId))) ||
+                    (normCurrentStudentSysId && mId && mId === normCurrentStudentSysId) ||
+                    (normCurrentStudentName && mName && normCurrentStudentName === mName);
+
+                  return (
+                    <div
+                      key={mIdx}
+                      className={`p-3.5 rounded-xl border transition-all ${
+                        isMe
+                          ? "bg-accent/5 border-accent shadow-xs ring-1 ring-accent/30"
+                          : "bg-muted/30 border-border"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-foreground text-sm">{m.fullName || "Student"}</span>
+                            {isMe && (
+                              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-accent text-background">
+                                YOU
+                              </span>
+                            )}
+                          </div>
+                          {/* Student Identity Number displayed prominently */}
+                          <div className="mt-1">
+                            <span className="font-mono text-[11px] font-semibold px-2 py-0.5 rounded bg-muted text-accent border border-accent/20 inline-block">
+                              ID: {m.studentId || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                            m.role === "Team Lead"
+                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              : "bg-muted text-muted-foreground border-border"
+                          }`}
+                        >
+                          {m.role || "Member"}
+                        </span>
+                      </div>
+
+                      {m.email && (
+                        <p className="text-[11px] text-muted-foreground truncate mt-2 font-mono">
+                          {m.email}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
+                <p className="font-semibold">Team Allocation Pending</p>
+                <p className="text-[11px] mt-0.5 text-amber-200/80">
+                  Your student record is registered for this course. Once the lecturer uploads and confirms the team allocation PDF, your group members and repository connection will automatically activate.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. DELIVERABLES & SUBMISSION CENTER */}
+        <div className="bg-card border border-border rounded-[18px] p-5 sm:p-6 shadow-sm space-y-5">
+          <div className="border-b border-border pb-3">
+            <h3 className="text-base font-bold text-foreground">Deliverables & Submission Center</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Submit your project repository and deliverables below. Any team member can upload on behalf of the group, and the submitting member's name and student ID will be displayed.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {/* DELIVERABLE 1: GITHUB REPOSITORY */}
+            <div className="p-4 rounded-xl bg-background border border-border space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-muted border border-border text-foreground">
+                    <FolderGit2 className="w-4 h-4 text-accent" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground">GitHub Source Repository</h4>
+                    <p className="text-xs text-muted-foreground">Main branch code, commit telemetry, and repository link.</p>
+                  </div>
+                </div>
+
+                <span
+                  className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border self-start sm:self-auto ${
+                    repoUrl
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  }`}
+                >
+                  {repoUrl ? "✓ Connected" : "Pending Link"}
+                </span>
+              </div>
+
+              {repoUrl ? (
+                <div className="space-y-2">
+                  <div className="p-3 rounded-lg bg-muted/40 border border-border flex items-center justify-between gap-3 flex-wrap">
+                    <a
+                      href={repoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs text-accent hover:underline flex items-center gap-1.5 break-all"
+                    >
+                      <span>{repoUrl}</span>
+                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingRepo(!isEditingRepo);
+                        setRepoInputUrl(repoUrl);
+                      }}
+                      className="px-2.5 py-1 text-xs rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors shrink-0"
+                    >
+                      {isEditingRepo ? "Cancel" : "Change Link"}
+                    </button>
+                  </div>
+
+                  {/* SUBMISSION ATTRIBUTION: Display who uploaded the repo */}
+                  <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2 flex-wrap">
+                    <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>
+                      Uploaded by: <strong>{repoUploaderName || myGroup?.members[0]?.fullName || "Team Member"}</strong>
+                      {repoUploaderStudentId ? (
+                        <span className="font-mono text-[11px] bg-background/60 px-1.5 py-0.5 rounded ml-1.5 border border-emerald-500/30 text-emerald-200">
+                          ID: {repoUploaderStudentId}
+                        </span>
+                      ) : null}
+                      {repoUploadedAt && (
+                        <span className="text-emerald-400/80 ml-2">
+                          on {new Date(repoUploadedAt).toLocaleString()}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Input for connecting or editing repository link */}
+              {(!repoUrl || isEditingRepo) && (
+                <div className="pt-2 border-t border-border/60 space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://github.com/organization/repository"
+                      value={repoInputUrl}
+                      onChange={(e) => setRepoInputUrl(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg bg-muted/60 border border-border text-foreground text-xs focus:outline-none focus:border-accent font-mono"
+                    />
+                    <button
+                      type="button"
+                      disabled={isConnectingRepo || !repoInputUrl.trim() || !myGroup}
+                      onClick={() => myGroup && handleLinkRepo(myGroup.id)}
+                      className="px-4 py-2 rounded-lg bg-foreground hover:bg-neutral-200 text-background text-xs font-semibold disabled:opacity-50 transition-colors shrink-0"
+                    >
+                      {isConnectingRepo ? "Linking..." : "Link Repository"}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Provide the public or team repository URL. Your name ({currentStudent?.fullName || "You"}) will be recorded as the member who linked this repository.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* DELIVERABLE 2: PROJECT PROPOSAL */}
+            {project.proposalRequired && (
+              <div className="p-4 rounded-xl bg-background border border-border space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-muted border border-border text-foreground">
+                      <FileText className="w-4 h-4 text-accent" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground">Project Proposal</h4>
+                      <p className="text-xs text-muted-foreground">Formal proposal document outlining scope and milestones.</p>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border self-start sm:self-auto ${
+                      proposalDeliv
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    }`}
+                  >
+                    {proposalDeliv ? "✓ Submitted" : "Pending Submission"}
+                  </span>
+                </div>
+
+                {proposalDeliv ? (
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-lg bg-muted/40 border border-border flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-semibold text-xs text-foreground">{proposalDeliv.fileName || "Proposal.pdf"}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadField(uploadField === "proposal" ? null : "proposal");
+                          setUploadFileName("");
+                        }}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors shrink-0"
+                      >
+                        {uploadField === "proposal" ? "Cancel" : "Replace Proposal"}
+                      </button>
+                    </div>
+
+                    {/* SUBMISSION ATTRIBUTION: Display who uploaded the proposal */}
+                    <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2 flex-wrap">
+                      <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>
+                        Uploaded by: <strong>{proposalDeliv.uploadedBy || myGroup?.members[0]?.fullName || "Team Member"}</strong>
+                        {proposalDeliv.uploadedByStudentId ? (
+                          <span className="font-mono text-[11px] bg-background/60 px-1.5 py-0.5 rounded ml-1.5 border border-emerald-500/30 text-emerald-200">
+                            ID: {proposalDeliv.uploadedByStudentId}
+                          </span>
+                        ) : null}
+                        {proposalDeliv.uploadedAt && (
+                          <span className="text-emerald-400/80 ml-2">
+                            on {new Date(proposalDeliv.uploadedAt).toLocaleString()}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* File Upload for Proposal */}
+                {(!proposalDeliv || uploadField === "proposal") && (
+                  <div className="pt-2 border-t border-border/60 space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Proposal document name (e.g. CS492_Group02_Proposal.pdf)"
+                        value={uploadField === "proposal" ? uploadFileName : ""}
+                        onChange={(e) => {
+                          setUploadField("proposal");
+                          setUploadFileName(e.target.value);
+                        }}
+                        className="flex-1 px-3 py-2 rounded-lg bg-muted/60 border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                      />
+                      <button
+                        type="button"
+                        disabled={isSubmittingFile || !uploadFileName.trim() || !myGroup}
+                        onClick={() => myGroup && handleSubmitDeliverable(myGroup.id, "proposal", "Project Proposal", uploadFileName)}
+                        className="px-4 py-2 rounded-lg bg-foreground hover:bg-neutral-200 text-background text-xs font-semibold disabled:opacity-50 transition-colors shrink-0"
+                      >
+                        {isSubmittingFile ? "Submitting..." : "Upload Proposal"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* DELIVERABLE 3: RELATIONAL DATABASE & ER DIAGRAM */}
+            {(project.erDiagramRequired || project.databaseRequired) && (
+              <div className="p-4 rounded-xl bg-background border border-border space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-muted border border-border text-foreground">
+                      <Database className="w-4 h-4 text-accent" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground">Relational Database & ER Diagram</h4>
+                      <p className="text-xs text-muted-foreground">Entity-relationship diagram and normalized 3NF database schema.</p>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border self-start sm:self-auto ${
+                      erDeliv
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    }`}
+                  >
+                    {erDeliv ? "✓ Submitted" : "Pending Submission"}
+                  </span>
+                </div>
+
+                {erDeliv ? (
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-lg bg-muted/40 border border-border flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Database className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-semibold text-xs text-foreground">{erDeliv.fileName || "ER_Diagram.png"}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadField(uploadField === "er_diagram" ? null : "er_diagram");
+                          setUploadFileName("");
+                        }}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors shrink-0"
+                      >
+                        {uploadField === "er_diagram" ? "Cancel" : "Replace Diagram"}
+                      </button>
+                    </div>
+
+                    {/* SUBMISSION ATTRIBUTION: Display who uploaded the ER diagram */}
+                    <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2 flex-wrap">
+                      <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>
+                        Uploaded by: <strong>{erDeliv.uploadedBy}</strong>
+                        {erDeliv.uploadedByStudentId ? (
+                          <span className="font-mono text-[11px] bg-background/60 px-1.5 py-0.5 rounded ml-1.5 border border-emerald-500/30 text-emerald-200">
+                            ID: {erDeliv.uploadedByStudentId}
+                          </span>
+                        ) : null}
+                        {erDeliv.uploadedAt && (
+                          <span className="text-emerald-400/80 ml-2">
+                            on {new Date(erDeliv.uploadedAt).toLocaleString()}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* File Upload for ER Diagram */}
+                {(!erDeliv || uploadField === "er_diagram") && (
+                  <div className="pt-2 border-t border-border/60 space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="ER diagram or schema file (e.g. system_er_diagram_3nf.png)"
+                        value={uploadField === "er_diagram" ? uploadFileName : ""}
+                        onChange={(e) => {
+                          setUploadField("er_diagram");
+                          setUploadFileName(e.target.value);
+                        }}
+                        className="flex-1 px-3 py-2 rounded-lg bg-muted/60 border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                      />
+                      <button
+                        type="button"
+                        disabled={isSubmittingFile || !uploadFileName.trim() || !myGroup}
+                        onClick={() => myGroup && handleSubmitDeliverable(myGroup.id, "er_diagram", "Relational ER Diagram", uploadFileName)}
+                        className="px-4 py-2 rounded-lg bg-foreground hover:bg-neutral-200 text-background text-xs font-semibold disabled:opacity-50 transition-colors shrink-0"
+                      >
+                        {isSubmittingFile ? "Submitting..." : "Upload ER Diagram"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* DELIVERABLE 4: FINAL PROJECT REPORT */}
+            {project.finalReportRequired && (
+              <div className="p-4 rounded-xl bg-background border border-border space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-muted border border-border text-foreground">
+                      <FileText className="w-4 h-4 text-accent" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground">Final Project Report & Documentation</h4>
+                      <p className="text-xs text-muted-foreground">Comprehensive academic report, test results, and user guide.</p>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border self-start sm:self-auto ${
+                      reportDeliv
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    }`}
+                  >
+                    {reportDeliv ? "✓ Submitted" : "Pending Submission"}
+                  </span>
+                </div>
+
+                {reportDeliv ? (
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-lg bg-muted/40 border border-border flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-semibold text-xs text-foreground">{reportDeliv.fileName || "Final_Report.pdf"}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadField(uploadField === "final_report" ? null : "final_report");
+                          setUploadFileName("");
+                        }}
+                        className="px-2.5 py-1 text-xs rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors shrink-0"
+                      >
+                        {uploadField === "final_report" ? "Cancel" : "Replace Report"}
+                      </button>
+                    </div>
+
+                    {/* SUBMISSION ATTRIBUTION: Display who uploaded the final report */}
+                    <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2 flex-wrap">
+                      <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>
+                        Uploaded by: <strong>{reportDeliv.uploadedBy}</strong>
+                        {reportDeliv.uploadedByStudentId ? (
+                          <span className="font-mono text-[11px] bg-background/60 px-1.5 py-0.5 rounded ml-1.5 border border-emerald-500/30 text-emerald-200">
+                            ID: {reportDeliv.uploadedByStudentId}
+                          </span>
+                        ) : null}
+                        {reportDeliv.uploadedAt && (
+                          <span className="text-emerald-400/80 ml-2">
+                            on {new Date(reportDeliv.uploadedAt).toLocaleString()}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* File Upload for Final Report */}
+                {(!reportDeliv || uploadField === "final_report") && (
+                  <div className="pt-2 border-t border-border/60 space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Final report document (e.g. CS492_Group02_Final_Report.pdf)"
+                        value={uploadField === "final_report" ? uploadFileName : ""}
+                        onChange={(e) => {
+                          setUploadField("final_report");
+                          setUploadFileName(e.target.value);
+                        }}
+                        className="flex-1 px-3 py-2 rounded-lg bg-muted/60 border border-border text-foreground text-xs focus:outline-none focus:border-accent"
+                      />
+                      <button
+                        type="button"
+                        disabled={isSubmittingFile || !uploadFileName.trim() || !myGroup}
+                        onClick={() => myGroup && handleSubmitDeliverable(myGroup.id, "final_report", "Final Project Report", uploadFileName)}
+                        className="px-4 py-2 rounded-lg bg-foreground hover:bg-neutral-200 text-background text-xs font-semibold disabled:opacity-50 transition-colors shrink-0"
+                      >
+                        {isSubmittingFile ? "Submitting..." : "Upload Final Report"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-[1100px] mx-auto py-2 px-2.5 sm:px-4">
-      {view === "create" ? (
-        activeRole === "student" ? (
+      {activeRole === "student" ? (
+        view === "create" ? (
           <div className="bg-card border border-border rounded-[16px] p-8 text-center space-y-4 max-w-lg mx-auto my-12 shadow-sm">
             <ShieldAlert className="w-10 h-10 text-amber-500 mx-auto" />
             <h3 className="text-lg font-bold text-foreground">Access Restricted</h3>
@@ -1270,9 +2176,17 @@ function LecturerProjectsContent() {
               Back to Projects
             </button>
           </div>
+        ) : proj ? (
+          renderStudentProjectDetail(proj)
+        ) : course ? (
+          renderProjects()
+        ) : batch ? (
+          renderCourses()
         ) : (
-          <CreateProjectPrototypeForm onBackToProjects={() => go({ view: "list" })} />
+          renderStudentProjectsRoot()
         )
+      ) : view === "create" ? (
+        <CreateProjectPrototypeForm onBackToProjects={() => go({ view: "list" })} />
       ) : view === "reports" ? (
         renderReports()
       ) : view === "evaluate" ? (

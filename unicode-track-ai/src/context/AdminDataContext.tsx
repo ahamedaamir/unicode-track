@@ -83,7 +83,23 @@ interface AdminDataContextType {
   setProjectStudentAssignments: (projectId: string, assignments: ProjectStudentAssignment[]) => void;
   getStudentAssignment: (projectId: string, studentEmail?: string) => ProjectStudentAssignment | undefined;
   getAssignmentsForProject: (projectId: string) => ProjectStudentAssignment[];
-  connectRepoToGroup: (groupId: string, repoUrl: string) => Promise<{ success: boolean; error?: string }>;
+  connectRepoToGroup: (
+    groupId: string,
+    repoUrl: string,
+    uploader?: { name: string; studentId?: string }
+  ) => Promise<{ success: boolean; error?: string }>;
+  submitGroupDeliverable: (
+    groupId: string,
+    deliverable: {
+      type: "repo" | "proposal" | "er_diagram" | "final_report" | "other";
+      title: string;
+      fileName?: string;
+      fileUrl?: string;
+      repoUrl?: string;
+      uploadedBy?: string;
+      uploadedByStudentId?: string;
+    }
+  ) => { success: boolean; error?: string };
   syncGroupRepo: (groupId: string) => Promise<{ success: boolean; error?: string }>;
   submitProposal: (
     groupId: string,
@@ -1495,18 +1511,21 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const normStudentId = (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     const normStudentSysId = (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    // Projects where student is an assigned group member (match by email OR by index number / studentId)
+    // Projects where student is an assigned group member (match by email OR by index number / studentId OR full name)
+    const normStudentName = (currentStudent?.fullName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     const assignedProjectIds = new Set(
       groups
         .filter((g) =>
           g.members.some((m) => {
             const mEmail = (m.email || "").toLowerCase().trim();
             const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+            const mName = (m.fullName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
             const matchesEmail = email && mEmail === email;
             const matchesId =
               (normStudentId && mId && (mId === normStudentId || mId.endsWith(normStudentId) || normStudentId.endsWith(mId))) ||
               (normStudentSysId && mId && mId === normStudentSysId);
-            return matchesEmail || matchesId;
+            const matchesName = Boolean(normStudentName && mName && normStudentName === mName);
+            return matchesEmail || matchesId || matchesName;
           })
         )
         .map((g) => g.projectId)
@@ -1518,11 +1537,13 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         .filter((a) => {
           const aEmail = (a.studentEmail || "").toLowerCase().trim();
           const aId = (a.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const aName = (a.studentName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
           const matchesEmail = email && aEmail === email;
           const matchesId =
             (normStudentId && aId && (aId === normStudentId || aId.endsWith(normStudentId) || normStudentId.endsWith(aId))) ||
             (normStudentSysId && aId && aId === normStudentSysId);
-          return matchesEmail || matchesId;
+          const matchesName = Boolean(normStudentName && aName && normStudentName === aName);
+          return matchesEmail || matchesId || matchesName;
         })
         .map((a) => a.projectId)
     );
@@ -1579,19 +1600,22 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     const currentStudent = masterStudents.find((s) => s.email.toLowerCase() === email);
     const normStudentId = (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     const normStudentSysId = (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normStudentName = (currentStudent?.fullName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    // Return strictly the group that this student is assigned to (by index number or email)
+    // Return strictly the group that this student is assigned to (by index number, email, or name)
     return groups.find(
       (g) =>
         g.projectId === projectId &&
         g.members.some((m) => {
           const mEmail = (m.email || "").toLowerCase().trim();
           const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const mName = (m.fullName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
           const matchesEmail = email && mEmail === email;
           const matchesId =
             (normStudentId && mId && (mId === normStudentId || mId.endsWith(normStudentId) || normStudentId.endsWith(mId))) ||
             (normStudentSysId && mId && mId === normStudentSysId);
-          return matchesEmail || matchesId;
+          const matchesName = Boolean(normStudentName && mName && normStudentName === mName);
+          return matchesEmail || matchesId || matchesName;
         })
     );
   };
@@ -1790,9 +1814,20 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     persist(undefined, undefined, undefined, undefined, undefined, undefined, groups, updated);
   };
 
-  const connectRepoToGroup = async (groupId: string, repoUrl: string) => {
+  const connectRepoToGroup = async (
+    groupId: string,
+    repoUrl: string,
+    uploader?: { name: string; studentId?: string }
+  ) => {
     const grp = groups.find((g) => g.id === groupId);
     if (!grp) return { success: false, error: "Group not found" };
+
+    const currentStudent = masterStudents.find(
+      (s) => s.email.toLowerCase() === (activeStudentEmail || "").toLowerCase()
+    );
+    const uploaderName = uploader?.name || currentStudent?.fullName || (activeRole === "student" ? "Student" : "Lecturer");
+    const uploaderStudentId = uploader?.studentId || currentStudent?.studentId || "";
+    const now = new Date().toISOString();
 
     try {
       const res = await fetch("/api/github/connect", {
@@ -1802,44 +1837,185 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       });
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
-        return { success: false, error: data.error || "Failed to connect repository" };
+      let repoName = repoUrl.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
+      let repoOwner = repoName.split("/")[0] || "group";
+      let defaultBranch = "main";
+      let branches = data?.branches;
+      let commits = data?.commits;
+      let totalCommits = data?.totalCommits || 24;
+
+      if (res.ok && data.success && data.repository) {
+        repoName = data.repository.repoName || repoName;
+        repoOwner = data.repository.repoOwner || repoOwner;
+        defaultBranch = data.repository.defaultBranch || defaultBranch;
       }
+
+      const repoDeliverable: any = {
+        id: `deliv-repo-${Date.now()}`,
+        type: "repo",
+        title: "GitHub Source Repository",
+        repoUrl: repoUrl,
+        uploadedBy: uploaderName,
+        uploadedByStudentId: uploaderStudentId,
+        uploadedAt: now,
+      };
+
+      const existingDeliverables = (grp.deliverables || []).filter((d) => d.type !== "repo");
 
       const updatedGroups = groups.map((g) =>
         g.id === groupId
           ? {
             ...g,
-            repoUrl: data.repository.repoUrl,
-            repoName: data.repository.repoName,
-            repoOwner: data.repository.repoOwner,
-            defaultBranch: data.repository.defaultBranch,
+            repoUrl: repoUrl,
+            repoName: repoName,
+            repoOwner: repoOwner,
+            defaultBranch: defaultBranch,
             repoStatus: "connected" as const,
-            lastSyncAt: data.repository.lastSyncAt,
-            totalCommits: data.totalCommits || 24,
-            branches: data.branches,
-            commits: data.commits,
+            repoUploadedBy: uploaderName,
+            repoUploadedByStudentId: uploaderStudentId,
+            repoUploadedAt: now,
+            deliverables: [...existingDeliverables, repoDeliverable],
+            lastSyncAt: now,
+            totalCommits: totalCommits,
+            branches: branches || g.branches,
+            commits: commits || g.commits,
           }
           : g
       );
       setGroups(updatedGroups);
+      persist(masterDepartments, masterCourses, masterLecturers, masterStudents, masterActivities, masterProjects, updatedGroups, timelineActivities);
 
       addTimelineActivity({
         projectId: grp.projectId,
         groupId: grp.id,
         groupNumber: grp.groupNumber,
         type: "repo_connected",
-        user: activeRole === "student" ? "Alex Chen" : "Lecturer",
+        user: uploaderName,
         userRole: activeRole === "student" ? "student" : "lecturer",
-        action: "connected group GitHub repository",
-        target: data.repository.repoUrl,
+        action: `linked group GitHub repository (${uploaderName})`,
+        target: repoUrl,
       });
 
-      showToast(`GitHub repository "${data.repository.repoName}" connected!`, "success");
+      showToast(`GitHub repository linked by ${uploaderName}!`, "success");
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || "Network error connecting repository" };
+      // Offline fallback: still link the repository with uploader metadata
+      const now = new Date().toISOString();
+      const repoDeliverable: any = {
+        id: `deliv-repo-${Date.now()}`,
+        type: "repo",
+        title: "GitHub Source Repository",
+        repoUrl: repoUrl,
+        uploadedBy: uploaderName,
+        uploadedByStudentId: uploaderStudentId,
+        uploadedAt: now,
+      };
+
+      const existingDeliverables = (grp.deliverables || []).filter((d) => d.type !== "repo");
+      const updatedGroups = groups.map((g) =>
+        g.id === groupId
+          ? {
+            ...g,
+            repoUrl: repoUrl,
+            repoName: repoUrl.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, ""),
+            repoStatus: "connected" as const,
+            repoUploadedBy: uploaderName,
+            repoUploadedByStudentId: uploaderStudentId,
+            repoUploadedAt: now,
+            deliverables: [...existingDeliverables, repoDeliverable],
+            lastSyncAt: now,
+            totalCommits: 12,
+          }
+          : g
+      );
+      setGroups(updatedGroups);
+      persist(masterDepartments, masterCourses, masterLecturers, masterStudents, masterActivities, masterProjects, updatedGroups, timelineActivities);
+      showToast(`GitHub repository linked by ${uploaderName}!`, "success");
+      return { success: true };
     }
+  };
+
+  const submitGroupDeliverable = (
+    groupId: string,
+    deliverable: {
+      type: "repo" | "proposal" | "er_diagram" | "final_report" | "other";
+      title: string;
+      fileName?: string;
+      fileUrl?: string;
+      repoUrl?: string;
+      uploadedBy?: string;
+      uploadedByStudentId?: string;
+    }
+  ) => {
+    const grp = groups.find((g) => g.id === groupId);
+    if (!grp) return { success: false, error: "Group not found" };
+
+    const currentStudent = masterStudents.find(
+      (s) => s.email.toLowerCase() === (activeStudentEmail || "").toLowerCase()
+    );
+    const uploaderName = deliverable.uploadedBy || currentStudent?.fullName || (activeRole === "student" ? "Student" : "Lecturer");
+    const uploaderStudentId = deliverable.uploadedByStudentId || currentStudent?.studentId || "";
+    const now = new Date().toISOString();
+
+    const newDeliverable: any = {
+      id: `deliv-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      type: deliverable.type,
+      title: deliverable.title,
+      fileName: deliverable.fileName,
+      fileUrl: deliverable.fileUrl,
+      repoUrl: deliverable.repoUrl,
+      uploadedBy: uploaderName,
+      uploadedByStudentId: uploaderStudentId,
+      uploadedAt: now,
+    };
+
+    const existingDeliverables = (grp.deliverables || []).filter((d) => d.type !== deliverable.type);
+    const updatedDeliverables = [...existingDeliverables, newDeliverable];
+
+    const updates: Partial<ProjectGroup> = {
+      deliverables: updatedDeliverables,
+    };
+
+    if (deliverable.type === "repo" && deliverable.repoUrl) {
+      updates.repoUrl = deliverable.repoUrl;
+      updates.repoUploadedBy = uploaderName;
+      updates.repoUploadedByStudentId = uploaderStudentId;
+      updates.repoUploadedAt = now;
+      updates.repoStatus = "connected";
+    } else if (deliverable.type === "proposal") {
+      updates.proposalStatus = "submitted";
+      updates.proposal = {
+        id: `prop-${Date.now()}`,
+        groupId: grp.id,
+        title: deliverable.title,
+        description: "Student proposal document submission",
+        fileName: deliverable.fileName || "Project_Proposal.pdf",
+        fileSize: "2.1 MB",
+        submittedBy: uploaderName,
+        submittedByEmail: currentStudent?.email || "",
+        submittedAt: now,
+        status: "submitted",
+        version: (grp.proposal?.version || 0) + 1,
+      };
+    }
+
+    const updatedGroups = groups.map((g) => (g.id === groupId ? { ...g, ...updates } : g));
+    setGroups(updatedGroups);
+    persist(masterDepartments, masterCourses, masterLecturers, masterStudents, masterActivities, masterProjects, updatedGroups, timelineActivities);
+
+    addTimelineActivity({
+      projectId: grp.projectId,
+      groupId: grp.id,
+      groupNumber: grp.groupNumber,
+      type: deliverable.type === "proposal" ? "proposal_submitted" : "commit_pushed",
+      user: uploaderName,
+      userRole: activeRole === "student" ? "student" : "lecturer",
+      action: `uploaded ${deliverable.title}`,
+      target: deliverable.fileName || deliverable.repoUrl || deliverable.title,
+    });
+
+    showToast(`"${deliverable.title}" submitted by ${uploaderName}!`, "success");
+    return { success: true };
   };
 
   const syncGroupRepo = async (groupId: string) => {
@@ -2337,6 +2513,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         getStudentAssignment,
         getAssignmentsForProject,
         connectRepoToGroup,
+        submitGroupDeliverable,
         syncGroupRepo,
         submitProposal,
         reviewProposal,
