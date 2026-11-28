@@ -23,9 +23,10 @@ interface AdminDataContextType {
   addDepartment: (name: string) => { success: boolean; error?: string };
   editDepartment: (id: string, name: string) => { success: boolean; error?: string };
   deleteDepartment: (id: string) => void;
-  addCourse: (code: string, name: string, departmentId?: string) => { success: boolean; error?: string };
-  editCourse: (id: string, code: string, name: string, departmentId?: string) => { success: boolean; error?: string };
+  addCourse: (code: string, name: string, departmentId?: string, academicYear?: 1 | 2 | 3 | 4, semester?: 1 | 2) => { success: boolean; error?: string };
+  editCourse: (id: string, code: string, name: string, departmentId?: string, academicYear?: 1 | 2 | 3 | 4, semester?: 1 | 2) => { success: boolean; error?: string };
   deleteCourse: (id: string) => void;
+  getCoursesForStudent: (studentEmail?: string) => Course[];
   addLecturer: (data: {
     name: string;
     email: string;
@@ -326,6 +327,9 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
               id: c.id,
               code: c.course_code || c.code,
               name: c.course_name || c.name,
+              departmentId: c.department_id,
+              academicYear: (Number(c.academic_year || c.academicYear || 1) || 1) as 1 | 2 | 3 | 4,
+              semester: (Number(c.semester || 1) || 1) as 1 | 2,
               createdAt: c.created_at ? c.created_at.split("T")[0] : new Date().toISOString().split("T")[0],
               adminEmail: c.admin_email || "admin@university.edu",
             }));
@@ -704,7 +708,13 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   // ==========================================
   // Course Actions (Admin Only)
   // ==========================================
-  const addCourse = (code: string, name: string, departmentId?: string) => {
+  const addCourse = (
+    code: string,
+    name: string,
+    departmentId?: string,
+    academicYear: 1 | 2 | 3 | 4 = 1,
+    semester: 1 | 2 = 1
+  ) => {
     if (activeRole !== "admin") {
       return { success: false, error: "Access denied. Only university administrators can create courses." };
     }
@@ -727,12 +737,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       name: trimmedName,
       departmentId: departmentId || (masterDepartments.length > 0 ? masterDepartments[0].id : undefined),
       departmentName: deptObj?.name || (masterDepartments.length > 0 ? masterDepartments[0].name : undefined),
+      academicYear,
+      semester,
       createdAt: new Date().toISOString().split("T")[0],
       adminEmail: effectiveAdminEmail,
     };
     const updatedCourses = [newCourse, ...masterCourses];
     setMasterCourses(updatedCourses);
-    const updatedActs = addActivity("added course", `${trimmedCode}: ${trimmedName}`, "course");
+    const updatedActs = addActivity("added course", `${trimmedCode}: ${trimmedName} (Year ${academicYear}, Sem ${semester})`, "course");
     persist(masterDepartments, updatedCourses, masterLecturers, masterStudents, updatedActs);
 
     if (isSupabaseConfigured()) {
@@ -745,17 +757,26 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           name: newCourse.name,
           course_name: newCourse.name,
           department_id: newCourse.departmentId,
+          academic_year: newCourse.academicYear,
+          semester: newCourse.semester,
           admin_email: newCourse.adminEmail,
         }).then(({ error }) => {
           if (error) logSupabaseNotice("insert course", error);
         });
       } catch { }
     }
-    showToast(`Course "${trimmedCode} - ${trimmedName}" added successfully!`, "success");
+    showToast(`Course "${trimmedCode} - ${trimmedName}" (Year ${academicYear}, Sem ${semester}) added successfully!`, "success");
     return { success: true };
   };
 
-  const editCourse = (id: string, code: string, name: string, departmentId?: string) => {
+  const editCourse = (
+    id: string,
+    code: string,
+    name: string,
+    departmentId?: string,
+    academicYear?: 1 | 2 | 3 | 4,
+    semester?: 1 | 2
+  ) => {
     if (activeRole !== "admin") {
       return { success: false, error: "Access denied. Only university administrators can edit courses." };
     }
@@ -781,6 +802,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         name: trimmedName,
         departmentId: departmentId ?? c.departmentId,
         departmentName: deptObj?.name ?? c.departmentName,
+        academicYear: academicYear ?? c.academicYear ?? 1,
+        semester: semester ?? c.semester ?? 1,
       } : c
     );
     setMasterCourses(updatedCourses);
@@ -796,6 +819,8 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           name: trimmedName,
           course_name: trimmedName,
           department_id: departmentId,
+          academic_year: academicYear,
+          semester: semester,
         }).eq("id", id).then(({ error }) => {
           if (error) logSupabaseNotice("update course", error);
         });
@@ -1417,6 +1442,16 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
           g.members.some((m) => m.email.toLowerCase() === email)
       ) ||
       groups.find((g) => g.projectId === projectId)
+    );
+  };
+
+  const getCoursesForStudent = (studentEmail?: string): Course[] => {
+    const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
+    const currentStudent = masterStudents.find((s) => s.email.toLowerCase() === email) || masterStudents[0];
+    if (!currentStudent) return courses;
+    return courses.filter((c) =>
+      Number(c.academicYear || 1) === Number(currentStudent.academicYear || 1) &&
+      Number(c.semester || 1) === Number(currentStudent.semester || 1)
     );
   };
 
@@ -2129,6 +2164,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         archiveProject,
         deleteProject,
         getProjectsForStudent,
+        getCoursesForStudent,
         getStudentAssignedGroup,
         groups,
         addGroup,

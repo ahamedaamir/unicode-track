@@ -35,13 +35,16 @@ export default function CoursesPage() {
     groups, 
     activeRole, 
     activeLecturerEmail,
+    activeStudentEmail,
     addCourse, 
     editCourse, 
     deleteCourse 
   } = useAdminData();
 
   const isLecturer = activeRole === "lecturer";
+  const isStudent = activeRole === "student";
   const currentLecturer = lecturers.find((l) => l.email === activeLecturerEmail) || null;
+  const currentStudent = students.find((s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()) || students[0];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -49,13 +52,23 @@ export default function CoursesPage() {
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
   const [departmentId, setDepartmentId] = useState("");
+  const [academicYear, setAcademicYear] = useState<1 | 2 | 3 | 4>(1);
+  const [semester, setSemester] = useState<1 | 2>(1);
   const [formErrors, setFormErrors] = useState<{ code?: string; name?: string; department?: string }>({});
 
   // Detail Modal State
   const [selectedCourseDetail, setSelectedCourseDetail] = useState<Course | null>(null);
 
-  // Role-based course filtering: Lecturers only see courses assigned to them
-  const baseCourses = isLecturer
+  // Role-based course filtering:
+  // - Students only see courses matching their enrolled Academic Year and Semester
+  // - Lecturers only see courses assigned to them
+  // - University Administrators see all curriculum courses
+  const baseCourses = isStudent
+    ? courses.filter((c) =>
+        Number(c.academicYear || 1) === Number(currentStudent?.academicYear || 1) &&
+        Number(c.semester || 1) === Number(currentStudent?.semester || 1)
+      )
+    : isLecturer
     ? courses.filter((c) => currentLecturer ? currentLecturer.assignedCourses.includes(c.code) : true)
     : courses;
 
@@ -70,6 +83,8 @@ export default function CoursesPage() {
     setCourseCode("");
     setCourseName("");
     setDepartmentId(departments.length > 0 ? departments[0].id : "");
+    setAcademicYear(1);
+    setSemester(1);
     setFormErrors({});
     setModalOpen(true);
   };
@@ -79,6 +94,8 @@ export default function CoursesPage() {
     setCourseCode(crs.code);
     setCourseName(crs.name);
     setDepartmentId(crs.departmentId || (departments.length > 0 ? departments[0].id : ""));
+    setAcademicYear((crs.academicYear || 1) as 1 | 2 | 3 | 4);
+    setSemester((crs.semester || 1) as 1 | 2);
     setFormErrors({});
     setModalOpen(true);
   };
@@ -96,13 +113,13 @@ export default function CoursesPage() {
     }
 
     if (editingCourseId) {
-      const res = editCourse(editingCourseId, courseCode, courseName, departmentId);
+      const res = editCourse(editingCourseId, courseCode, courseName, departmentId, academicYear, semester);
       if (!res.success) {
         setFormErrors({ code: res.error });
         return;
       }
     } else {
-      const res = addCourse(courseCode, courseName, departmentId);
+      const res = addCourse(courseCode, courseName, departmentId, academicYear, semester);
       if (!res.success) {
         setFormErrors({ code: res.error });
         return;
@@ -113,6 +130,8 @@ export default function CoursesPage() {
     setCourseCode("");
     setCourseName("");
     setDepartmentId("");
+    setAcademicYear(1);
+    setSemester(1);
     setEditingCourseId(null);
   };
 
@@ -135,13 +154,18 @@ export default function CoursesPage() {
     const courseObj = courses.find((c) => c.code === code);
     const deptObj = (departments as any[]).find((d: any) => d.id === (courseObj as any)?.departmentId);
 
+    const enrolledStudents = students.filter((s) =>
+      Number(s.academicYear || 1) === Number(courseObj?.academicYear || 1) &&
+      Number(s.semester || 1) === Number(courseObj?.semester || 1)
+    );
+
     return {
       projectsCount: courseProjects.length,
       groupsCount: courseGroups.length,
-      studentsCount: 0,
-      department: deptObj?.name || "Academic Department",
-      academicYear: 1,
-      semester: 1,
+      studentsCount: enrolledStudents.length,
+      department: deptObj?.name || courseObj?.departmentName || "Academic Department",
+      academicYear: courseObj?.academicYear || 1,
+      semester: courseObj?.semester || 1,
     };
   };
 
@@ -152,21 +176,23 @@ export default function CoursesPage() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-              {isLecturer ? "My Assigned Courses" : "Curriculum Course Catalog"}
+              {isStudent ? "My Courses" : isLecturer ? "My Assigned Courses" : "Curriculum Course Catalog"}
             </h2>
-            <Badge variant={isLecturer ? "teal" : "default"} size="sm">
-              {filteredCourses.length} {isLecturer ? "Assigned" : "Total"}
+            <Badge variant={isStudent ? "teal" : isLecturer ? "teal" : "default"} size="sm">
+              {filteredCourses.length} {isStudent ? "Enrolled" : isLecturer ? "Assigned" : "Total"}
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            {isLecturer
+            {isStudent
+              ? `Curriculum courses for Year ${currentStudent?.academicYear || 1}, Semester ${currentStudent?.semester || 1}. Review syllabus units and associated projects.`
+              : isLecturer
               ? `Authorized faculty curriculum view for ${currentLecturer?.name || "Lecturer"}. Review syllabus units, associated projects, and enrolled students.`
-              : "Add and maintain official curriculum course codes for lecturer assignments."}
+              : "Add and maintain official curriculum course codes, academic year, and semester for lecturer assignments."}
           </p>
         </div>
 
-        {/* Lecturers cannot create/modify courses unless admin (Section 3) */}
-        {!isLecturer ? (
+        {/* Action Button: Only Admin can add course */}
+        {!isLecturer && !isStudent ? (
           <Button
             onClick={handleOpenAdd}
             variant="primary"
@@ -175,7 +201,7 @@ export default function CoursesPage() {
           >
             Add Course
           </Button>
-        ) : (
+        ) : isLecturer ? (
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard/projects/create"
@@ -185,8 +211,28 @@ export default function CoursesPage() {
               <span>Create Project for Course</span>
             </Link>
           </div>
-        )}
+        ) : null}
       </div>
+
+      {/* Advisory Banner for Students */}
+      {isStudent && (
+        <div className="p-4 rounded-[16px] bg-teal-50/60 dark:bg-accent/10 border border-teal-200/80 dark:border-accent/30 text-xs text-teal-950 dark:text-accent flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center shrink-0">
+              <GraduationCap className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-teal-900 dark:text-foreground">Enrolled Curriculum Cohort</p>
+              <p className="text-teal-700 dark:text-muted-foreground text-[11px] mt-0.5">
+                Displaying courses for <strong>Year {currentStudent?.academicYear || 1}, Semester {currentStudent?.semester || 1}</strong>.
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono text-teal-800 dark:text-accent bg-card px-2.5 py-1 rounded-md border border-teal-200 dark:border-accent/30 shrink-0 font-semibold">
+            Cohort: Year {currentStudent?.academicYear || 1} · Sem {currentStudent?.semester || 1}
+          </span>
+        </div>
+      )}
 
       {/* Advisory Banner for Lecturers */}
       {isLecturer && (
@@ -316,7 +362,7 @@ export default function CoursesPage() {
                     <ArrowRight className="w-3 h-3" />
                   </Link>
 
-                  {!isLecturer && (
+                  {!isLecturer && !isStudent && (
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEdit(crs)}
@@ -356,7 +402,7 @@ export default function CoursesPage() {
                   </h3>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Department of Computer Science & Engineering • Academic Year 2026/2027
+                  {selectedCourseDetail.departmentName || "Department of ICT"} • Year {selectedCourseDetail.academicYear || 1}, Semester {selectedCourseDetail.semester || 1}
                 </p>
               </div>
 
@@ -369,22 +415,33 @@ export default function CoursesPage() {
             </div>
 
             {/* Course Statistics Strip */}
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="p-3 bg-muted rounded-xl border border-border">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold block">Enrolled Students</span>
-                <strong className="text-lg font-bold font-mono text-foreground">48</strong>
-              </div>
-              <div className="p-3 bg-muted rounded-xl border border-border">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold block">Active Projects</span>
-                <strong className="text-lg font-bold font-mono text-teal-700">
-                  {projects.filter((p) => p.courseCode === selectedCourseDetail.code).length}
-                </strong>
-              </div>
-              <div className="p-3 bg-muted rounded-xl border border-border">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold block">Student Teams</span>
-                <strong className="text-lg font-bold font-mono text-indigo-700">6 Groups</strong>
-              </div>
-            </div>
+            {(() => {
+              const enrolledForDetail = students.filter(
+                (s) =>
+                  Number(s.academicYear || 1) === Number(selectedCourseDetail.academicYear || 1) &&
+                  Number(s.semester || 1) === Number(selectedCourseDetail.semester || 1)
+              );
+              return (
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="p-3 bg-muted rounded-xl border border-border">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Enrolled Students</span>
+                    <strong className="text-lg font-bold font-mono text-foreground">{enrolledForDetail.length}</strong>
+                  </div>
+                  <div className="p-3 bg-muted rounded-xl border border-border">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Active Projects</span>
+                    <strong className="text-lg font-bold font-mono text-teal-700">
+                      {projects.filter((p) => p.courseCode === selectedCourseDetail.code).length}
+                    </strong>
+                  </div>
+                  <div className="p-3 bg-muted rounded-xl border border-border">
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Cohort</span>
+                    <strong className="text-lg font-bold font-mono text-indigo-700">
+                      Y{selectedCourseDetail.academicYear || 1} · S{selectedCourseDetail.semester || 1}
+                    </strong>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Associated Projects Section */}
             <div className="space-y-3">
@@ -468,7 +525,7 @@ export default function CoursesPage() {
       )}
 
       {/* Admin Add / Edit Course Dialog Modal */}
-      {!isLecturer && modalOpen && (
+      {!isLecturer && !isStudent && modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm backdrop-blur-xs animate-in fade-in-50">
           <div className="bg-card w-full max-w-md rounded-[16px] border border-border shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -510,6 +567,38 @@ export default function CoursesPage() {
                   </select>
                 )}
                 {formErrors.department && <p className="text-[11px] text-rose-500">{formErrors.department}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="block font-semibold text-foreground">
+                    Academic Year <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={academicYear}
+                    onChange={(e) => setAcademicYear(Number(e.target.value) as 1 | 2 | 3 | 4)}
+                    className="w-full px-3 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent bg-card text-foreground"
+                  >
+                    <option value={1}>Year 1</option>
+                    <option value={2}>Year 2</option>
+                    <option value={3}>Year 3</option>
+                    <option value={4}>Year 4</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block font-semibold text-foreground">
+                    Semester <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={semester}
+                    onChange={(e) => setSemester(Number(e.target.value) as 1 | 2)}
+                    className="w-full px-3 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent bg-card text-foreground"
+                  >
+                    <option value={1}>Semester 1</option>
+                    <option value={2}>Semester 2</option>
+                  </select>
+                </div>
               </div>
 
               <div className="space-y-1">
