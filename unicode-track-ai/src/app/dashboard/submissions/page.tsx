@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Inbox, 
@@ -55,6 +55,11 @@ interface SubmissionItem {
 export default function SubmissionsPage() {
   const { projects, groups, activeRole } = useAdminData();
   const isLecturer = activeRole === "lecturer";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [typeFilter, setTypeFilter] = useState<SubmissionTypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<SubmissionStatusFilter>("all");
@@ -132,8 +137,8 @@ export default function SubmissionsPage() {
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Project Submissions & Reviews
             </h2>
-            <Badge variant="teal" size="sm">
-              {filteredSubmissions.length} Items
+            <Badge variant="teal" size="sm" suppressHydrationWarning>
+              <span suppressHydrationWarning>{mounted ? filteredSubmissions.length : 0} Items</span>
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
