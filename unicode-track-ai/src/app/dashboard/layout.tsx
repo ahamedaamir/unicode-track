@@ -58,10 +58,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const isLecturer = activeRole === "lecturer";
   const isWidePage = pathname?.includes("/dashboard/test") || pathname?.includes("/workspace");
 
-  if (pathname?.startsWith("/dashboard/student")) {
-    return <>{children}</>;
-  }
-
   useEffect(() => {
     try {
       const pendingStudent = sessionStorage.getItem("unicodetrack_pending_student_email");
@@ -81,6 +77,13 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       // Ignore
     }
   }, [router]);
+
+  // Only bypass the main shell for dedicated prototype routes (/dashboard/student or /dashboard/student/*, NOT /dashboard/students)
+  const isStudentPrototypeRoute = pathname === "/dashboard/student" || pathname?.startsWith("/dashboard/student/");
+
+  if (isStudentPrototypeRoute) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen flex bg-background text-foreground font-sans antialiased">
