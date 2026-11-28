@@ -27,10 +27,16 @@ CREATE TABLE IF NOT EXISTS public.courses (
     id VARCHAR(50) PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
+    department_id VARCHAR(50),
+    academic_year INT DEFAULT 1 CHECK (academic_year IN (1, 2, 3, 4)),
+    semester INT DEFAULT 1 CHECK (semester IN (1, 2)),
     admin_email VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS department_id VARCHAR(50);
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS academic_year INT DEFAULT 1;
+ALTER TABLE IF EXISTS public.courses ADD COLUMN IF NOT EXISTS semester INT DEFAULT 1;
 
 -- 2.3 Lecturers Table
 CREATE TABLE IF NOT EXISTS public.lecturers (

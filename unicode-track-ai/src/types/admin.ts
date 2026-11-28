@@ -13,6 +13,8 @@ export interface Course {
   name: string;
   departmentId?: string;
   departmentName?: string;
+  academicYear?: 1 | 2 | 3 | 4;
+  semester?: 1 | 2;
   createdAt: string;
   adminEmail?: string;
 }

@@ -57,6 +57,12 @@ export default function DashboardOverviewPage() {
 
   // Student filtered data
   const studentProjects = getProjectsForStudent(activeStudentEmail);
+  const studentCourses = React.useMemo(() => {
+    return courses.filter((c) =>
+      Number(c.academicYear || 1) === Number(currentStudent?.academicYear || 1) &&
+      Number(c.semester || 1) === Number(currentStudent?.semester || 1)
+    );
+  }, [courses, currentStudent]);
   const studentAssignedGroups = groups.filter((g) =>
     g.members.some((m) => m.email.toLowerCase() === activeStudentEmail.toLowerCase())
   );
@@ -356,18 +362,22 @@ export default function DashboardOverviewPage() {
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Curriculum Units
+                  My Courses
                 </span>
                 <div className="w-9 h-9 rounded-xl bg-muted text-foreground flex items-center justify-center group-hover:scale-105 transition-transform border border-border">
                   <BookOpen className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-foreground font-mono tabular-nums tracking-tight">2</span>
-                <span className="text-xs text-muted-foreground font-medium">Active Semester</span>
+                <span className="text-3xl font-extrabold text-foreground font-mono tabular-nums tracking-tight">
+                  {studentCourses.length}
+                </span>
+                <span className="text-xs text-accent font-medium">
+                  Year {currentStudent?.academicYear || 1} · Sem {currentStudent?.semester || 1}
+                </span>
               </div>
               <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-accent font-semibold group-hover:text-accent-hover">
-                <span>View syllabus</span>
+                <span>View my courses</span>
                 <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </Link>
