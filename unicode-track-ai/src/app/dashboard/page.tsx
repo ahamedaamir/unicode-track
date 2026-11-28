@@ -331,7 +331,7 @@ export default function DashboardOverviewPage() {
       {isStudent ? (
         <div className="space-y-6 sm:space-y-8">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <Link
               href="/dashboard/projects"
               className="bg-card p-5 rounded-[16px] border border-border hover:border-accent/40 transition-all duration-200 group"
@@ -381,27 +381,6 @@ export default function DashboardOverviewPage() {
                 <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </Link>
-
-            <div className="bg-card p-5 rounded-[16px] border border-border">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Git Commits
-                </span>
-                <div className="w-9 h-9 rounded-xl bg-accent/10 text-accent flex items-center justify-center border border-accent/20">
-                  <Activity className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-foreground font-mono tabular-nums tracking-tight">
-                  {totalCommits}
-                </span>
-                <span className="text-xs text-accent font-medium">Synced telemetry</span>
-              </div>
-              <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-                <span>Repositories connected</span>
-                <span className="font-semibold text-accent">Active</span>
-              </div>
-            </div>
           </div>
 
           {/* Enrolled Courses Section */}
