@@ -1527,31 +1527,45 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         .map((a) => a.projectId)
     );
 
-    // Get enrolled course codes for this student's year and semester
+    const studentYear = Number(currentStudent?.academicYear || 1);
+    const studentSem = Number(currentStudent?.semester || 1);
+    const studentBatchVal = studentYear * 10 + studentSem;
+
+    // Get enrolled course codes for this student's year and semester (and past semesters)
     const studentEnrolledCourseCodes = new Set(
       masterCourses
-        .filter((c) =>
-          Number(c.academicYear || 1) === Number(currentStudent?.academicYear || 1) &&
-          Number(c.semester || 1) === Number(currentStudent?.semester || 1)
-        )
+        .filter((c) => {
+          const cYear = Number(c.academicYear || 1);
+          const cSem = Number(c.semester || 1);
+          const cBatchVal = cYear * 10 + cSem;
+          return cBatchVal <= studentBatchVal;
+        })
         .map((c) => (c.code || "").toLowerCase().trim())
     );
 
     return projects.filter((p) => {
+      const pYear = Number(p.academicYear || 1);
+      const pSem = Number(p.semester || 1);
+      const pBatchVal = pYear * 10 + pSem;
+
+      // Student can ONLY view current and past projects, NEVER future batches
+      if (pBatchVal > studentBatchVal) {
+        return false;
+      }
+
       // 1. Direct group or individual assignment
       if (assignedProjectIds.has(p.id) || individualAssignedProjectIds.has(p.id)) return true;
 
-      // 2. Project for an enrolled course for this student's year and semester
+      // 2. Project for an enrolled course for this student's current or past batches
       if (p.courseCode && studentEnrolledCourseCodes.has(p.courseCode.toLowerCase().trim())) {
         return true;
       }
 
-      // 3. Published project for their enrolled cohort (Year and Semester)
+      // 3. Published project for their current or past enrolled cohort
       if (
         (p.status === "Published" || (p.status as any) === "Active") &&
         currentStudent &&
-        Number(p.academicYear || 1) === Number(currentStudent.academicYear || 1) &&
-        Number(p.semester || 1) === Number(currentStudent.semester || 1)
+        pBatchVal <= studentBatchVal
       ) {
         return true;
       }

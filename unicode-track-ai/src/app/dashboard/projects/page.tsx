@@ -195,6 +195,49 @@ function LecturerProjectsContent() {
     });
   }, [baseProjects, tab]);
 
+  // Student batch boundaries: Student can ONLY view current or past batches, never future batches
+  const studentYear = Number(currentStudent?.academicYear || 1);
+  const studentSem = Number(currentStudent?.semester || 1);
+  const studentBatchVal = studentYear * 10 + studentSem;
+
+  const displayBatches = useMemo(() => {
+    if (activeRole !== "student") {
+      return BATCHES;
+    }
+    return BATCHES.filter((b) => {
+      const [y, s] = b.split(".").map(Number);
+      const bVal = y * 10 + s;
+      // Strictly prevent seeing batches ahead of the student
+      if (bVal > studentBatchVal) return false;
+
+      if (tab === "current") {
+        // Current tab: show their current batch (and any active batch)
+        return bVal === studentBatchVal;
+      } else {
+        // Past tab: show previous batches (and current if it has past projects)
+        return (
+          bVal < studentBatchVal ||
+          (bVal === studentBatchVal &&
+            temporalProjects.some((p) => p.academicYear === y && p.semester === s))
+        );
+      }
+    });
+  }, [activeRole, studentBatchVal, tab, temporalProjects]);
+
+  // Safety guard: if a student's active batch points to an unauthorized future batch, reset it
+  useEffect(() => {
+    if (activeRole === "student" && batch) {
+      const [y, s] = batch.split(".").map(Number);
+      const bVal = y * 10 + s;
+      if (bVal > studentBatchVal) {
+        setBatch(null);
+        setCourse(null);
+        setProj(null);
+        setTgt(null);
+      }
+    }
+  }, [activeRole, batch, studentBatchVal]);
+
   // Projects matching active batch
   const batchProjects = useMemo(() => {
     if (!batch) return temporalProjects;
@@ -204,7 +247,20 @@ function LecturerProjectsContent() {
 
   // Courses matching active batch
   const availableCourses = useMemo(() => {
-    const list = contextCourses.map((c) => ({ c: c.code, n: c.name }));
+    let baseList = contextCourses;
+    if (batch) {
+      const [y, s] = batch.split(".").map(Number);
+      baseList = baseList.filter(
+        (c) => Number(c.academicYear || 1) === y && Number(c.semester || 1) === s
+      );
+    } else if (activeRole === "student") {
+      baseList = baseList.filter((c) => {
+        const cYear = Number(c.academicYear || 1);
+        const cSem = Number(c.semester || 1);
+        return cYear < studentYear || (cYear === studentYear && cSem <= studentSem);
+      });
+    }
+    const list = baseList.map((c) => ({ c: c.code, n: c.name }));
     if (!batch) return list;
     const [y, s] = batch.split(".").map(Number);
     const matchingCodes = new Set(
@@ -214,7 +270,7 @@ function LecturerProjectsContent() {
     );
     const filtered = list.filter((c) => matchingCodes.has(c.c));
     return filtered.length > 0 ? filtered : list;
-  }, [contextCourses, temporalProjects, batch]);
+  }, [contextCourses, temporalProjects, batch, activeRole, studentYear, studentSem]);
 
   // Projects matching active course
   const courseProjects = useMemo(() => {
@@ -509,27 +565,37 @@ function LecturerProjectsContent() {
 
       <div className="sec proj-sec">Select batch</div>
       <div className="proj-grid">
-        {BATCHES.map((b) => {
-          const [y, s] = b.split(".").map(Number);
-          const count = temporalProjects.filter(
-            (p) => p.academicYear === y && p.semester === s
-          ).length;
-          const displayCount = count;
-          return (
-            <div
-              key={b}
-              className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer"
-              onClick={() => go({ batch: b })}
-            >
-              <b className="text-foreground block text-base font-semibold">Batch {b}</b>
-              <span suppressHydrationWarning className="text-muted-foreground text-xs block mt-1">
-                {tab === "current"
-                  ? `${displayCount} active projects`
-                  : `${displayCount} archived projects`}
-              </span>
-            </div>
-          );
-        })}
+        {displayBatches.length === 0 ? (
+          <div className="proj-card text-center py-10 space-y-2 bg-card border border-border rounded-[16px] col-span-full">
+            <p className="text-muted-foreground text-sm">
+              {tab === "current"
+                ? `No active batches found for your enrolled term (Year ${studentYear}, Sem ${studentSem}).`
+                : `No previous batches or archived projects recorded prior to Year ${studentYear}, Sem ${studentSem}.`}
+            </p>
+          </div>
+        ) : (
+          displayBatches.map((b) => {
+            const [y, s] = b.split(".").map(Number);
+            const count = temporalProjects.filter(
+              (p) => p.academicYear === y && p.semester === s
+            ).length;
+            const displayCount = count;
+            return (
+              <div
+                key={b}
+                className="proj-card proj-tile bg-card border border-border text-foreground hover:border-accent rounded-[16px] transition-all cursor-pointer"
+                onClick={() => go({ batch: b })}
+              >
+                <b className="text-foreground block text-base font-semibold">Batch {b}</b>
+                <span suppressHydrationWarning className="text-muted-foreground text-xs block mt-1">
+                  {tab === "current"
+                    ? `${displayCount} active projects`
+                    : `${displayCount} archived projects`}
+                </span>
+              </div>
+            );
+          })
+        )}
       </div>
     </>
   );
