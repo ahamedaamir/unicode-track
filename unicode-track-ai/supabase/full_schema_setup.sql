@@ -671,11 +671,13 @@ CREATE POLICY "Allow manage er_diagram_submissions" ON public.er_diagram_submiss
 
 DROP POLICY IF EXISTS "Allow read access to er_diagram_analysis" ON public.er_diagram_analysis;
 CREATE POLICY "Allow read access to er_diagram_analysis" ON public.er_diagram_analysis FOR SELECT USING (true);
-DROP POLICY IF EXISTS "Allow manage er_diagram_analysis" ON public.er_diagram_analysis FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow manage er_diagram_analysis" ON public.er_diagram_analysis;
+CREATE POLICY "Allow manage er_diagram_analysis" ON public.er_diagram_analysis FOR ALL USING (true);
 
 DROP POLICY IF EXISTS "Allow read access to er_diagram_feedback" ON public.er_diagram_feedback;
 CREATE POLICY "Allow read access to er_diagram_feedback" ON public.er_diagram_feedback FOR SELECT USING (true);
-DROP POLICY IF EXISTS "Allow manage er_diagram_feedback" ON public.er_diagram_feedback FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow manage er_diagram_feedback" ON public.er_diagram_feedback;
+CREATE POLICY "Allow manage er_diagram_feedback" ON public.er_diagram_feedback FOR ALL USING (true);
 
 DROP POLICY IF EXISTS "Allow read access to quizzes" ON public.quizzes;
 CREATE POLICY "Allow read access to quizzes" ON public.quizzes FOR SELECT USING (true);
