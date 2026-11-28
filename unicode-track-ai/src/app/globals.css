@@ -229,3 +229,104 @@ body {
   .proj-two, .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .proj-ws, .ws { display: grid; grid-template-columns: 240px 1fr; gap: 0; }
 }
+
+/* ============================================================================
+   STUDENT DASHBOARD — STRICT 3-COLOR DESIGN TOKENS (Indigo / Cyan / Slate)
+   ============================================================================ */
+.student-theme {
+  /* Primary: Indigo */
+  --primary: #4f46e5;           /* indigo-600 */
+  --primary-hover: #4338ca;     /* indigo-700 */
+  --primary-soft: #eef2ff;      /* indigo-50 */
+  --primary-foreground: #ffffff;
+
+  /* Accent (AI ONLY): Cyan */
+  --accent: #06b6d4;            /* cyan-500 */
+  --accent-soft: #ecfeff;       /* cyan-50 */
+  --accent-border: #a5f3fc;     /* cyan-200 */
+  --accent-foreground: #0e7490; /* cyan-700 */
+
+  /* Neutral: Slate (Light Mode) */
+  --neutral-bg: #f8fafc;        /* slate-50 */
+  --neutral-card: #ffffff;      /* white */
+  --neutral-surface: #f1f5f9;   /* slate-100 */
+  --neutral-border: #e2e8f0;    /* slate-200 */
+  --neutral-muted: #64748b;     /* slate-500 */
+  --neutral-text: #0f172a;      /* slate-900 */
+
+  /* Compatibility mappings inside .student-theme */
+  --background: var(--neutral-bg);
+  --card: var(--neutral-card);
+  --muted: var(--neutral-surface);
+  --border: var(--neutral-border);
+  --foreground: var(--neutral-text);
+  --muted-foreground: var(--neutral-muted);
+  --ring: var(--primary);
+
+  color-scheme: light;
+}
+
+.student-theme.dark {
+  /* Primary: Indigo */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: rgba(79, 70, 229, 0.16);
+  --primary-foreground: #ffffff;
+
+  /* Accent (AI ONLY): Cyan */
+  --accent: #06b6d4;
+  --accent-soft: rgba(6, 182, 212, 0.12);
+  --accent-border: rgba(6, 182, 212, 0.35);
+  --accent-foreground: #67e8f9;
+
+  /* Neutral: Slate (Dark Mode) */
+  --neutral-bg: #0b1120;
+  --neutral-card: #111827;
+  --neutral-surface: #1e293b;
+  --neutral-border: #1f2937;
+  --neutral-muted: #94a3b8;
+  --neutral-text: #f1f5f9;
+
+  /* Compatibility mappings inside .student-theme.dark */
+  --background: var(--neutral-bg);
+  --card: var(--neutral-card);
+  --muted: var(--neutral-surface);
+  --border: var(--neutral-border);
+  --foreground: var(--neutral-text);
+  --muted-foreground: var(--neutral-muted);
+  --ring: var(--primary);
+
+  color-scheme: dark;
+}
+
+/* Slate shimmer loader */
+@keyframes student-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.student-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--neutral-surface) 25%,
+    var(--neutral-border) 50%,
+    var(--neutral-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: student-shimmer 1.5s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-theme *,
+  .student-theme *::before,
+  .student-theme *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
