@@ -80,7 +80,7 @@ export function AdminTopNavbar({ onToggleMobileMenu }: AdminTopNavbarProps) {
     if (path.startsWith("/dashboard/courses")) return "Manage official curriculum courses available for lecturer assignments.";
     if (path.startsWith("/dashboard/lecturers")) return "Create and supervise lecturer accounts, course allocations, and security status.";
     if (path.startsWith("/dashboard/students")) return "Review enrolled students, course commitments, and academic team assignments.";
-    return "UniCodeTrack AI University Administration";
+    return "UniCodeTrack University Administration";
   };
 
   const notifications = [

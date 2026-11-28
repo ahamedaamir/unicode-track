@@ -315,7 +315,7 @@ function LoginContent() {
           </div>
         </Link>
         <h2 className="mt-4 text-2xl font-extrabold text-foreground tracking-tight">
-          Sign In to UniCodeTrack AI
+          Sign In to UniCodeTrack
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
           Enter your email and password to access your workspace
@@ -415,7 +415,7 @@ function LoginContent() {
             href="/"
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Back to UniCodeTrack AI Home
+            ← Back to UniCodeTrack Home
           </Link>
         </div>
       </div>
