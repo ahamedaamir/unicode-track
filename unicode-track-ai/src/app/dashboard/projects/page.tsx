@@ -28,6 +28,11 @@ const BATCHES = ["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"] as cons
 
 function LecturerProjectsContent() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     projects: contextProjects,
@@ -1469,7 +1474,7 @@ function LecturerProjectsContent() {
 
                   <div className="pt-3.5 mt-3.5 border-t border-border flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground flex items-center gap-1">
+                      <span suppressHydrationWarning className="text-muted-foreground flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
                         {p.deadline ? `Due ${new Date(p.deadline).toLocaleDateString()}` : "Ongoing"}
                       </span>
@@ -1596,7 +1601,7 @@ function LecturerProjectsContent() {
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-              <span className="text-xs px-3 py-1.5 rounded-xl bg-muted/60 border border-border text-foreground flex items-center gap-1.5 font-medium">
+              <span suppressHydrationWarning className="text-xs px-3 py-1.5 rounded-xl bg-muted/60 border border-border text-foreground flex items-center gap-1.5 font-medium">
                 <Clock className="w-3.5 h-3.5 text-accent" />
                 {project.deadline ? `Due ${new Date(project.deadline).toLocaleDateString()}` : "Ongoing"}
               </span>
@@ -2161,6 +2166,20 @@ function LecturerProjectsContent() {
       </div>
     );
   };
+
+  if (!mounted) {
+    return (
+      <div className="max-w-[1100px] mx-auto py-8 px-2.5 sm:px-4 space-y-4 animate-pulse">
+        <div className="h-4 w-28 bg-muted rounded" />
+        <div className="h-8 w-64 bg-muted rounded" />
+        <div className="h-4 w-96 bg-muted rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <div className="h-40 bg-card border border-border rounded-[16px]" />
+          <div className="h-40 bg-card border border-border rounded-[16px]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1100px] mx-auto py-2 px-2.5 sm:px-4">
