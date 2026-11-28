@@ -432,17 +432,70 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         }
       });
 
-      // 6. Fetch student groups
-      supabase.from("student_groups").select("*").then(({ data, error }) => {
+      // 6. Fetch project groups and their members
+      const fetchGroups = async () => {
+        try {
+          const { data, error } = await supabase.from("project_groups").select("*");
+          const groupsData = (!error && data && data.length > 0) ? data : (await supabase.from("student_groups").select("*")).data;
+          if (groupsData && groupsData.length > 0) {
+            const { data: membersData } = await supabase.from("group_members").select("*");
+            setGroups(groupsData.map((g: any, index: number) => {
+              const matchedMembers = (membersData || [])
+                .filter((m: any) => m.group_id === g.id)
+                .map((m: any) => ({
+                  studentId: m.student_id,
+                  fullName: m.full_name,
+                  email: m.email,
+                  department: m.department || "Computer Science",
+                  academicYear: 1,
+                  semester: 1,
+                  role: m.role || "Member",
+                  commitsCount: m.commits_count || 0,
+                }));
+              return {
+                id: g.id,
+                projectId: g.project_id || "",
+                groupNumber: g.group_number || index + 1,
+                groupName: g.group_name || `Group ${g.group_number || index + 1}`,
+                workspaceId: g.workspace_id || `ws-${g.project_id}-${g.group_number || index + 1}`,
+                repoUrl: g.repo_url,
+                repoStatus: g.repo_status || "disconnected",
+                proposalStatus: g.proposal_status || "not_submitted",
+                totalCommits: g.total_commits || 0,
+                progress: g.progress || 0,
+                status: g.status || "active",
+                evaluationScore: g.evaluation_score,
+                members: matchedMembers,
+              } as any;
+            }));
+          }
+        } catch { }
+      };
+      fetchGroups();
+
+      // 7. Fetch project student assignments (for individual projects)
+      supabase.from("project_student_assignments").select("*").then(({ data, error }) => {
         if (!error && data && data.length > 0) {
-          setGroups(data.map((g: any, index: number) => ({
-            id: g.id,
-            projectId: g.project_id || "",
-            groupNumber: index + 1,
-            groupName: g.group_name || `Group 0${index + 1}`,
-            proposalStatus: "submitted",
-            githubRepoStatus: "connected",
-            members: [],
+          setStudentAssignments(data.map((a: any) => ({
+            id: a.id,
+            projectId: a.project_id,
+            studentId: a.student_id,
+            studentEmail: a.student_email,
+            studentName: a.student_name,
+            departmentId: a.department_id,
+            academicYear: a.academic_year || 1,
+            semester: a.semester || 1,
+            workspaceId: a.workspace_id,
+            repoUrl: a.repo_url,
+            repoName: a.repo_name,
+            repoOwner: a.repo_owner,
+            defaultBranch: a.default_branch || "main",
+            repoStatus: a.repo_status || "disconnected",
+            totalCommits: a.total_commits || 0,
+            status: a.status || "active",
+            progress: a.progress || 0,
+            proposalStatus: a.proposal_status || "not_submitted",
+            createdAt: a.created_at || new Date().toISOString(),
           } as any)));
         }
       });
@@ -1135,6 +1188,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
         const supabase = createClient();
         const deptObj = masterDepartments.find((d) => d.id === newStudent.departmentId);
         supabase.from("students").insert({
+          id: newStudent.id,
           student_id: newStudent.studentId,
           full_name: newStudent.fullName,
           email: newStudent.email,
