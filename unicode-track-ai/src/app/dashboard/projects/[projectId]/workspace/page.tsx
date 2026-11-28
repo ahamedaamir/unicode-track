@@ -50,6 +50,7 @@ function GroupWorkspaceContent() {
     courses,
     lecturers,
     groups,
+    students,
     studentAssignments,
     timelineActivities,
     connectRepoToGroup,
@@ -72,15 +73,36 @@ function GroupWorkspaceContent() {
   const projectGroups = groups.filter((g) => g.projectId === projectId);
   const projectAssignments = studentAssignments.filter((a) => a.projectId === projectId);
 
-  // Check student membership in group project
+  // Current authenticated student resolution
+  const currentStudent = students.find(
+    (s) => s.email.toLowerCase() === activeStudentEmail.toLowerCase()
+  );
+  const normCurrentStudentId = (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normCurrentStudentSysId = (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  // Check student membership in group project by email OR by index number / studentId
   const studentAssignedGroup = projectGroups.find((g) =>
-    g.members.some((m) => m.email.toLowerCase() === activeStudentEmail.toLowerCase())
+    g.members.some((m) => {
+      const mEmail = (m.email || "").toLowerCase().trim();
+      const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const matchesEmail = activeStudentEmail && mEmail === activeStudentEmail.toLowerCase().trim();
+      const matchesId =
+        (normCurrentStudentId && mId && (mId === normCurrentStudentId || mId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(mId))) ||
+        (normCurrentStudentSysId && mId && mId === normCurrentStudentSysId);
+      return matchesEmail || matchesId;
+    })
   );
 
-  // Check student assignment in individual project
-  const studentAssignedIndividual = projectAssignments.find(
-    (a) => a.studentEmail.toLowerCase() === activeStudentEmail.toLowerCase()
-  );
+  // Check student assignment in individual project by email OR by index number / studentId
+  const studentAssignedIndividual = projectAssignments.find((a) => {
+    const aEmail = (a.studentEmail || "").toLowerCase().trim();
+    const aId = (a.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const matchesEmail = activeStudentEmail && aEmail === activeStudentEmail.toLowerCase().trim();
+    const matchesId =
+      (normCurrentStudentId && aId && (aId === normCurrentStudentId || aId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(aId))) ||
+      (normCurrentStudentSysId && aId && aId === normCurrentStudentSysId);
+    return matchesEmail || matchesId;
+  });
 
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
 
@@ -92,8 +114,8 @@ function GroupWorkspaceContent() {
     workspaceId: isIndividual ? `ws-ind-${projectId}-default` : `ws-${projectId}-1`,
     members: [
       {
-        studentId: "tg/2004/2004",
-        fullName: activeRole === "student" ? "Alex Chen" : "Alex Chen (Lead)",
+        studentId: currentStudent?.studentId || "TG/2021/042",
+        fullName: activeRole === "student" ? (currentStudent?.fullName || "Student") : (currentStudent?.fullName ? `${currentStudent.fullName} (Lead)` : "Team Lead"),
         email: activeStudentEmail,
         department: "Computer Science & Engineering",
         academicYear: 4,
@@ -414,7 +436,7 @@ function GroupWorkspaceContent() {
       description: proposalDescription,
       fileName: proposalFileName,
       fileSize: proposalFileSize || "1.5 MB",
-      submittedBy: activeRole === "student" ? "Alex Chen" : "Student Lead",
+      submittedBy: activeRole === "student" ? (currentStudent?.fullName || "Student") : "Student Lead",
       submittedByEmail: activeStudentEmail,
     });
     setIsSubmittingProposal(false);

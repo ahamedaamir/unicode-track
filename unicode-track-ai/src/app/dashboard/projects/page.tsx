@@ -29,7 +29,9 @@ function LecturerProjectsContent() {
     students,
     studentAssignments,
     activeRole,
+    activeStudentEmail,
     activeLecturerEmail,
+    getProjectsForStudent,
     saveEvaluation,
     archiveProject,
     editProject,
@@ -164,8 +166,26 @@ function LecturerProjectsContent() {
     return false;
   };
 
+  // Student identity resolution
+  const currentStudent = useMemo(() => {
+    return students.find((s) => s.email.toLowerCase() === (activeStudentEmail || "").toLowerCase());
+  }, [students, activeStudentEmail]);
+
+  const normCurrentStudentId = useMemo(() => {
+    return (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }, [currentStudent]);
+
+  const normCurrentStudentSysId = useMemo(() => {
+    return (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }, [currentStudent]);
+
   // Filter projects by current vs past
-  const baseProjects = contextProjects;
+  const baseProjects = useMemo(() => {
+    if (activeRole === "student") {
+      return getProjectsForStudent(activeStudentEmail);
+    }
+    return contextProjects;
+  }, [activeRole, contextProjects, activeStudentEmail, getProjectsForStudent]);
 
   const temporalProjects = useMemo(() => {
     return baseProjects.filter((p) => {
@@ -206,7 +226,21 @@ function LecturerProjectsContent() {
     if (!proj) return [];
     const isGroup = proj.type === "Group Project" || proj.projectType === "group";
     if (isGroup) {
-      const projGroups = groups.filter((g) => g.projectId === proj.id);
+      let projGroups = groups.filter((g) => g.projectId === proj.id);
+      if (activeRole === "student") {
+        const email = (activeStudentEmail || "").toLowerCase().trim();
+        projGroups = projGroups.filter((g) =>
+          g.members.some((m) => {
+            const mEmail = (m.email || "").toLowerCase().trim();
+            const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+            const matchesEmail = email && mEmail === email;
+            const matchesId =
+              (normCurrentStudentId && mId && (mId === normCurrentStudentId || mId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(mId))) ||
+              (normCurrentStudentSysId && mId && mId === normCurrentStudentSysId);
+            return matchesEmail || matchesId;
+          })
+        );
+      }
       return projGroups.map((g) => ({
         name: g.groupName || `Group ${g.groupNumber}`,
         sub: `${g.members?.length || 0} members`,
@@ -214,7 +248,19 @@ function LecturerProjectsContent() {
         id: g.id,
       }));
     } else {
-      const assignments = studentAssignments.filter((a) => a.projectId === proj.id);
+      let assignments = studentAssignments.filter((a) => a.projectId === proj.id);
+      if (activeRole === "student") {
+        const email = (activeStudentEmail || "").toLowerCase().trim();
+        assignments = assignments.filter((a) => {
+          const aEmail = (a.studentEmail || "").toLowerCase().trim();
+          const aId = (a.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const matchesEmail = email && aEmail === email;
+          const matchesId =
+            (normCurrentStudentId && aId && (aId === normCurrentStudentId || aId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(aId))) ||
+            (normCurrentStudentSysId && aId && aId === normCurrentStudentSysId);
+          return matchesEmail || matchesId;
+        });
+      }
       return assignments.map((a) => ({
         name: a.studentId || "TG/2004/2004",
         sub: a.studentName || "Personal submission",
@@ -222,13 +268,28 @@ function LecturerProjectsContent() {
         id: a.id,
       }));
     }
-  }, [proj, groups, studentAssignments]);
+  }, [proj, groups, studentAssignments, activeRole, activeStudentEmail, normCurrentStudentId, normCurrentStudentSysId]);
 
   // Active group object scoped to active project
   const activeGroup = useMemo(() => {
     if (!tgt || !proj) return null;
-    return groups.find((g) => g.projectId === proj.id && (g.groupName === tgt || g.id === tgt)) || null;
-  }, [tgt, proj, groups]);
+    const match = groups.find((g) => g.projectId === proj.id && (g.groupName === tgt || g.id === tgt));
+    if (!match) return null;
+    if (activeRole === "student") {
+      const email = (activeStudentEmail || "").toLowerCase().trim();
+      const isMember = match.members.some((m) => {
+        const mEmail = (m.email || "").toLowerCase().trim();
+        const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const matchesEmail = email && mEmail === email;
+        const matchesId =
+          (normCurrentStudentId && mId && (mId === normCurrentStudentId || mId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(mId))) ||
+          (normCurrentStudentSysId && mId && mId === normCurrentStudentSysId);
+        return matchesEmail || matchesId;
+      });
+      if (!isMember) return null;
+    }
+    return match;
+  }, [tgt, proj, groups, activeRole, activeStudentEmail, normCurrentStudentId, normCurrentStudentSysId]);
 
   // Navigation state setter
   const go = (updates: Partial<{
