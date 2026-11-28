@@ -202,14 +202,6 @@ function ChangePasswordContent() {
             </div>
           </div>
 
-          {/* Security Alert Notice */}
-          <div className="p-3 rounded-[10px] bg-accent/10 border border-accent/20 text-xs text-foreground flex items-start gap-2">
-            <ShieldAlert className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-            <p className="leading-relaxed">
-              Default credentials detected for <strong className="font-semibold text-accent">{displayEmail}</strong>. Setting a personalized password activates your academic dashboard and projects.
-            </p>
-          </div>
-
           {errors.general && (
             <div className="p-3 rounded-[10px] bg-danger/10 border border-danger/20 text-xs text-danger flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
