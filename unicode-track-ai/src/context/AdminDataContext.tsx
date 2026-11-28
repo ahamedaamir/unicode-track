@@ -1438,17 +1438,44 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
   const getProjectsForStudent = (studentEmail?: string): Project[] => {
     const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
     const currentStudent = masterStudents.find((s) => s.email.toLowerCase() === email);
+    const normStudentId = (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normStudentSysId = (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    // Projects where student is a group member
+    // Projects where student is an assigned group member (match by email OR by index number / studentId)
     const assignedProjectIds = new Set(
       groups
-        .filter((g) => g.members.some((m) => m.email.toLowerCase() === email))
+        .filter((g) =>
+          g.members.some((m) => {
+            const mEmail = (m.email || "").toLowerCase().trim();
+            const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+            const matchesEmail = email && mEmail === email;
+            const matchesId =
+              (normStudentId && mId && (mId === normStudentId || mId.endsWith(normStudentId) || normStudentId.endsWith(mId))) ||
+              (normStudentSysId && mId && mId === normStudentSysId);
+            return matchesEmail || matchesId;
+          })
+        )
         .map((g) => g.projectId)
     );
 
+    // Also check studentAssignments for individual projects
+    const individualAssignedProjectIds = new Set(
+      studentAssignments
+        .filter((a) => {
+          const aEmail = (a.studentEmail || "").toLowerCase().trim();
+          const aId = (a.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const matchesEmail = email && aEmail === email;
+          const matchesId =
+            (normStudentId && aId && (aId === normStudentId || aId.endsWith(normStudentId) || normStudentId.endsWith(aId))) ||
+            (normStudentSysId && aId && aId === normStudentSysId);
+          return matchesEmail || matchesId;
+        })
+        .map((a) => a.projectId)
+    );
+
     return projects.filter((p) => {
-      // Direct group assignment
-      if (assignedProjectIds.has(p.id)) return true;
+      // Direct group or individual assignment
+      if (assignedProjectIds.has(p.id) || individualAssignedProjectIds.has(p.id)) return true;
 
       // Published project for their enrolled course/cohort
       if (
@@ -1467,13 +1494,23 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
   const getStudentAssignedGroup = (projectId: string, studentEmail?: string): ProjectGroup | undefined => {
     const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
-    return (
-      groups.find(
-        (g) =>
-          g.projectId === projectId &&
-          g.members.some((m) => m.email.toLowerCase() === email)
-      ) ||
-      groups.find((g) => g.projectId === projectId)
+    const currentStudent = masterStudents.find((s) => s.email.toLowerCase() === email);
+    const normStudentId = (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normStudentSysId = (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    // Return strictly the group that this student is assigned to (by index number or email)
+    return groups.find(
+      (g) =>
+        g.projectId === projectId &&
+        g.members.some((m) => {
+          const mEmail = (m.email || "").toLowerCase().trim();
+          const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const matchesEmail = email && mEmail === email;
+          const matchesId =
+            (normStudentId && mId && (mId === normStudentId || mId.endsWith(normStudentId) || normStudentId.endsWith(mId))) ||
+            (normStudentSysId && mId && mId === normStudentSysId);
+          return matchesEmail || matchesId;
+        })
     );
   };
 
@@ -1630,9 +1667,20 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
 
   const getStudentAssignment = (projectId: string, studentEmail?: string): ProjectStudentAssignment | undefined => {
     const email = (studentEmail || activeStudentEmail).toLowerCase().trim();
-    return studentAssignments.find(
-      (a) => a.projectId === projectId && a.studentEmail.toLowerCase() === email
-    );
+    const currentStudent = masterStudents.find((s) => s.email.toLowerCase() === email);
+    const normStudentId = (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normStudentSysId = (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    return studentAssignments.find((a) => {
+      if (a.projectId !== projectId) return false;
+      const aEmail = (a.studentEmail || "").toLowerCase().trim();
+      const aId = (a.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const matchesEmail = email && aEmail === email;
+      const matchesId =
+        (normStudentId && aId && (aId === normStudentId || aId.endsWith(normStudentId) || normStudentId.endsWith(aId))) ||
+        (normStudentSysId && aId && aId === normStudentSysId);
+      return matchesEmail || matchesId;
+    });
   };
 
   const getAssignmentsForProject = (projectId: string): ProjectStudentAssignment[] => {

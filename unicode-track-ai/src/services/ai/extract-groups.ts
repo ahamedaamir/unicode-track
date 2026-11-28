@@ -15,8 +15,9 @@ export const ExtractedMemberRawSchema = z.object({
     .transform((val) => (val && val.trim() ? val.trim() : null)),
   full_name: z
     .string()
-    .min(1, "Student full name cannot be empty")
-    .transform((val) => val.trim()),
+    .optional()
+    .default("")
+    .transform((val) => (val ? val.trim() : "")),
   email: z
     .string()
     .nullable()
@@ -200,8 +201,8 @@ AI EXTRACTION REQUIREMENTS:
 1. Identify the group number (group_number as integer, e.g. 1, 2, 3).
 2. Identify the group name (group_name, e.g. "Group 1", "Team CyberNova", or null if not specified).
 3. Identify each student member with:
-   - student_id: University student ID string (e.g., "IT230001", "CS2023001", "std-1"), or null if missing.
-   - full_name: The student's real full name.
+   - student_id: University Student ID, Registration Number, or Index Number (e.g., "TG/2021/042", "IT21045230", "21045230", "CS2023001", "std-1"). In university group lists, students are frequently identified by their Index Number (such as 'Index No', 'Reg No', 'Reg Number', or a standalone index number preceding or following a name). Always extract this into student_id.
+   - full_name: The student's real full name. If a group list only contains Index Numbers without student names, set full_name to the index number itself (do NOT invent fake names).
    - email: The student's email address if present, or null.
 4. Preserve the exact original group structure and student order within each group.
 5. STRICT ANTI-HALLUCINATION RULES:
@@ -313,31 +314,32 @@ export function matchStudentWithPriority(
   ambiguousMatches?: Student[];
   warning?: string;
 } {
-  // Validate basic student information
-  if (!rawName || !rawName.trim()) {
-    return {
-      status: "Invalid student",
-      matchType: null,
-      warning: "Student full name is missing or invalid.",
-    };
-  }
+  // PRIORITY 1: Match by Student ID / University Index Number
+  // In group allocation documents, student identifiers (e.g. TG/2021/042, IT21045230, 21045230)
+  // may appear in rawId or rawName. Check candidate IDs with normalized fuzzy comparison.
+  const candidateIds = [rawId, rawName].filter((x): x is string => Boolean(x && x.trim()));
+  for (const cid of candidateIds) {
+    const normCid = normalizeStr(cid);
+    if (normCid.length >= 2) {
+      const byId = registeredStudents.find((s) => {
+        if (!s.studentId && !s.id) return false;
+        const normStudentId = normalizeStr(s.studentId || "");
+        const normId = normalizeStr(s.id || "");
+        if (normStudentId === normCid || normId === normCid) return true;
+        // Also support index numbers with or without department/faculty prefix when length >= 5
+        if (normStudentId && normCid.length >= 5 && normStudentId.length >= 5) {
+          if (normStudentId.endsWith(normCid) || normCid.endsWith(normStudentId)) return true;
+        }
+        return false;
+      });
 
-  // PRIORITY 1: Exact Student ID
-  if (rawId && rawId.trim()) {
-    const normRawId = normalizeStr(rawId);
-    const byId = registeredStudents.find((s) => {
-      if (!s.studentId && !s.id) return false;
-      const normStudentId = normalizeStr(s.studentId || "");
-      const normId = normalizeStr(s.id || "");
-      return normStudentId === normRawId || normId === normRawId;
-    });
-
-    if (byId) {
-      return {
-        status: "Matched",
-        matchedStudent: byId,
-        matchType: "id",
-      };
+      if (byId) {
+        return {
+          status: "Matched",
+          matchedStudent: byId,
+          matchType: "id",
+        };
+      }
     }
   }
 
@@ -355,6 +357,15 @@ export function matchStudentWithPriority(
         matchType: "email",
       };
     }
+  }
+
+  // Validate student name before proceeding to name matching
+  if (!rawName || !rawName.trim()) {
+    return {
+      status: "Unmatched",
+      matchType: null,
+      warning: `Student Index Number / ID "${rawId || "N/A"}" was not found in registered students.`,
+    };
   }
 
   // PRIORITY 3: Carefully normalized full name, ONLY when reliable
@@ -412,7 +423,7 @@ export function matchStudentWithPriority(
   return {
     status: "Unmatched",
     matchType: null,
-    warning: `Student "${rawName}" (ID: ${rawId || "N/A"}) was not found in the registered student records.`,
+    warning: `Student "${rawName}" (Index No / ID: ${rawId || "N/A"}) was not found in the registered student records.`,
   };
 }
 
@@ -466,9 +477,43 @@ export function revalidateAssignmentGroups(
       let finalStatus: MatchStatus = m.status;
       let finalWarning: string | undefined = m.warning;
 
+      // Attempt automatic matching or re-matching against registered students by Student ID / Index Number
+      if (!m.matchedStudent && (m.student_id || m.full_name || m.email)) {
+        const rematch = matchStudentWithPriority(m.full_name, m.student_id, m.email, registeredStudents);
+        if (rematch.status === "Matched" && rematch.matchedStudent) {
+          m.matchedStudent = {
+            id: rematch.matchedStudent.id,
+            studentId: rematch.matchedStudent.studentId,
+            fullName: rematch.matchedStudent.fullName,
+            email: rematch.matchedStudent.email,
+            department: rematch.matchedStudent.departmentId,
+            departmentId: rematch.matchedStudent.departmentId,
+            academicYear: rematch.matchedStudent.academicYear,
+            semester: rematch.matchedStudent.semester,
+            profilePhotoUrl: rematch.matchedStudent.profilePhotoUrl,
+          };
+          m.student_id = rematch.matchedStudent.studentId || rematch.matchedStudent.id;
+          m.full_name = rematch.matchedStudent.fullName;
+          m.email = rematch.matchedStudent.email;
+          m.status = "Matched";
+          m.matchType = rematch.matchType;
+          finalStatus = "Matched";
+          finalWarning = undefined;
+        }
+      }
+
+      if (m.matchedStudent && (!m.full_name || !m.full_name.trim())) {
+        m.full_name = m.matchedStudent.fullName;
+      }
+
       if (!m.full_name || !m.full_name.trim()) {
-        finalStatus = "Invalid student";
-        finalWarning = "Student full name is blank or malformed.";
+        if (m.student_id) {
+          finalStatus = "Unmatched";
+          finalWarning = `Student Index No "${m.student_id}" is not registered in the student records.`;
+        } else {
+          finalStatus = "Invalid student";
+          finalWarning = "Student index number and full name are missing.";
+        }
       } else if (isDuplicate) {
         finalStatus = "Duplicate";
         const otherGroups = appearances.filter((gNum) => gNum !== grp.group_number);
