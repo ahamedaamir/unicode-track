@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Building2, 
   Plus, 
@@ -18,6 +18,11 @@ import { Badge } from "@/components/ui/Badge";
 export default function DepartmentsPage() {
   const { departments, addDepartment, editDepartment, deleteDepartment, activeRole } = useAdminData();
   const isAdmin = activeRole === "admin";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -84,8 +89,8 @@ export default function DepartmentsPage() {
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Department Management
             </h2>
-            <Badge variant="teal" size="sm">
-              {departments.length} Total
+            <Badge variant="teal" size="sm" suppressHydrationWarning>
+              <span suppressHydrationWarning>{mounted ? departments.length : 0} Total</span>
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">

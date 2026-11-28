@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   GraduationCap, 
   Search, 
@@ -49,6 +49,11 @@ export default function StudentsPage() {
   } = useAdminData();
 
   const isAdmin = activeRole === "admin";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -300,8 +305,8 @@ export default function StudentsPage() {
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Student Management
             </h2>
-            <Badge variant="teal" size="sm">
-              {students.length} Registered
+            <Badge variant="teal" size="sm" suppressHydrationWarning>
+              <span suppressHydrationWarning>{mounted ? students.length : 0} Registered</span>
             </Badge>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">

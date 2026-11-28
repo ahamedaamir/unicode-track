@@ -32,6 +32,7 @@ export function Badge({
 
   return (
     <span
+      suppressHydrationWarning
       className={cn(
         "inline-flex items-center gap-1.5 transition-colors",
         variantStyles[variant],
