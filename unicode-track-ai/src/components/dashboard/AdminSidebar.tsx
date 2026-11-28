@@ -106,12 +106,6 @@ export function AdminSidebar({
       count: undefined,
     },
     {
-      name: "Evaluations",
-      href: "/dashboard/evaluation",
-      icon: CheckSquare,
-      count: undefined,
-    },
-    {
       name: "Run",
       href: "/dashboard/test",
       icon: Terminal,

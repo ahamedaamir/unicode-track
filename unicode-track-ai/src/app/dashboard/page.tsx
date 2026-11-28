@@ -331,7 +331,7 @@ export default function DashboardOverviewPage() {
       {isStudent ? (
         <div className="space-y-6 sm:space-y-8">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <Link
               href="/dashboard/projects"
               className="bg-card p-5 rounded-[16px] border border-border hover:border-accent/40 transition-all duration-200 group"
@@ -402,28 +402,6 @@ export default function DashboardOverviewPage() {
                 <span className="font-semibold text-accent">Active</span>
               </div>
             </div>
-
-            <Link
-              href="/dashboard/evaluation"
-              className="bg-card p-5 rounded-[16px] border border-border hover:border-accent/40 transition-all duration-200 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Evaluations & Rubric
-                </span>
-                <div className="w-9 h-9 rounded-xl bg-warning/10 text-warning flex items-center justify-center group-hover:scale-105 transition-transform border border-warning/20">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-foreground font-mono tabular-nums tracking-tight">88%</span>
-                <span className="text-xs text-warning font-medium">Rubric score</span>
-              </div>
-              <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-warning font-semibold group-hover:text-warning">
-                <span>View feedback</span>
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </Link>
           </div>
 
           {/* Enrolled Courses Section */}
