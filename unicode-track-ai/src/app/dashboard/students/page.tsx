@@ -760,13 +760,6 @@ export default function StudentsPage() {
                 )}
               </div>
 
-              {/* Profile Photo Notice Box */}
-              <div className="p-3 rounded-xl bg-muted border border-border text-[11px] text-muted-foreground flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Profile Photo:</strong> Students upload their own profile photo later upon signing into the student portal. Default initials avatar will be shown initially.
-                </span>
-              </div>
 
               {/* Form Action Buttons */}
               <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
