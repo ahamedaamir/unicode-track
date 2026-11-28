@@ -32,6 +32,7 @@ export function Badge({
 
   return (
     <span
+      {...props}
       suppressHydrationWarning
       className={cn(
         "inline-flex items-center gap-1.5 transition-colors",
@@ -39,7 +40,6 @@ export function Badge({
         sizeStyles[size],
         className
       )}
-      {...props}
     >
       {dot && (
         <span

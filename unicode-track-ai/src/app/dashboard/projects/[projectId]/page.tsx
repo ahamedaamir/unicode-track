@@ -60,12 +60,14 @@ function ProjectDetailContent() {
     courses,
     departments,
     lecturers,
+    students,
     groups,
     studentAssignments,
     publishProject,
     archiveProject,
     deleteProject,
     activeRole,
+    activeStudentEmail,
     activeLecturerEmail,
     getEvaluationForGroup,
     getERSubmissionForGroup,
@@ -242,16 +244,55 @@ function ProjectDetailContent() {
     }));
   }, [studentAssignments, projectId]);
 
-  // Unified items (live Supabase or fallback)
+  // Current student identity resolution
+  const currentStudent = useMemo(() => {
+    return students.find((s) => s.email.toLowerCase() === (activeStudentEmail || "").toLowerCase());
+  }, [students, activeStudentEmail]);
+
+  const normCurrentStudentId = useMemo(() => {
+    return (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }, [currentStudent]);
+
+  const normCurrentStudentSysId = useMemo(() => {
+    return (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }, [currentStudent]);
+
+  // Unified items (live Supabase or fallback) - strictly scoped so each student sees ONLY their own group
   const effectiveGroups: SupervisionGroupItem[] = useMemo(() => {
-    if (liveGroups !== null) return liveGroups;
-    return fallbackGroups;
-  }, [liveGroups, fallbackGroups]);
+    const allGroups = liveGroups !== null ? liveGroups : fallbackGroups;
+    if (activeRole === "student") {
+      const email = (activeStudentEmail || "").toLowerCase().trim();
+      return allGroups.filter((g) =>
+        g.members.some((m) => {
+          const mEmail = (m.email || "").toLowerCase().trim();
+          const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const matchesEmail = email && mEmail === email;
+          const matchesId =
+            (normCurrentStudentId && mId && (mId === normCurrentStudentId || mId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(mId))) ||
+            (normCurrentStudentSysId && mId && mId === normCurrentStudentSysId);
+          return matchesEmail || matchesId;
+        })
+      );
+    }
+    return allGroups;
+  }, [liveGroups, fallbackGroups, activeRole, activeStudentEmail, normCurrentStudentId, normCurrentStudentSysId]);
 
   const effectiveStudents: SupervisionStudentItem[] = useMemo(() => {
-    if (liveStudents !== null) return liveStudents;
-    return fallbackStudents;
-  }, [liveStudents, fallbackStudents]);
+    const allStudents = liveStudents !== null ? liveStudents : fallbackStudents;
+    if (activeRole === "student") {
+      const email = (activeStudentEmail || "").toLowerCase().trim();
+      return allStudents.filter((s) => {
+        const sEmail = (s.email || "").toLowerCase().trim();
+        const sId = (s.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const matchesEmail = email && sEmail === email;
+        const matchesId =
+          (normCurrentStudentId && sId && (sId === normCurrentStudentId || sId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(sId))) ||
+          (normCurrentStudentSysId && sId && sId === normCurrentStudentSysId);
+        return matchesEmail || matchesId;
+      });
+    }
+    return allStudents;
+  }, [liveStudents, fallbackStudents, activeRole, activeStudentEmail, normCurrentStudentId, normCurrentStudentSysId]);
 
   // Filtered groups
   const filteredGroups = useMemo(() => {
@@ -426,42 +467,44 @@ function ProjectDetailContent() {
           </span>
         </div>
 
-        {/* Header Action Buttons */}
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/dashboard/projects/${project.id}/evaluation/criteria`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-950/40 hover:bg-purple-900/60 text-purple-300 border border-purple-800/60 rounded-xl text-xs font-semibold shadow-2xs transition-all"
-          >
-            <Sliders className="w-3.5 h-3.5 text-purple-400" />
-            <span>Rubric</span>
-          </Link>
-
-          {project.status === "Draft" ? (
-            <button
-              onClick={() => publishProject(project.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-all"
+        {/* Header Action Buttons (Lecturer/Admin only) */}
+        {activeRole !== "student" && (
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/projects/${project.id}/evaluation/criteria`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-950/40 hover:bg-purple-900/60 text-purple-300 border border-purple-800/60 rounded-xl text-xs font-semibold shadow-2xs transition-all"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Publish
-            </button>
-          ) : (
-            <button
-              onClick={() => archiveProject(project.id)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-[#1e293b] hover:bg-slate-800 text-muted-foreground/60 rounded-xl text-xs font-medium transition-all"
-            >
-              <Archive className="w-3.5 h-3.5 text-muted-foreground" />
-              {project.status === "Archived" ? "Restore" : "Archive"}
-            </button>
-          )}
+              <Sliders className="w-3.5 h-3.5 text-purple-400" />
+              <span>Rubric</span>
+            </Link>
 
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-rose-900/60 hover:bg-rose-950/40 text-rose-400 rounded-xl text-xs font-medium transition-all"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Delete
-          </button>
-        </div>
+            {project.status === "Draft" ? (
+              <button
+                onClick={() => publishProject(project.id)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-all"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Publish
+              </button>
+            ) : (
+              <button
+                onClick={() => archiveProject(project.id)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-[#1e293b] hover:bg-slate-800 text-muted-foreground/60 rounded-xl text-xs font-medium transition-all"
+              >
+                <Archive className="w-3.5 h-3.5 text-muted-foreground" />
+                {project.status === "Archived" ? "Restore" : "Archive"}
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1626] border border-rose-900/60 hover:bg-rose-950/40 text-rose-400 rounded-xl text-xs font-medium transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ============================================================== */}
@@ -585,7 +628,11 @@ function ProjectDetailContent() {
               <Users className="w-4 h-4 text-teal-400" />
             )}
             <span>
-              {isIndividualProject
+              {activeRole === "student"
+                ? isIndividualProject
+                  ? "My Project Workspace"
+                  : "My Group Workspace"
+                : isIndividualProject
                 ? `Assigned Students (${effectiveStudents.length})`
                 : `Supervision Console (${effectiveGroups.length} Groups)`}
             </span>
@@ -632,17 +679,19 @@ function ProjectDetailContent() {
             </button>
           )}
 
-          <button
-            onClick={() => setActiveTab("assignment")}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
-              activeTab === "assignment"
-                ? "bg-teal-600 text-white shadow-xs shadow-teal-600/20"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Assignment Workflow</span>
-          </button>
+          {activeRole !== "student" && (
+            <button
+              onClick={() => setActiveTab("assignment")}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 ${
+                activeTab === "assignment"
+                  ? "bg-teal-600 text-white shadow-xs shadow-teal-600/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Assignment Workflow</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -755,19 +804,25 @@ function ProjectDetailContent() {
             filteredGroups.length === 0 ? (
               <div className="bg-card rounded-[16px] border border-dashed border-border p-12 text-center space-y-3">
                 <Users className="w-12 h-12 text-muted-foreground/60 mx-auto" />
-                <h4 className="text-base font-bold text-foreground">No Student Groups Found</h4>
+                <h4 className="text-base font-bold text-foreground">
+                  {activeRole === "student" ? "No Group Assigned Yet" : "No Student Groups Found"}
+                </h4>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  No groups matched your active search query or filter. If no groups have been created, use the AI Assignment Workflow to extract groups.
+                  {activeRole === "student"
+                    ? "You are not assigned to any group in this project yet. Please contact your course lecturer or coordinator to be allocated to a team."
+                    : "No groups matched your active search query or filter. If no groups have been created, use the AI Assignment Workflow to extract groups."}
                 </p>
-                <div className="pt-2">
-                  <button
-                    onClick={() => setActiveTab("assignment")}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors"
-                  >
-                    <span>Create & Assign Groups</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {activeRole !== "student" && (
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setActiveTab("assignment")}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors"
+                    >
+                      <span>Create & Assign Groups</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-6">
@@ -1009,19 +1064,25 @@ function ProjectDetailContent() {
             filteredStudents.length === 0 ? (
               <div className="bg-card rounded-[16px] border border-dashed border-border p-12 text-center space-y-3">
                 <User className="w-12 h-12 text-muted-foreground/60 mx-auto" />
-                <h4 className="text-base font-bold text-foreground">No Assigned Students Found</h4>
+                <h4 className="text-base font-bold text-foreground">
+                  {activeRole === "student" ? "No Personal Assignment Yet" : "No Assigned Students Found"}
+                </h4>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  No individual students matched your active filter. Use the Assignment Workflow to allocate students to this personal project.
+                  {activeRole === "student"
+                    ? "You have not been allocated an individual submission workspace for this project yet. Please contact your course coordinator."
+                    : "No individual students matched your active filter. Use the Assignment Workflow to allocate students to this personal project."}
                 </p>
-                <div className="pt-2">
-                  <button
-                    onClick={() => setActiveTab("assignment")}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors"
-                  >
-                    <span>Assign Eligible Students</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {activeRole !== "student" && (
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setActiveTab("assignment")}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-2xs transition-colors"
+                    >
+                      <span>Assign Eligible Students</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-6">

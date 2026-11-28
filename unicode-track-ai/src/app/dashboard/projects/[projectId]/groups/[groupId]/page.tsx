@@ -56,6 +56,9 @@ function LecturerGroupReviewContent() {
     projects,
     courses,
     groups,
+    students,
+    activeRole,
+    activeStudentEmail,
     reviewProposal,
     syncGroupRepo,
     getEvaluationForGroup,
@@ -64,7 +67,27 @@ function LecturerGroupReviewContent() {
   // Find project and group
   const project = projects.find((p) => p.id === projectId);
   const course = project ? courses.find((c) => c.code === project.courseCode) : null;
-  const group = groups.find((g) => g.id === groupId) || groups.find((g) => g.projectId === projectId) || groups[0];
+  const targetGroup = groups.find((g) => g.id === groupId);
+  const group = targetGroup || (activeRole !== "student" ? (groups.find((g) => g.projectId === projectId) || groups[0]) : null);
+
+  const isStudent = activeRole === "student";
+  const currentStudent = students.find((s) => s.email.toLowerCase() === (activeStudentEmail || "").toLowerCase());
+  const normCurrentStudentId = (currentStudent?.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normCurrentStudentSysId = (currentStudent?.id || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const isStudentAuthorized = Boolean(
+    !isStudent ||
+    (group && group.members.some((m) => {
+      const email = (activeStudentEmail || "").toLowerCase().trim();
+      const mEmail = (m.email || "").toLowerCase().trim();
+      const mId = (m.studentId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const matchesEmail = email && mEmail === email;
+      const matchesId =
+        (normCurrentStudentId && mId && (mId === normCurrentStudentId || mId.endsWith(normCurrentStudentId) || normCurrentStudentId.endsWith(mId))) ||
+        (normCurrentStudentSysId && mId && mId === normCurrentStudentSysId);
+      return matchesEmail || matchesId;
+    }))
+  );
 
   // Active review tab
   const [activeTab, setActiveTab] = useState<
@@ -241,6 +264,28 @@ function LecturerGroupReviewContent() {
         >
           <ArrowLeft className="w-4 h-4" /> Return to Projects
         </Link>
+      </div>
+    );
+  }
+
+  if (isStudent && !isStudentAuthorized) {
+    return (
+      <div className="bg-card rounded-[16px] border border-border p-12 text-center max-w-xl mx-auto mt-8 shadow-sm space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center mx-auto">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">Access Restricted</h2>
+        <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+          Students are only authorized to view and interact with their own assigned academic group. You do not have permission to inspect this team's repository or reviews.
+        </p>
+        <div className="pt-2">
+          <Link
+            href={`/dashboard/projects/${projectId}/workspace`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs"
+          >
+            Go to My Group Workspace
+          </Link>
+        </div>
       </div>
     );
   }
