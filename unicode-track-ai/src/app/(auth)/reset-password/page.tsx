@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
             href="/"
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Back to UniCodeTrack AI Home
+            ← Back to UniCodeTrack Home
           </Link>
         </div>
       </div>

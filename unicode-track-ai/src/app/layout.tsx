@@ -15,7 +15,7 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UniCodeTrack AI — Academic Project & Hackathon Management Platform",
+  title: "UniCodeTrack",
   description:
     "From classroom projects to hackathon competitions — build, track, and evaluate with AI. A unified academic workspace for universities, lecturers, and student teams.",
   keywords: [
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     "AI evaluation",
     "milestone tracking",
   ],
-  authors: [{ name: "UniCodeTrack AI Team" }],
+  authors: [{ name: "UniCodeTrack Team" }],
 };
 
 export const viewport: Viewport = {
