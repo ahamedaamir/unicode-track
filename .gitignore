@@ -15,3 +15,8 @@ node_modules/
 
 # Allow committing template env file
 !.env.example
+
+# Temporary and tooling cache
+.temp/
+supabase/.temp/
+

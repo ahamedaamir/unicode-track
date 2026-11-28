@@ -81,6 +81,13 @@ export interface Project {
   requirementsContent?: string;
   requirementsPdfName?: string;
   requirementsPdfSize?: string;
+  projectDescriptionPdfUrl?: string;
+  projectDescriptionFileName?: string;
+  projectDescriptionFileSize?: string;
+  projectDescriptionText?: string;
+  summaryEnglish?: string;
+  summarySinhala?: string;
+  summaryTamil?: string;
   status: "Draft" | "Published" | "Archived";
   lecturerId?: string;
   lecturerName?: string;

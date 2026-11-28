@@ -6,6 +6,7 @@ import { useAdminData } from "@/context/AdminDataContext";
 import { Project, Student } from "@/types/admin";
 import { ProjectGroup, ProjectStudentAssignment } from "@/types/project";
 import { DEFAULT_ER_DIAGRAM_RUBRIC } from "@/types/er-diagram";
+import { Upload, FileText, Trash2, CheckCircle2 } from "lucide-react";
 
 const BATCHES = ["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"] as const;
 
@@ -47,6 +48,29 @@ export function CreateProjectPrototypeForm({
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [type, setType] = useState<"group" | "individual">("group");
+  const [descText, setDescText] = useState("");
+  const [descPdfName, setDescPdfName] = useState("");
+  const [descPdfSize, setDescPdfSize] = useState("");
+  const [descPdfDataUrl, setDescPdfDataUrl] = useState("");
+
+  const handleDescPdfUpload = (file: File) => {
+    setDescPdfName(file.name);
+    const sizeStr =
+      file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.round(file.size / 1024)} KB`;
+    setDescPdfSize(sizeStr);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        setDescPdfDataUrl(result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const [pdfName, setPdfName] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isExtractingPdf, setIsExtractingPdf] = useState(false);
@@ -145,6 +169,10 @@ export function CreateProjectPrototypeForm({
     setFrom("");
     setTo("");
     setType("group");
+    setDescText("");
+    setDescPdfName("");
+    setDescPdfSize("");
+    setDescPdfDataUrl("");
     setPdfName("");
     setPdfFile(null);
     setExtractedGroups(null);
@@ -241,9 +269,15 @@ export function CreateProjectPrototypeForm({
         .map((r, i) => `${i + 1}. ${r.t.trim()} (${r.m}%)`)
         .join("\n");
 
+      // Requirements for students without marks percentages:
+      const cleanRequirements = reqs
+        .filter((r) => r.t.trim())
+        .map((r, i) => `${i + 1}. ${r.t.trim()}`)
+        .join("\n");
+
       const projectPayload: Omit<Project, "id"> = {
         title: title.trim(),
-        description: `${title.trim()} — academic project for ${course} (${dept}), Batch ${batch}.`,
+        description: descText.trim() || `${title.trim()} — academic project for ${course} (${dept}), Batch ${batch}.`,
         academicYear,
         semester,
         departmentId: matchingDept?.id || "dept-1",
@@ -253,9 +287,13 @@ export function CreateProjectPrototypeForm({
         projectType: type === "group" ? "group" : "individual",
         status: "Published",
         createdAt: new Date().toISOString().split("T")[0],
-        requirements: requirementsContent,
+        requirements: cleanRequirements,
         requirementsContent: requirementsContent,
         requirementsSource: "manual",
+        projectDescriptionPdfUrl: descPdfDataUrl || undefined,
+        projectDescriptionFileName: descPdfName || undefined,
+        projectDescriptionFileSize: descPdfSize || undefined,
+        projectDescriptionText: descText.trim() || undefined,
         lecturerId: currentLecturer?.id || "faculty",
         lecturerName: currentLecturer?.name || "Lecturer",
         proposalRequired: Boolean(d.proposal.on),
@@ -267,8 +305,8 @@ export function CreateProjectPrototypeForm({
           : undefined,
         githubRequired: Boolean(d.repo.on),
         finalReportRequired: Boolean(d.report.on),
-        assignmentFileName: pdfName || undefined,
-        assignmentSourceType: pdfName ? "pdf" : "text",
+        assignmentFileName: descPdfName || pdfName || undefined,
+        assignmentSourceType: descPdfName || pdfName ? "pdf" : "text",
         databaseDesignConfig: d.er.on
           ? {
               enabled: true,
@@ -543,6 +581,65 @@ export function CreateProjectPrototypeForm({
             {b}
           </div>
         ))}
+      </div>
+
+      <div className="proj-sec">Project Overview & Description (Optional)</div>
+      <textarea
+        className="proj-in text-sm py-2.5 px-3.5 bg-muted border border-border text-foreground rounded-[10px] focus:outline-none focus:border-accent min-h-[75px] resize-y"
+        placeholder="Brief summary of the project goals, architecture scope, and guidelines..."
+        value={descText}
+        onChange={(e) => setDescText(e.target.value)}
+      />
+
+      <div className="proj-sec">Project Description & Specification PDF (Optional)</div>
+      <div className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Upload the official project specification PDF. Students can download this document directly in their project workspace or view an AI summary in English, Sinhala (සිංහල), or Tamil (தமிழ்).
+        </p>
+
+        {descPdfName ? (
+          <div className="p-3 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-2 rounded-lg bg-accent/20 text-accent shrink-0">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate">{descPdfName}</p>
+                <p className="text-[11px] text-muted-foreground font-mono">{descPdfSize || "PDF Document"} · Ready for student download</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setDescPdfName("");
+                setDescPdfSize("");
+                setDescPdfDataUrl("");
+              }}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              title="Remove specification file"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <label className="proj-card block border-dashed border-2 border-border/80 hover:border-accent text-center p-5 cursor-pointer rounded-xl transition-colors bg-muted/20">
+            <input
+              type="file"
+              accept=".pdf"
+              hidden
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleDescPdfUpload(e.target.files[0]);
+                }
+              }}
+            />
+            <Upload className="w-5 h-5 text-muted-foreground mx-auto mb-1.5 text-accent" />
+            <b className="text-foreground text-xs block">Upload Project Specification (PDF)</b>
+            <span className="text-muted-foreground text-[11px] block mt-0.5">
+              Click to choose assignment brief PDF or drag and drop
+            </span>
+          </label>
+        )}
       </div>
     </>
   );
