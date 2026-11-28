@@ -11,6 +11,7 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  ShieldAlert,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Project } from "@/types/admin";
@@ -482,11 +483,13 @@ function LecturerProjectsContent() {
       <p className="sub text-sm text-muted-foreground mb-4">Choose a view and a batch to continue.</p>
 
       {/* Action to create project matching prototype */}
-      <div className="proj-row mb-3.5">
-        <button className="proj-btn p" onClick={() => go({ view: "create" })}>
-          + Create project
-        </button>
-      </div>
+      {activeRole !== "student" && (
+        <div className="proj-row mb-3.5">
+          <button className="proj-btn p" onClick={() => go({ view: "create" })}>
+            + Create project
+          </button>
+        </div>
+      )}
 
       {/* Segmented Switch: Current projects vs Past projects */}
       <div className="seg mb-4">
@@ -585,9 +588,11 @@ function LecturerProjectsContent() {
       {courseProjects.length === 0 ? (
         <div className="proj-card text-center py-10 space-y-3 bg-card border border-border rounded-[16px]">
           <p className="text-muted-foreground text-sm">No projects created for {course?.c} yet.</p>
-          <button className="proj-btn p text-xs" onClick={() => go({ view: "create" })}>
-            + Create project
-          </button>
+          {activeRole !== "student" && (
+            <button className="proj-btn p text-xs" onClick={() => go({ view: "create" })}>
+              + Create project
+            </button>
+          )}
         </div>
       ) : (
         <div className="proj-grid">
@@ -679,26 +684,28 @@ function LecturerProjectsContent() {
               {isGroup ? "Select a group." : "Select a student index."}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => proj && setEditingProject(proj)}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground flex items-center gap-1.5 transition-colors"
-              title="Edit project details"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              Edit Project
-            </button>
-            <button
-              type="button"
-              onClick={() => proj && setDeletingProject(proj)}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-1.5 transition-colors"
-              title="Delete this project"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              Delete Project
-            </button>
-          </div>
+          {activeRole !== "student" && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => proj && setEditingProject(proj)}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground flex items-center gap-1.5 transition-colors"
+                title="Edit project details"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit Project
+              </button>
+              <button
+                type="button"
+                onClick={() => proj && setDeletingProject(proj)}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-1.5 transition-colors"
+                title="Delete this project"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Project
+              </button>
+            </div>
+          )}
         </div>
 
         {targetsList.length === 0 ? (
@@ -1186,7 +1193,20 @@ function LecturerProjectsContent() {
   return (
     <div className="max-w-[1100px] mx-auto py-2 px-2.5 sm:px-4">
       {view === "create" ? (
-        <CreateProjectPrototypeForm onBackToProjects={() => go({ view: "list" })} />
+        activeRole === "student" ? (
+          <div className="bg-card border border-border rounded-[16px] p-8 text-center space-y-4 max-w-lg mx-auto my-12 shadow-sm">
+            <ShieldAlert className="w-10 h-10 text-amber-500 mx-auto" />
+            <h3 className="text-lg font-bold text-foreground">Access Restricted</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Students cannot author or create academic coursework projects. Projects are curated and assigned by course lecturers. You can participate in your assigned workspaces.
+            </p>
+            <button className="proj-btn p text-xs" onClick={() => go({ view: "list" })}>
+              Back to Projects
+            </button>
+          </div>
+        ) : (
+          <CreateProjectPrototypeForm onBackToProjects={() => go({ view: "list" })} />
+        )
       ) : view === "reports" ? (
         renderReports()
       ) : view === "evaluate" ? (

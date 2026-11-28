@@ -30,7 +30,8 @@ import {
   Lightbulb,
   HelpCircle,
   Send,
-  Timer
+  Timer,
+  ShieldAlert,
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Button } from "@/components/ui/Button";
@@ -135,7 +136,7 @@ const PRESET_EVALUATION_GUIDELINES = [
 ];
 
 export default function QuizzesPage() {
-  const { students, courses, activeRole } = useAdminData();
+  const { students, courses, activeRole, activeStudentEmail } = useAdminData();
 
   const isLecturerOrAdmin = activeRole === "admin" || activeRole === "lecturer";
 
@@ -859,27 +860,29 @@ export default function QuizzesPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              onClick={() => {
-                setFormTopic("");
-                setFormQuestions([
-                  {
-                    id: "q-1",
-                    questionNumber: 1,
-                    prompt: "",
-                    language: "c",
-                    maxMarks: 10,
-                    starterCode: DEFAULT_STARTER_CODES.c,
-                  },
-                ]);
-                setView("create");
-              }}
-              variant="primary"
-              size="md"
-              icon={<Plus className="w-4 h-4" />}
-            >
-              Create Quiz
-            </Button>
+            {isLecturerOrAdmin && (
+              <Button
+                onClick={() => {
+                  setFormTopic("");
+                  setFormQuestions([
+                    {
+                      id: "q-1",
+                      questionNumber: 1,
+                      prompt: "",
+                      language: "c",
+                      maxMarks: 10,
+                      starterCode: DEFAULT_STARTER_CODES.c,
+                    },
+                  ]);
+                  setView("create");
+                }}
+                variant="primary"
+                size="md"
+                icon={<Plus className="w-4 h-4" />}
+              >
+                Create Quiz
+              </Button>
+            )}
           </div>
         </div>
 
@@ -887,9 +890,13 @@ export default function QuizzesPage() {
         {quizzes.length === 0 ? (
           <div className="bg-card p-12 text-center rounded-[16px] border border-dashed border-border space-y-3">
             <FileQuestion className="w-10 h-10 text-muted-foreground/50 mx-auto" />
-            <h3 className="text-base font-bold text-foreground">No Quizzes Created Yet</h3>
+            <h3 className="text-base font-bold text-foreground">
+              {isLecturerOrAdmin ? "No Quizzes Created Yet" : "No Quizzes Scheduled"}
+            </h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Click &quot;Create Quiz&quot; above to publish a practical coding quiz and set custom evaluation criteria for Gemini AI.
+              {isLecturerOrAdmin
+                ? "Click \"Create Quiz\" above to publish a practical coding quiz and set custom evaluation criteria for Gemini AI."
+                : "No quizzes are currently scheduled for your courses. Check back when your course lecturer publishes an assessment."}
             </p>
           </div>
         ) : (
@@ -948,17 +955,19 @@ export default function QuizzesPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-1">
-                    <Button
-                      onClick={() => {
-                        setActiveQuizId(quiz.id);
-                        setView("detail");
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 justify-center text-xs"
-                    >
-                      Review
-                    </Button>
+                    {isLecturerOrAdmin && (
+                      <Button
+                        onClick={() => {
+                          setActiveQuizId(quiz.id);
+                          setView("detail");
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 justify-center text-xs"
+                      >
+                        Review
+                      </Button>
+                    )}
 
                     <Button
                       onClick={() => handleStartTakingQuiz(quiz)}
@@ -967,17 +976,19 @@ export default function QuizzesPage() {
                       className="flex-1 justify-center text-xs"
                       iconRight={<Play className="w-3 h-3 fill-current" />}
                     >
-                      Take Quiz
+                      {isLecturerOrAdmin ? "Take Quiz" : "Attend Quiz"}
                     </Button>
 
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteQuiz(quiz.id, e)}
-                      className="p-2 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors shrink-0"
-                      title="Delete quiz"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {isLecturerOrAdmin && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteQuiz(quiz.id, e)}
+                        className="p-2 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors shrink-0"
+                        title="Delete quiz"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -992,6 +1003,21 @@ export default function QuizzesPage() {
   // RENDER SCREEN 2: CREATE QUIZ FORM
   // --------------------------------------------------------------------------
   const renderCreateView = () => {
+    if (!isLecturerOrAdmin) {
+      return (
+        <div className="bg-card border border-border rounded-[16px] p-8 text-center space-y-4 max-w-lg mx-auto my-12 shadow-sm">
+          <ShieldAlert className="w-10 h-10 text-amber-500 mx-auto" />
+          <h3 className="text-lg font-bold text-foreground">Access Restricted</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Students cannot author or publish quizzes. You may only participate in quizzes published by your course lecturer.
+          </p>
+          <Button onClick={() => setView("list")} variant="primary" size="sm">
+            Back to Quizzes
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Breadcrumb */}
@@ -1623,6 +1649,26 @@ export default function QuizzesPage() {
   // --------------------------------------------------------------------------
   const renderDetailView = () => {
     if (!activeQuiz) return null;
+
+    if (!isLecturerOrAdmin) {
+      const mySub = activeQuiz.submissions.find(
+        (s) => s.studentEmail?.toLowerCase() === activeStudentEmail?.toLowerCase()
+      );
+      if (!mySub) {
+        return (
+          <div className="bg-card border border-border rounded-[16px] p-8 text-center space-y-4 max-w-lg mx-auto my-12 shadow-sm">
+            <ShieldAlert className="w-10 h-10 text-amber-500 mx-auto" />
+            <h3 className="text-lg font-bold text-foreground">Access Restricted</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Faculty evaluation terminals and overall cohort submissions are reserved for course lecturers.
+            </p>
+            <Button onClick={() => setView("list")} variant="primary" size="sm">
+              Back to Quizzes
+            </Button>
+          </div>
+        );
+      }
+    }
 
     const totalSubmissions = activeQuiz.submissions.length;
     const evaluatedCount = activeQuiz.submissions.filter((s) => s.evaluation).length;
