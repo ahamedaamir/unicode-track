@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS public.lecturers (
 -- 2.4 Students Table (Compatible with Supabase Auth or Standalone UUID)
 CREATE TABLE IF NOT EXISTS public.students (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    student_id VARCHAR(50) UNIQUE,
+    student_id VARCHAR(100) UNIQUE,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     department_id VARCHAR(50),
@@ -71,6 +71,10 @@ CREATE TABLE IF NOT EXISTS public.students (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
+
+-- Ensure student_id column and unique index exist for existing databases
+ALTER TABLE IF EXISTS public.students ADD COLUMN IF NOT EXISTS student_id VARCHAR(100);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_students_student_id ON public.students(student_id);
 
 -- ==============================================================================
 -- 3. PROJECTS & ACADEMIC GROUP WORKSPACES

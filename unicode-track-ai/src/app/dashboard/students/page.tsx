@@ -20,7 +20,8 @@ import {
   Power, 
   EyeOff, 
   Sparkles,
-  Filter
+  Filter,
+  Hash
 } from "lucide-react";
 import { useAdminData } from "@/context/AdminDataContext";
 import { Student } from "@/types/admin";
@@ -63,6 +64,7 @@ export default function StudentsPage() {
 
   // Add Student Form State
   const [addForm, setAddForm] = useState({
+    studentId: "",
     fullName: "",
     email: "",
     departmentId: "",
@@ -76,6 +78,7 @@ export default function StudentsPage() {
 
   // Edit Student Form State
   const [editForm, setEditForm] = useState({
+    studentId: "",
     fullName: "",
     email: "",
     departmentId: "",
@@ -96,6 +99,7 @@ export default function StudentsPage() {
     const matchesSearch =
       std.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       std.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (std.studentId && std.studentId.toLowerCase().includes(searchQuery.toLowerCase())) ||
       getDeptName(std.departmentId).toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesDept =
@@ -113,6 +117,7 @@ export default function StudentsPage() {
   // Open Add Student Modal
   const handleOpenAddModal = () => {
     setAddForm({
+      studentId: "",
       fullName: "",
       email: "",
       departmentId: departments.length > 0 ? departments[0].id : "",
@@ -128,6 +133,19 @@ export default function StudentsPage() {
   // Validate Add Student Form
   const validateAddForm = () => {
     const errs: Record<string, string> = {};
+
+    if (!addForm.studentId.trim()) {
+      errs.studentId = "Student ID / Reg No is required.";
+    } else if (
+      students.some(
+        (s) =>
+          s.studentId &&
+          s.studentId.toLowerCase() === addForm.studentId.trim().toLowerCase()
+      )
+    ) {
+      errs.studentId = "A student with this Student ID is already registered.";
+    }
+
     if (!addForm.fullName.trim()) {
       errs.fullName = "Full Name is required.";
     }
@@ -175,6 +193,7 @@ export default function StudentsPage() {
     if (!validateAddForm()) return;
 
     const result = addStudent({
+      studentId: addForm.studentId.trim(),
       fullName: addForm.fullName,
       email: addForm.email,
       departmentId: addForm.departmentId,
@@ -195,6 +214,7 @@ export default function StudentsPage() {
   const handleOpenEditModal = (student: Student) => {
     setEditingStudent(student);
     setEditForm({
+      studentId: student.studentId || "",
       fullName: student.fullName,
       email: student.email,
       departmentId: student.departmentId,
@@ -211,6 +231,19 @@ export default function StudentsPage() {
     if (!editingStudent) return;
 
     const errs: Record<string, string> = {};
+    if (!editForm.studentId.trim()) {
+      errs.studentId = "Student ID / Reg No is required.";
+    } else if (
+      students.some(
+        (s) =>
+          s.id !== editingStudent.id &&
+          s.studentId &&
+          s.studentId.toLowerCase() === editForm.studentId.trim().toLowerCase()
+      )
+    ) {
+      errs.studentId = "Student ID is already taken by another student.";
+    }
+
     if (!editForm.fullName.trim()) errs.fullName = "Full Name is required.";
     if (!editForm.email.trim()) {
       errs.email = "Email is required.";
@@ -235,6 +268,7 @@ export default function StudentsPage() {
     }
 
     const res = editStudent(editingStudent.id, {
+      studentId: editForm.studentId.trim(),
       fullName: editForm.fullName,
       email: editForm.email,
       departmentId: editForm.departmentId,
@@ -441,9 +475,16 @@ export default function StudentsPage() {
                           </div>
                         )}
                         <div>
-                          <p className="font-bold text-foreground group-hover:text-accent transition-colors">
-                            {std.fullName}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-foreground group-hover:text-accent transition-colors">
+                              {std.fullName}
+                            </p>
+                            {std.studentId && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-muted text-accent border border-border">
+                                {std.studentId}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[11px] text-muted-foreground font-mono block">
                             {std.email}
                           </span>
@@ -577,6 +618,35 @@ export default function StudentsPage() {
             )}
 
             <form onSubmit={handleAddSubmit} className="space-y-4">
+              {/* Field 0: Student ID / Reg No */}
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Student ID / Registration No <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={addForm.studentId}
+                    onChange={(e) => {
+                      setAddForm({ ...addForm, studentId: e.target.value });
+                      if (addErrors.studentId) setAddErrors((prev) => ({ ...prev, studentId: "" }));
+                    }}
+                    placeholder="e.g. TG/2021/042 or IT21045230"
+                    className={`w-full px-3.5 py-2.5 pl-9 rounded-xl border text-xs text-foreground bg-card focus:outline-none focus:ring-2 font-mono ${
+                      addErrors.studentId
+                        ? "border-rose-300 focus:ring-rose-500"
+                        : "border-border focus:ring-accent focus:border-accent focus:border-transparent"
+                    }`}
+                  />
+                  <Hash className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
+                </div>
+                {addErrors.studentId && (
+                  <p className="mt-1 text-[11px] text-rose-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {addErrors.studentId}
+                  </p>
+                )}
+              </div>
+
               {/* Field 1: Full Name */}
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
@@ -804,6 +874,15 @@ export default function StudentsPage() {
 
             {/* Confirmation Summary Card */}
             <div className="p-4 rounded-xl bg-muted border border-border space-y-2.5 text-xs">
+              {successCreatedStudent.studentId && (
+                <div className="flex justify-between items-center py-1 border-b border-border/60">
+                  <span className="text-muted-foreground font-medium">Student ID / Reg No</span>
+                  <span className="font-mono font-bold text-accent bg-card px-2 py-0.5 rounded border border-border">
+                    {successCreatedStudent.studentId}
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between items-center py-1 border-b border-border/60">
                 <span className="text-muted-foreground font-medium">Student Full Name</span>
                 <span className="font-bold text-foreground">{successCreatedStudent.fullName}</span>
@@ -924,6 +1003,15 @@ export default function StudentsPage() {
 
             {/* Profile Overview Details */}
             <div className="space-y-2.5 text-xs">
+              {detailsStudent.studentId && (
+                <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
+                  <span className="text-muted-foreground font-medium">Student ID / Reg No</span>
+                  <span className="font-mono font-bold text-accent bg-card px-2.5 py-0.5 rounded border border-border">
+                    {detailsStudent.studentId}
+                  </span>
+                </div>
+              )}
+
               <div className="p-3 rounded-xl bg-muted border border-border flex justify-between items-center">
                 <span className="text-muted-foreground font-medium">Department</span>
                 <span className="font-semibold text-foreground text-right max-w-[220px] truncate">
@@ -1031,6 +1119,27 @@ export default function StudentsPage() {
             )}
 
             <form onSubmit={handleEditSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-foreground mb-1">
+                  Student ID / Registration No <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={editForm.studentId}
+                    onChange={(e) => {
+                      setEditForm({ ...editForm, studentId: e.target.value });
+                      if (editErrors.studentId) setEditErrors((prev) => ({ ...prev, studentId: "" }));
+                    }}
+                    className="w-full px-3 py-2 pl-8 rounded-xl border border-border text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent font-mono"
+                  />
+                  <Hash className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-2.5" />
+                </div>
+                {editErrors.studentId && (
+                  <p className="mt-1 text-[11px] text-rose-600">{editErrors.studentId}</p>
+                )}
+              </div>
+
               <div>
                 <label className="block font-semibold text-foreground mb-1">
                   Full Name <span className="text-rose-500">*</span>
